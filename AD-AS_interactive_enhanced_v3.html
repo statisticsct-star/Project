@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AD–AS Interactive (Enhanced v3)</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e5e7eb;
+    --grid: #e5e7eb;
+    --primary: #2563eb;
+    --ad: #ef4444;
+    --sras: #3b82f6;
+    --lras: #10b981;
+    --gap-exp: #f59e0b;
+    --gap-con: #8b5cf6;
+    --chip: #f3f4f6;
+    --chip-text: #111827;
+    --kbd-bg: #f3f4f6;
+    --kbd-text: #111827;
+    --tooltip-bg: #111827;
+    --tooltip-fg: #ffffff;
+    --axis: #0f172a;
+  }
+  [data-theme="dark"] {
+    --bg: #000000;          /* full black per request */
+    --surface: #0d1117;     /* near-black cards */
+    --text: #e6edf3;        /* high-contrast text */
+    --muted: #9aa4b2;
+    --border: #1f2328;
+    --grid: #1f2937;
+    --primary: #60a5fa;
+    --chip: #0b0f14;
+    --chip-text: #e6edf3;
+    --kbd-bg: #0b0f14;
+    --kbd-text: #e6edf3;
+    --tooltip-bg: #111827;
+    --tooltip-fg: #ffffff;
+    --axis: #e6edf3;        /* axis flips to light */
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  html, body {
+    background: var(--bg);
+  }
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color: var(--text);
+  }
+
+  .shell {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  header.appbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .title {
+    font-weight: 750;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.05s ease, background 0.2s ease, border-color 0.2s ease;
+    user-select: none;
+  }
+  .btn:hover { background: #f8fafc10; }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  .btn.ghost {
+    background: transparent;
+  }
+  .btn.small { padding: 6px 10px; font-size: 13px; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  @media (max-width: 940px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .canvas-wrap {
+    padding: 10px;
+    border-radius: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .legend {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 6px 4px 10px;
+  }
+  .legend .item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .swatch {
+    width: 16px; height: 4px; border-radius: 2px;
+  }
+  .swatch.ad { background: var(--ad); }
+  .swatch.sras { background: var(--sras); }
+  .swatch.lras { background: var(--lras); }
+
+  canvas#adas {
+    width: 100%;
+    height: clamp(360px, 55vh, 580px);
+    display: block;
+    border-radius: 8px;
+    background: var(--surface);
+  }
+
+  .statusbar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .chip {
+    border: 1px solid var(--border);
+    background: var(--chip);
+    color: var(--chip-text);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+  .chip strong { font-variant-numeric: tabular-nums; }
+
+  .side {
+    display: grid;
+    gap: 12px;
+  }
+
+  .group h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .fieldrow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .range { width: 100%; }
+  input[type="range"] { width: 100%; }
+
+  .number {
+    width: 92px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  details.accordion {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  details.accordion + details.accordion { margin-top: 8px; }
+  details.accordion summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 12px;
+    background: linear-gradient(to bottom, #0000, #00000006);
+    font-weight: 600;
+    color: var(--text); /* ensure contrast in dark mode */
+    outline: none;
+  }
+  details.accordion summary::-webkit-details-marker { display: none; }
+  .panel {
+    padding: 10px 12px 12px;
+    border-top: 1px solid var(--border);
+    max-height: 320px;
+    overflow: auto;
+  }
+
+  .event-item {
+    cursor: pointer;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    transition: background-color 0.2s, border-color 0.2s;
+    position: relative;
+    font-size: 13px;
+    line-height: 1.35;
+    margin-bottom: 8px;
+    color: var(--text); /* explicit for dark mode contrast */
+  }
+  .event-item:hover { background-color: #ffffff12; } /* subtle in both themes */
+  .event-item .tip {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: 8px;
+    width: 220px;
+    padding: 8px;
+    background: var(--tooltip-bg);
+    color: var(--tooltip-fg);
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 20;
+    box-shadow: 0 6px 20px rgba(0,0,0,.35);
+  }
+  .event-item:hover .tip { display: block; }
+
+  .kbd {
+    background: var(--kbd-bg);
+    color: var(--kbd-text);
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  .footerbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  /* Scrollbar (WebKit) */
+  .panel::-webkit-scrollbar { width: 10px; height: 10px; }
+  .panel::-webkit-scrollbar-track { background: transparent; }
+  .panel::-webkit-scrollbar-thumb { background: #9ca3af55; border-radius: 8px; }
+
+  /* Focus ring for accessibility */
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="shell" id="appRoot" data-theme="light">
+  <header class="appbar">
+    <div class="title">
+      <div style="font-size:1.2rem;">AD–AS Interactive</div>
+      <div class="subtitle">Drag curves • Use presets • Export</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn ghost" id="themeBtn" title="Toggle light/dark (Shift+D)">
+        🌗 Theme
+      </button>
+      <button class="btn" id="helpBtn" title="Quick help (H)">❓ Help</button>
+      <button class="btn" id="resetBtn" title="Reset (R)">↺ Reset</button>
+      <button class="btn" id="undoBtn" title="Undo (Z)">↶ Undo</button>
+      <button class="btn" id="redoBtn" title="Redo (Y)">↷ Redo</button>
+      <button class="btn" id="playBtn" title="Play sequence">▶ Play</button>
+      <button class="btn" id="randomBtn" title="Random 10-step">🎲 Random</button>
+      <button class="btn primary" id="seriesBtn" title="Toggle time series (T)">Time Series</button>
+      <button class="btn" id="exportPngBtn" title="Download PNG (axes included)">⬇ PNG</button>
+      <button class="btn" id="exportCsvBtn" title="Download CSV">⬇ CSV</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div>
+      <div class="canvas-wrap">
+        <div class="legend" id="legend">
+          <div class="item"><span class="swatch ad"></span><span>AD</span></div>
+          <div class="item"><span class="swatch sras"></span><span>SRAS</span></div>
+          <div class="item"><span class="swatch lras"></span><span>LRAS</span></div>
+          <div class="item"><span class="kbd">A</span> / <span class="kbd">S</span> / <span class="kbd">L</span> to select; <span class="kbd">←</span>/<span class="kbd">→</span> to shift</div>
+        </div>
+        <canvas id="adas"></canvas>
+        <div class="statusbar">
+          <div class="chip">Selected: <strong id="selectedCurve">AD</strong></div>
+          <div class="chip">P* (price level): <strong id="pStar">—</strong></div>
+          <div class="chip">Y* (real GDP): <strong id="yStar">—</strong></div>
+          <div class="chip">Gap: <strong id="gapLabel">—</strong></div>
+        </div>
+      </div>
+
+      <div class="card" id="seriesCard" style="margin-top:12px; display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h3 style="margin:0;">Equilibrium Time Series</h3>
+          <div class="subtitle">Toggle with <span class="kbd">T</span></div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <canvas id="priceSeries" height="260"></canvas>
+          <canvas id="gdpSeries" height="260"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card group">
+        <h3>Quick Controls</h3>
+        <div class="fieldrow">
+          <label for="adRange">AD shift (px)</label>
+          <input id="adRange" class="range" type="range" min="-150" max="150" step="1" />
+          <input id="adInput" class="number" type="number" min="-150" max="150" step="1" />
+        </div>
+        <div class="fieldrow">
+          <label for="srasRange">SRAS shift (px)</label>
+          <input id="srasRange" class="range" type="range" min="-150" max="150" step="1" />
+          <input id="srasInput" class="number" type="number" min="-150" max="150" step="1" />
+        </div>
+        <div class="fieldrow">
+          <label for="lrasRange">LRAS position (Y<sub>p</sub>)</label>
+          <input id="lrasRange" class="range" type="range" min="100" max="160" step="1" />
+          <input id="lrasInput" class="number" type="number" min="100" max="160" step="1" />
+        </div>
+      </div>
+
+      <details class="accordion" open>
+        <summary>AD Shifters (fiscal/expectations)</summary>
+        <div class="panel" id="adPanel">
+          <div class="event-item" data-curve="AD" data-amount="25">Increase government spending<div class="tip">Expansionary fiscal policy shifts AD right.</div></div>
+          <div class="event-item" data-curve="AD" data-amount="25">Cut taxes<div class="tip">Lower taxes increase disposable income.</div></div>
+          <div class="event-item" data-curve="AD" data-amount="25">Improved global outlook<div class="tip">Positive expectations boost investment & net exports.</div></div>
+          <div class="event-item" data-curve="AD" data-amount="-25">Reduced confidence<div class="tip">Pessimism reduces consumption.</div></div>
+        </div>
+      </details>
+
+      <details class="accordion" open>
+        <summary>SRAS Shifters (costs/efficiency)</summary>
+        <div class="panel" id="srasPanel">
+          <div class="event-item" data-curve="SRAS" data-amount="-20">Natural disaster<div class="tip">Disrupts capacity → SRAS left.</div></div>
+          <div class="event-item" data-curve="SRAS" data-amount="-20">Supply chain issues<div class="tip">Higher costs → SRAS left.</div></div>
+          <div class="event-item" data-curve="SRAS" data-amount="-20">Increased regulation<div class="tip">Compliance costs reduce SRAS.</div></div>
+          <div class="event-item" data-curve="SRAS" data-amount="20">Improved efficiency<div class="tip">Lower unit costs → SRAS right.</div></div>
+          <div class="event-item" data-curve="SRAS" data-amount="20">Falling input costs<div class="tip">Cheaper resources increase SRAS.</div></div>
+        </div>
+      </details>
+
+      <details class="accordion" open>
+        <summary>LRAS Shifters (capacity)</summary>
+        <div class="panel" id="lrasPanel">
+          <div class="event-item" data-curve="LRAS" data-amount="15">Technology innovation<div class="tip">Higher productivity → LRAS right.</div></div>
+          <div class="event-item" data-curve="LRAS" data-amount="15">Increase in labor force<div class="tip">More workers → higher potential output.</div></div>
+          <div class="event-item" data-curve="LRAS" data-amount="15">Improved education<div class="tip">A more productive workforce.</div></div>
+          <div class="event-item" data-curve="LRAS" data-amount="-15">Resource depletion<div class="tip">Lower capacity → LRAS left.</div></div>
+        </div>
+      </details>
+
+      <div class="card">
+        <h3>Presets</h3>
+        <div class="footerbar">
+          <button class="btn small" data-preset="boom">Demand Boom</button>
+          <button class="btn small" data-preset="slump">Demand Slump</button>
+          <button class="btn small" data-preset="stagflation">Stagflation</button>
+          <button class="btn small" data-preset="productivity">Productivity Shock</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help modal (simple) -->
+  <dialog id="helpDialog" style="max-width:760px; width:92%; border: 1px solid var(--border); border-radius: 12px; padding: 0;">
+    <div class="card" style="border:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0;">Quick Help</h3>
+        <button class="btn ghost" id="closeHelp">✖</button>
+      </div>
+      <ul>
+        <li>Drag <strong>AD</strong>, <strong>SRAS</strong>, or <strong>LRAS</strong> on the canvas to shift them.</li>
+        <li>Select a curve with <span class="kbd">A</span>/<span class="kbd">S</span>/<span class="kbd">L</span>, then use <span class="kbd">←</span>/<span class="kbd">→</span> to nudge.</li>
+        <li>Use the sliders or click preset events to simulate shocks.</li>
+        <li><span class="kbd">R</span> Reset, <span class="kbd">Z</span>/<span class="kbd">Y</span> Undo/Redo, <span class="kbd">T</span> toggle time series, <span class="kbd">Shift+D</span> toggle theme.</li>
+        <li>Export the chart as <strong>PNG</strong> (axes included) or the time series as <strong>CSV</strong>.</li>
+      </ul>
+    </div>
+  </dialog>
+</div>
+
+<script>
+/* ---------- Globals & State ---------- */
+const root = document.getElementById('appRoot');
+const canvas = document.getElementById('adas');
+const ctx = canvas.getContext('2d');
+let width, height, dpr;
+
+const padding = 56;
+const GDP_MIN = 100, GDP_MAX = 160;   // GDP scale in model units
+let adShift = 0;     // horizontal shift (px)
+let srasShift = 0;   // horizontal shift (px)
+let lrasGDP = 130;   // LRAS in GDP units (shown to user)
+let lrasX;           // computed from lrasGDP
+let initialLRASGDP = 130;
+let initialLRASX;
+let timeSeries = [];
+let t = 0;
+let activeCurve = 'AD'; // 'AD' | 'SRAS' | 'LRAS'
+let history = [];
+let future = [];
+
+function pushHistory() {
+  history.push({ adShift, srasShift, lrasGDP, timeSeries: [...timeSeries], t });
+  if (history.length > 250) history.shift();
+  future = [];
+}
+function undo() {
+  if (!history.length) return;
+  const prev = history.pop();
+  future.push({ adShift, srasShift, lrasGDP, timeSeries: [...timeSeries], t });
+  adShift = prev.adShift; srasShift = prev.srasShift; lrasGDP = prev.lrasGDP;
+  timeSeries = [...prev.timeSeries]; t = prev.t;
+  syncControls(); draw();
+}
+function redo() {
+  if (!future.length) return;
+  const next = future.pop();
+  history.push({ adShift, srasShift, lrasGDP, timeSeries: [...timeSeries], t });
+  adShift = next.adShift; srasShift = next.srasShift; lrasGDP = next.lrasGDP;
+  timeSeries = [...next.timeSeries]; t = next.t;
+  syncControls(); draw();
+}
+
+/* ---------- Responsive canvas ---------- */
+function resizeCanvas() {
+  dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+  const cssW = canvas.clientWidth;
+  const cssH = canvas.clientHeight;
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  width = cssW;
+  height = cssH;
+  initialLRASX = gdpToX(initialLRASGDP);
+  lrasX = gdpToX(lrasGDP);
+  syncControls();
+  draw();
+}
+window.addEventListener('resize', resizeCanvas);
+
+/* ---------- Mappings ---------- */
+function xToGDP(x) {
+  return GDP_MIN + ((x - padding) / (width - 2 * padding)) * (GDP_MAX - GDP_MIN);
+}
+function gdpToX(gdp) {
+  return padding + ((gdp - GDP_MIN) / (GDP_MAX - GDP_MIN)) * (width - 2 * padding);
+}
+function mapYToPriceLevel(y) {
+  // Top (padding) => 100, Bottom (height - padding) => 0
+  const val = 100 * (1 - (y - padding) / (height - 2 * padding));
+  return Math.round(val * 100) / 100;
+}
+function mapXToGDP(x) {
+  const val = GDP_MIN + ((x - padding) / (width - 2 * padding)) * (GDP_MAX - GDP_MIN);
+  return Math.round(val * 100) / 100;
+}
+
+/* ---------- Geometry ---------- */
+function adLine(shift) {
+  const x1 = padding + 40 + shift;
+  const y1 = padding + 20;
+  const x2 = width - padding - 40 + shift;
+  const y2 = height - padding - 20;
+  return { x1, y1, x2, y2 };
+}
+function srasLine(shift) {
+  const x1 = padding + 40 + shift;
+  const y1 = height - padding - 20;
+  const x2 = width - padding - 40 + shift;
+  const y2 = padding + 20;
+  return { x1, y1, x2, y2 };
+}
+function findIntersection() {
+  const A = adLine(adShift);
+  const S = srasLine(srasShift);
+  const x1 = A.x1, y1 = A.y1, x2 = A.x2, y2 = A.y2;
+  const x3 = S.x1, y3 = S.y1, x4 = S.x2, y4 = S.y2;
+  const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+  if (denom === 0) return { x: width/2, y: height/2 };
+  const px = ((x1*y2 - y1*x2)*(x3 - x4) - (x1 - x2)*(x3*y4 - y3*x4)) / denom;
+  const py = ((x1*y2 - y1*x2)*(y3 - y4) - (y1 - y2)*(x3*y4 - y3*x4)) / denom;
+  return { x: px, y: py };
+}
+
+/* ---------- Drawing ---------- */
+function clear() {
+  // Subtle canvas gradient background so PNG looks good in both themes
+  const g = ctx.createLinearGradient(0, 0, 0, height);
+  const themeDark = root.getAttribute('data-theme') === 'dark';
+  g.addColorStop(0, themeDark ? '#0c1117' : '#ffffff');
+  g.addColorStop(1, themeDark ? '#000000' : '#f7fafc');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, width, height);
+}
+
+function drawAxes(grid=true) {
+  ctx.save();
+  // axis lines
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = getCss('--axis');
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, height - padding);
+  ctx.lineTo(width - padding, height - padding);
+  ctx.stroke();
+
+  // Ticks + labels
+  ctx.font = "12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.fillStyle = getCss('--axis');
+  ctx.textAlign = 'right';
+  for (let i=0;i<=5;i++) {
+    const y = padding + i * ((height - 2*padding)/5);
+    const label = String(100 - i*20);
+    ctx.beginPath();
+    ctx.moveTo(padding - 4, y);
+    ctx.lineTo(padding, y);
+    ctx.stroke();
+    ctx.fillText(label, padding - 8, y + 4);
+    if (grid && i>0 && i<5) {
+      ctx.strokeStyle = getCss('--grid');
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(width - padding, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = getCss('--axis');
+      ctx.lineWidth = 1.5;
+    }
+  }
+  ctx.textAlign = 'center';
+  for (let i=0;i<=5;i++) {
+    const x = padding + i * ((width - 2*padding)/5);
+    const label = String(GDP_MIN + i*((GDP_MAX - GDP_MIN)/5));
+    ctx.beginPath();
+    ctx.moveTo(x, height - padding);
+    ctx.lineTo(x, height - padding + 4);
+    ctx.stroke();
+    ctx.fillText(label, x, height - padding + 16);
+    if (grid && i>0 && i<5) {
+      ctx.strokeStyle = getCss('--grid');
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      ctx.moveTo(x, padding);
+      ctx.lineTo(x, height - padding);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = getCss('--axis');
+      ctx.lineWidth = 1.5;
+    }
+  }
+
+  // Axis labels with halo for readability
+  const labelColor = getCss('--axis');
+  drawAxisLabel("Real GDP (Y)", width/2, height - 12, 0, labelColor);
+  drawAxisLabel("Price Level (P)", 18, height/2, -Math.PI/2, labelColor);
+
+  ctx.restore();
+}
+
+function drawAxisLabel(text, x, y, rot, color) {
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(rot);
+  // halo
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = root.getAttribute('data-theme') === 'dark' ? 'rgba(0,0,0,.5)' : 'rgba(255,255,255,.7)';
+  ctx.font = "14px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
+  ctx.strokeText(text, 0, 0);
+  // text
+  ctx.fillStyle = color;
+  ctx.fillText(text, 0, 0);
+  ctx.restore();
+}
+
+function drawLine(x1,y1,x2,y2,color,label, dashed=false) {
+  ctx.save();
+  // glow underlay for contrast
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = root.getAttribute('data-theme') === 'dark' ? 'rgba(0,0,0,.4)' : 'rgba(255,255,255,.7)';
+  ctx.setLineDash([]);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+  ctx.lineTo(x2,y2);
+  ctx.stroke();
+
+  // main line
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = color;
+  if (dashed) ctx.setLineDash([7,4]);
+  ctx.beginPath();
+  ctx.moveTo(x1,y1);
+  ctx.lineTo(x2,y2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // label with pill background
+  drawCurveLabel(label, x1 + 10, y1 - 10, color);
+  ctx.restore();
+}
+
+function drawCurveLabel(text, x, y, color) {
+  ctx.save();
+  ctx.font = "12px ui-sans-serif, system-ui";
+  const metrics = ctx.measureText(text);
+  const w = metrics.width + 10;
+  const h = 18;
+  const r = 8;
+  const themeDark = root.getAttribute('data-theme') === 'dark';
+  ctx.fillStyle = themeDark ? 'rgba(0,0,0,.45)' : 'rgba(255,255,255,.75)';
+  roundRect(ctx, x-5, y-14, w, h, r);
+  ctx.fill();
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function drawCurveSet() {
+  // Initials (solid)
+  const A0 = adLine(0);
+  drawLine(A0.x1, A0.y1, A0.x2, A0.y2, getCss('--ad'), "AD");
+  const S0 = srasLine(0);
+  drawLine(S0.x1, S0.y1, S0.x2, S0.y2, getCss('--sras'), "SRAS");
+  // LRAS baseline at Yp = 130
+  drawLine(initialLRASX, padding, initialLRASX, height - padding, getCss('--lras'), "LRAS");
+
+  // Shifted (dashed) if any shift
+  if (adShift !== 0) {
+    const A = adLine(adShift);
+    drawLine(A.x1, A.y1, A.x2, A.y2, getCss('--ad'), "AD'", true);
+  }
+  if (srasShift !== 0) {
+    const S = srasLine(srasShift);
+    drawLine(S.x1, S.y1, S.x2, S.y2, getCss('--sras'), "SRAS'", true);
+  }
+  if (Math.abs(lrasGDP - initialLRASGDP) > 0.5) {
+    const lx = gdpToX(lrasGDP);
+    drawLine(lx, padding, lx, height - padding, getCss('--lras'), "LRAS'", true);
+  }
+}
+
+function drawEquilibrium() {
+  const eq = findIntersection();
+  // Drop lines to axes
+  ctx.save();
+  ctx.setLineDash([3,5]);
+  ctx.strokeStyle = getCss('--muted');
+  ctx.beginPath();
+  ctx.moveTo(eq.x, eq.y);
+  ctx.lineTo(eq.x, height - padding);
+  ctx.moveTo(eq.x, eq.y);
+  ctx.lineTo(padding, eq.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Gap indicator
+  const lX = gdpToX(lrasGDP);
+  const isExp = eq.x > lX + 4;
+  const isCon = eq.x < lX - 4;
+  if (isExp || isCon) {
+    ctx.setLineDash([5, 6]);
+    ctx.strokeStyle = isExp ? getCss('--gap-exp') : getCss('--gap-con');
+    ctx.beginPath();
+    ctx.moveTo(eq.x, eq.y);
+    ctx.lineTo(lX, eq.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    const midX = (eq.x + lX)/2;
+    drawCurveLabel(isExp ? "Expansionary gap" : "Contractionary gap", midX - 30, eq.y - 10, isExp ? getCss('--gap-exp') : getCss('--gap-con'));
+  }
+
+  // Equilibrium point
+  ctx.fillStyle = getCss('--axis');
+  ctx.beginPath();
+  ctx.arc(eq.x, eq.y, 4, 0, Math.PI*2);
+  ctx.fill();
+
+  // Labels P* and Y*
+  ctx.fillStyle = getCss('--axis');
+  ctx.font = "12px ui-sans-serif, system-ui";
+  ctx.fillText("P*", padding + 6, eq.y - 6);
+  ctx.fillText("Y*", eq.x + 6, height - padding - 6);
+
+  // Update HUD
+  document.getElementById('pStar').textContent = mapYToPriceLevel(eq.y).toFixed(2);
+  document.getElementById('yStar').textContent = mapXToGDP(eq.x).toFixed(2);
+  const gapText = isExp ? "Above potential (expansionary)" : (isCon ? "Below potential (contractionary)" : "At potential");
+  document.getElementById('gapLabel').textContent = gapText;
+
+  ctx.restore();
+}
+
+function draw() {
+  clear();
+  drawAxes(true);
+  drawCurveSet();
+  drawEquilibrium();
+}
+
+/* ---------- Interactions ---------- */
+let dragging = null;
+let lastX = 0;
+
+canvas.addEventListener('pointerdown', (e) => {
+  const { x, y } = pointFromEvent(e);
+  const near = pickCurveAt(x, y);
+  if (near) {
+    activeCurve = near;
+    dragging = near;
+    lastX = x;
+    updateSelected();
+    canvas.setPointerCapture(e.pointerId);
+  }
+});
+canvas.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  const { x } = pointFromEvent(e);
+  const dx = x - lastX;
+  lastX = x;
+  applyShift(dragging, dx, true);
+});
+canvas.addEventListener('pointerup', (e) => {
+  if (dragging) {
+    dragging = null;
+    recordTimeSeries();
+    pushHistory();
+  }
+  canvas.releasePointerCapture?.(e.pointerId);
+});
+
+function pointFromEvent(e) {
+  const rect = canvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+// Hit-testing close to a line or LRAS
+function pickCurveAt(x, y) {
+  const A = adLine(adShift);
+  const S = srasLine(srasShift);
+  const ldx = Math.abs(x - gdpToX(lrasGDP));
+  if (distanceToLine(x,y,A.x1,A.y1,A.x2,A.y2) < 8) return 'AD';
+  if (distanceToLine(x,y,S.x1,S.y1,S.x2,S.y2) < 8) return 'SRAS';
+  if (ldx < 10) return 'LRAS';
+  return null;
+}
+function distanceToLine(px,py,x1,y1,x2,y2) {
+  const A = px - x1, B = py - y1, C = x2 - x1, D = y2 - y1;
+  const dot = A*C + B*D;
+  const len_sq = C*C + D*D;
+  let param = -1;
+  if (len_sq !== 0) param = dot / len_sq;
+  let xx, yy;
+  if (param < 0) { xx = x1; yy = y1; }
+  else if (param > 1) { xx = x2; yy = y2; }
+  else { xx = x1 + param * C; yy = y1 + param * D; }
+  const dx = px - xx, dy = py - yy;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+function applyShift(curve, dx, live=false) {
+  if (curve === 'AD') adShift += dx;
+  if (curve === 'SRAS') srasShift += dx;
+  if (curve === 'LRAS') {
+    // convert dx pixels to GDP units
+    const gdpDelta = (dx / (width - 2*padding)) * (GDP_MAX - GDP_MIN);
+    lrasGDP += gdpDelta;
+  }
+  clampState();
+  syncControls(live);
+  draw();
+}
+
+function clampState() {
+  const minX = padding + 20;
+  const maxX = width - padding - 20;
+  adShift = Math.max(-300, Math.min(300, adShift));
+  srasShift = Math.max(-300, Math.min(300, srasShift));
+  lrasGDP = Math.max(GDP_MIN, Math.min(GDP_MAX, lrasGDP));
+  lrasX = gdpToX(lrasGDP);
+}
+
+function recordTimeSeries(curve = activeCurve, amount = 0) {
+  const eq = findIntersection();
+  timeSeries.push({
+    time: t++,
+    curve,
+    amount,
+    priceLevel: mapYToPriceLevel(eq.y),
+    gdp: mapXToGDP(eq.x)
+  });
+}
+
+/* ---------- Controls (sliders/inputs) ---------- */
+const adRange = document.getElementById('adRange');
+const srasRange = document.getElementById('srasRange');
+const lrasRange = document.getElementById('lrasRange');
+const adInput = document.getElementById('adInput');
+const srasInput = document.getElementById('srasInput');
+const lrasInput = document.getElementById('lrasInput');
+
+function syncControls(live=false) {
+  adRange.value = Math.round(adShift);
+  srasRange.value = Math.round(srasShift);
+  lrasRange.value = Math.round(lrasGDP);
+  adInput.value = Math.round(adShift);
+  srasInput.value = Math.round(srasShift);
+  lrasInput.value = Math.round(lrasGDP);
+  if (!live) updateSelected();
+}
+
+adRange.addEventListener('input', (e)=>{ activeCurve='AD'; adShift = +e.target.value; draw(); });
+adRange.addEventListener('change', ()=>{ recordTimeSeries('AD', 0); pushHistory(); });
+
+srasRange.addEventListener('input', (e)=>{ activeCurve='SRAS'; srasShift = +e.target.value; draw(); });
+srasRange.addEventListener('change', ()=>{ recordTimeSeries('SRAS', 0); pushHistory(); });
+
+lrasRange.addEventListener('input', (e)=>{ activeCurve='LRAS'; lrasGDP = +e.target.value; lrasX = gdpToX(lrasGDP); draw(); });
+lrasRange.addEventListener('change', ()=>{ recordTimeSeries('LRAS', 0); pushHistory(); });
+
+adInput.addEventListener('change', (e)=>{ activeCurve='AD'; adShift = +e.target.value||0; clampState(); syncControls(); draw(); recordTimeSeries('AD', 0); pushHistory(); });
+srasInput.addEventListener('change', (e)=>{ activeCurve='SRAS'; srasShift = +e.target.value||0; clampState(); syncControls(); draw(); recordTimeSeries('SRAS', 0); pushHistory(); });
+lrasInput.addEventListener('change', (e)=>{ activeCurve='LRAS'; lrasGDP = +e.target.value||lrasGDP; clampState(); syncControls(); draw(); recordTimeSeries('LRAS', 0); pushHistory(); });
+
+function updateSelected() {
+  document.getElementById('selectedCurve').textContent = activeCurve;
+}
+
+/* ---------- Buttons ---------- */
+document.getElementById('resetBtn').addEventListener('click', resetAll);
+document.getElementById('undoBtn').addEventListener('click', undo);
+document.getElementById('redoBtn').addEventListener('click', redo);
+document.getElementById('playBtn').addEventListener('click', playSequence);
+document.getElementById('randomBtn').addEventListener('click', playRandom);
+document.getElementById('seriesBtn').addEventListener('click', toggleSeries);
+document.getElementById('exportPngBtn').addEventListener('click', exportPNG);
+document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
+
+// Theme toggle
+document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+function toggleTheme() {
+  const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  draw();
+  // redraw series if visible
+  if (document.getElementById('seriesCard').style.display !== 'none') {
+    requestAnimationFrame(()=> drawSeries());
+  }
+}
+
+/* ---------- Help modal ---------- */
+const helpDialog = document.getElementById('helpDialog');
+document.getElementById('helpBtn').addEventListener('click', ()=>helpDialog.showModal());
+document.getElementById('closeHelp').addEventListener('click', ()=>helpDialog.close());
+
+/* ---------- Keyboard ---------- */
+window.addEventListener('keydown', (e)=>{
+  if (e.key === 'a' || e.key === 'A') { activeCurve = 'AD'; updateSelected(); }
+  if (e.key === 's' || e.key === 'S') { activeCurve = 'SRAS'; updateSelected(); }
+  if (e.key === 'l' || e.key === 'L') { activeCurve = 'LRAS'; updateSelected(); }
+
+  if (e.key === 'ArrowLeft') { applyShift(activeCurve, -5, true); }
+  if (e.key === 'ArrowRight') { applyShift(activeCurve, 5, true); }
+  if (e.key === 'r' || e.key === 'R') resetAll();
+  if (e.key === 'z' || e.key === 'Z') undo();
+  if (e.key === 'y' || e.key === 'Y') redo();
+  if (e.key === 't' || e.key === 'T') toggleSeries();
+  if (e.key === 'h' || e.key === 'H') helpDialog.open ? helpDialog.close() : helpDialog.showModal();
+  if (e.key === 'D' && e.shiftKey) toggleTheme();
+});
+
+/* ---------- Events panel wiring ---------- */
+document.querySelectorAll('.event-item').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const curve = el.getAttribute('data-curve');
+    const amount = Number(el.getAttribute('data-amount'));
+    // flash border
+    el.style.borderColor = getCss('--primary');
+    setTimeout(()=> el.style.borderColor = getCss('--border'), 220);
+    if (curve === 'LRAS') {
+      lrasGDP += amount;  // now in GDP units
+    } else if (curve === 'AD') {
+      adShift += amount;  // px
+    } else {
+      srasShift += amount; // px
+    }
+    clampState();
+    activeCurve = curve;
+    draw();
+    recordTimeSeries(curve, amount);
+    pushHistory();
+    syncControls();
+  });
+});
+
+/* ---------- Presets ---------- */
+document.querySelectorAll('[data-preset]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const type = btn.getAttribute('data-preset');
+    pushHistory();
+    if (type === 'boom') { adShift += 50; }
+    if (type === 'slump') { adShift -= 50; }
+    if (type === 'stagflation') { adShift -= 20; srasShift -= 40; }
+    if (type === 'productivity') { lrasGDP += 10; srasShift += 25; }
+    clampState();
+    activeCurve = 'AD';
+    draw();
+    recordTimeSeries('Preset', 0);
+    syncControls();
+  });
+});
+
+/* ---------- Time Series Charts (canvas) ---------- */
+const priceSeries = document.getElementById('priceSeries').getContext('2d');
+const gdpSeries = document.getElementById('gdpSeries').getContext('2d');
+
+function toggleSeries() {
+  const card = document.getElementById('seriesCard');
+  const showing = card.style.display !== 'none';
+  card.style.display = showing ? 'none' : 'block';
+  if (!showing) {
+    // wait for layout to settle to avoid distortion
+    requestAnimationFrame(()=> drawSeries());
+  }
+}
+function drawSeries() {
+  drawSeriesChart(priceSeries.canvas, "Equilibrium Price Level (P*)", timeSeries.map(d=>d.time), timeSeries.map(d=>d.priceLevel), false, "P*");
+  drawSeriesChart(gdpSeries.canvas, "Equilibrium Real GDP (Y*)", timeSeries.map(d=>d.time), timeSeries.map(d=>d.gdp), true, "Y*");
+}
+function drawSeriesChart(canvasEl, title, times, values, fixedGDP=false, yLabel="") {
+  const ctx2 = canvasEl.getContext('2d');
+  const dpr2 = Math.max(1, window.devicePixelRatio||1);
+  // Size to CSS box * DPR then draw in CSS coordinates
+  canvasEl.width = Math.round(canvasEl.clientWidth * dpr2);
+  canvasEl.height = Math.round(canvasEl.clientHeight * dpr2);
+  ctx2.setTransform(dpr2,0,0,dpr2,0,0);
+  const w = canvasEl.clientWidth, h = canvasEl.clientHeight;
+
+  // Background
+  const g = ctx2.createLinearGradient(0, 0, 0, h);
+  const themeDark = root.getAttribute('data-theme') === 'dark';
+  g.addColorStop(0, themeDark ? '#0e1319' : '#ffffff');
+  g.addColorStop(1, themeDark ? '#000000' : '#f8fafc');
+  ctx2.fillStyle = g;
+  ctx2.fillRect(0, 0, w, h);
+
+  const padL = 42, padR = 14, padT = 30, padB = 34;
+  const gw = w - (padL + padR);
+  const gh = h - (padT + padB);
+
+  // Axes
+  ctx2.strokeStyle = getCss('--axis');
+  ctx2.lineWidth = 1.25;
+  ctx2.beginPath();
+  ctx2.moveTo(padL, padT);
+  ctx2.lineTo(padL, h - padB);
+  ctx2.lineTo(w - padR, h - padB);
+  ctx2.stroke();
+
+  // Title
+  ctx2.fillStyle = getCss('--axis');
+  ctx2.font = "14px ui-sans-serif, system-ui";
+  ctx2.textAlign = "center";
+  ctx2.fillText(title, w/2, 18);
+
+  // Ranges
+  let minV, maxV;
+  if (fixedGDP) { minV = GDP_MIN; maxV = GDP_MAX; }
+  else {
+    if (values.length === 0) { minV = 0; maxV = 100; }
+    else {
+      minV = Math.min(...values);
+      maxV = Math.max(...values);
+      minV = Math.max(0, Math.floor(minV - 5));
+      maxV = Math.ceil(maxV + 5);
+      if (minV === maxV) { minV = Math.max(0, minV - 1); maxV += 1; }
+    }
+  }
+  const range = Math.max(1, maxV - minV);
+  const maxT = Math.max(1, Math.max(0, ...times));
+
+  // Grid
+  ctx2.setLineDash([4,6]);
+  ctx2.strokeStyle = getCss('--grid');
+  for (let i=1;i<5;i++) {
+    const y = padT + (i/5)*gh;
+    ctx2.beginPath(); ctx2.moveTo(padL, y); ctx2.lineTo(w - padR, y); ctx2.stroke();
+  }
+  ctx2.setLineDash([]);
+
+  // Y ticks + labels
+  ctx2.fillStyle = getCss('--axis');
+  ctx2.font = "11px ui-sans-serif, system-ui";
+  ctx2.textAlign = 'right';
+  const steps = 5;
+  for (let i=0;i<=steps;i++) {
+    const val = minV + (i/steps)*range;
+    const y = h - padB - ((val - minV)/range)*gh;
+    ctx2.beginPath(); ctx2.moveTo(padL - 4, y); ctx2.lineTo(padL, y); ctx2.strokeStyle = getCss('--axis'); ctx2.stroke();
+    ctx2.fillText((fixedGDP ? val : val).toFixed(0), padL - 8, y + 3);
+  }
+
+  // X ticks + labels (Time)
+  ctx2.textAlign = 'center';
+  for (let i=0;i<=maxT;i++) {
+    const x = padL + (i/maxT)*gw;
+    ctx2.beginPath(); ctx2.moveTo(x, h - padB); ctx2.lineTo(x, h - padB + 4); ctx2.strokeStyle = getCss('--axis'); ctx2.stroke();
+    ctx2.fillText(String(i), x, h - padB + 14);
+  }
+
+  // Axis labels (requested)
+  // X label
+  ctx2.font = "12px ui-sans-serif, system-ui";
+  ctx2.fillStyle = getCss('--axis');
+  ctx2.fillText("Time (steps)", w/2, h - 6);
+  // Y label (rotated)
+  ctx2.save();
+  ctx2.translate(14, padT + gh/2);
+  ctx2.rotate(-Math.PI/2);
+  ctx2.fillText(yLabel, 0, 0);
+  ctx2.restore();
+
+  // Line + points
+  if (values.length > 0) {
+    ctx2.lineWidth = 2;
+    ctx2.strokeStyle = fixedGDP ? getCss('--sras') : getCss('--ad');
+    ctx2.fillStyle = ctx2.strokeStyle;
+    ctx2.beginPath();
+    for (let i=0;i<times.length;i++) {
+      const x = padL + (times[i]/maxT)*gw;
+      const y = h - padB - ((values[i]-minV)/range)*gh;
+      if (i===0) ctx2.moveTo(x,y); else ctx2.lineTo(x,y);
+    }
+    ctx2.stroke();
+    for (let i=0;i<times.length;i++) {
+      const x = padL + (times[i]/maxT)*gw;
+      const y = h - padB - ((values[i]-minV)/range)*gh;
+      ctx2.beginPath(); ctx2.arc(x,y,3,0,Math.PI*2); ctx2.fill();
+    }
+  }
+}
+
+/* ---------- Animations ---------- */
+let animTimer = null;
+function playSequence() {
+  if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+  const events = Array.from(document.querySelectorAll('.event-item'));
+  let i = 0;
+  resetAll(false);
+  function step() {
+    if (i >= events.length) return;
+    const el = events[i++];
+    el.click();
+    animTimer = setTimeout(step, 1000);
+  }
+  step();
+}
+function playRandom() {
+  if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+  const events = Array.from(document.querySelectorAll('.event-item'));
+  let i = 0;
+  resetAll(false);
+  function step() {
+    if (i >= 10) return;
+    const el = events[Math.floor(Math.random()*events.length)];
+    el.click();
+    i++;
+    animTimer = setTimeout(step, 900);
+  }
+  step();
+}
+
+/* ---------- Export ---------- */
+function exportPNG() {
+  // Ensure the latest render is on the main canvas
+  draw();
+  // Create an offscreen canvas with a solid theme-aware background so axes are visible
+  const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
+  const scale = 2; // crisp export
+  const off = document.createElement('canvas');
+  off.width = cssW * scale;
+  off.height = cssH * scale;
+  const offctx = off.getContext('2d');
+  // Fill background gradient like main
+  const g = offctx.createLinearGradient(0, 0, 0, off.height);
+  const themeDark = root.getAttribute('data-theme') === 'dark';
+  g.addColorStop(0, themeDark ? '#0c1117' : '#ffffff');
+  g.addColorStop(1, themeDark ? '#000000' : '#f7fafc');
+  offctx.fillStyle = g;
+  offctx.fillRect(0, 0, off.width, off.height);
+  // Draw the on-screen canvas into the offscreen at 2x
+  const sx = 0, sy = 0, sW = canvas.width, sH = canvas.height;
+  offctx.drawImage(canvas, sx, sy, sW, sH, 0, 0, off.width, off.height);
+  // Save
+  const data = off.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = data;
+  a.download = 'adas_chart.png';
+  a.click();
+}
+
+function exportCSV() {
+  const header = "time,curve,amount,price_level,gdp\n";
+  const rows = timeSeries.map(d => [d.time, d.curve, d.amount, d.priceLevel, d.gdp].join(','));
+  const blob = new Blob([header + rows.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'adas_timeseries.csv';
+  a.click();
+  setTimeout(()=> URL.revokeObjectURL(url), 1000);
+}
+
+/* ---------- Reset ---------- */
+function resetAll(push=true) {
+  adShift = 0;
+  srasShift = 0;
+  lrasGDP = initialLRASGDP;
+  timeSeries = [];
+  t = 0;
+  if (push) { history = []; future = []; pushHistory(); }
+  syncControls();
+  draw();
+  document.getElementById('seriesCard').style.display = 'none';
+}
+
+/* ---------- Helpers ---------- */
+function getCss(varName) {
+  return getComputedStyle(root).getPropertyValue(varName).trim();
+}
+
+/* ---------- Boot ---------- */
+resizeCanvas();
+resetAll(false);
+pushHistory();
+updateSelected();
+draw();
+
+</script>
+</body>
+</html>
