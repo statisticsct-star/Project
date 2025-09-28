@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactive AD-AS Diagram</title>
+    <style>
+        .ad-cursor { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><line x1="0" y1="8" x2="16" y2="8" stroke="%23ff0000" stroke-width="2"/></svg>') 8 8, ew-resize; }
+        .sras-cursor { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><line x1="0" y1="8" x2="16" y2="8" stroke="%230000ff" stroke-width="2"/></svg>') 8 8, ew-resize; }
+        .lras-cursor { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><line x1="0" y1="8" x2="16" y2="8" stroke="%23008000" stroke-width="2"/></svg>') 8 8, ew-resize; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .main-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .events-container {
+            width: 250px;
+            height: 500px; /* Matches canvas height */
+            display: flex;
+            flex-direction: column;
+        }
+        .events-panel {
+            flex: 1;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .panel-section {
+            margin-bottom: 15px;
+        }
+        .event-item {
+            cursor: pointer;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            transition: background-color 0.2s;
+            position: relative;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+        .event-item:hover {
+            background-color: #f0f0f0;
+        }
+        .event-item .tooltip {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            margin-left: 10px;
+            width: 200px;
+            padding: 8px;
+            background-color: #333;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 100;
+        }
+        .event-item:hover .tooltip {
+            display: block;
+        }
+        button {
+            padding: 8px 15px;
+            margin-right: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .panel-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+            background-color: #f9f9f9;
+            z-index: 1;
+        }
+        .time-series-container {
+            display: none;
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .time-series-graph {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .time-series-graph canvas {
+            width: 48%;
+            height: 250px;
+        }
+        .time-series-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        /* Custom scrollbar */
+        .events-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        .events-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .events-panel::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        .events-panel::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Interactive AD-AS Diagram</h1>
+    
+    <div class="controls">
+        <button onclick="resetGraph()">Reset</button>
+        <button onclick="playRandomAnimation()">Random Animation</button>
+        <button onclick="playAnimation()">Play Animation</button>
+        <button onclick="showTimeSeries()">Time Series</button>
+    </div>
+    
+    <div class="main-container">
+        <canvas id="adAsCanvas" width="700" height="500"></canvas>
+        
+        <div class="events-container">
+            <div class="events-panel">
+                <div class="panel-section">
+                    <div class="panel-title">AD Shifters</div>
+                    <div class="event-item" onclick="shiftCurve('AD', 25)">
+                        Increase government spending
+                        <div class="tooltip">Expansionary fiscal policy shifts AD right as government injects money into economy</div>
+                    </div>
+                    <div class="event-item" onclick="shiftCurve('AD', 25)">
+                        Cut taxes
+                        <div class="tooltip">Lower taxes increase disposable income, boosting consumption and AD</div>
+                    </div>
+                    <div class="event-item" onclick="shiftCurve('AD', 25)">
+                        Improved global outlook
+                        <div class="tooltip">Positive expectations increase investment and net exports, shifting AD right</div>
+                    </div>
+                    <div class="event-item" onclick="shiftCurve('AD', -25)">
+                        Reduced confidence
+                        <div class="tooltip">Pessimism leads to decreased consumption, shifting AD left</div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <div class="panel-title">SRAS Shifters</div>
+                    <div class="event-item" onclick="shiftCurve('SRAS', -20)">
+                        Natural disaster
+                        <div class="tooltip">Disrupts production capacity, decreasing SRAS</div>
+                    </div>
+                    <div class="event-item" onclick="shiftCurve('SRAS', -20)">
+                        Supply chain issues
+                        <div class="tooltip">Increases production costs, shifting SRAS left</div>
+                    </div>
+                    <div class="event-item" onclick="shiftCurve('SRAS', -20)">
+                        Increased regulation
+                        <div class="tooltip">Higher compliance costs reduce SRAS</div>
+                    </div>
+                    <div class="event-item" onclick="shiftCurve('SRAS', 20)">
+                        Improved efficiency
+                        <div class="tooltip">Lowers costs per unit, increasing SRAS</div>
+                    </div>
+                    <div class="event-item" onclick="shiftCurve('SRAS', 20)">
+                        Falling input costs
+                        <div class="tooltip">Cheaper resources allow more production at each price level</div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <div class="panel-title">LRAS Shifters</div>
+                    <div class="event-item" onclick="shiftCurve('LRAS', 15)">
+                        Technology innovation
+                        <div class="tooltip">Increases productive capacity of the economy</div>
+                    </div>
+                    <div class="event-item" onclick="shiftCurve('LRAS', 15)">
+                        Increase in labor force
+                        <div class="tooltip">More workers increase potential output</div>
+                    </div>
+                    <div class="event-item" onclick="shiftCurve('LRAS', 15)">
+                        Improved education
+                        <div class="tooltip">More productive workforce increases potential GDP</div>
+                    </div>
+                    <div class="event-item" onclick="shiftCurve('LRAS', -15)">
+                        Resource depletion
+                        <div class="tooltip">Reduces economy's productive capacity</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="time-series-container" id="timeSeriesContainer">
+        <div class="time-series-title">Time Series of Equilibrium Values</div>
+        <div class="time-series-graph">
+            <canvas id="priceLevelChart" width="350" height="250"></canvas>
+            <canvas id="gdpChart" width="350" height="250"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // [Previous JavaScript code remains exactly the same]
+        // Initialize canvas and context first
+        const canvas = document.getElementById("adAsCanvas");
+        const ctx = canvas.getContext("2d");
+        const width = canvas.width;
+        const height = canvas.height;
+
+        let adShift = 0;
+        let srasShift = 0;
+        const initialLRASX = width / 2;
+        let lrasX = initialLRASX;
+        let timeSeries = [];
+        let timeStep = 0;
+        let animationTimeout = null;
+
+        function findIntersection() {
+            const x1 = 100 + adShift;
+            const y1 = 100;
+            const x2 = width - 100 + adShift;
+            const y2 = height - 100;
+            const x3 = 100 + srasShift;
+            const y3 = height - 100;
+            const x4 = width - 100 + srasShift;
+            const y4 = 100;
+
+            const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (denom === 0) return { x: width / 2, y: height / 2 };
+
+            const px = ((x1 * y2 - y1 * x2)*(x3 - x4) - (x1 - x2)*(x3 * y4 - y3 * x4)) / denom;
+            const py = ((x1 * y2 - y1 * x2)*(y3 - y4) - (y1 - y2)*(x3 * y4 - y3 * x4)) / denom;
+
+            return { x: px, y: py };
+        }
+
+        function drawGraph() {
+            const equilibrium = findIntersection();
+                        
+            ctx.clearRect(0, 0, width, height);
+
+            const padding = 50;
+
+            // Draw axes
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+
+            // Draw vertical (Price Level) axis scalor
+            ctx.textAlign = "right";
+            ctx.font = "12px Arial";
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + i * ((height - 2 * padding) / 5);
+                const label = (100 - i * 20).toString();
+                ctx.fillText(label, padding - 5, y + 4);
+                ctx.beginPath();
+                ctx.moveTo(padding - 3, y);
+                ctx.lineTo(padding, y);
+                ctx.stroke();
+            }
+
+            // Draw horizontal (Real GDP) axis scalor
+            ctx.textAlign = "center";
+            for (let i = 0; i <= 5; i++) {
+                const x = padding + i * ((width - 2 * padding) / 5);
+                const label = (100 + i * 12).toString(); // Now 100-160 (increments of 12)
+                ctx.fillText(label, x, height - padding + 15);
+                ctx.beginPath();
+                ctx.moveTo(x, height - padding);
+                ctx.lineTo(x, height - padding + 3);
+                ctx.stroke();
+            }
+
+            // Axis labels
+            ctx.font = "14px Arial";
+            ctx.fillText("Real GDP (Y)", width / 2, height - 10);
+            ctx.save();
+            ctx.translate(15, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText("Price Level (P)", 0, 0);
+            ctx.restore();
+
+            drawAD(adShift);
+            drawSRAS(srasShift);
+            drawLRAS(lrasX);
+
+            // Indicate GDP gap if off LRAS
+            if (Math.abs(equilibrium.x - lrasX) > 5) {
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = (equilibrium.x > lrasX) ? 'orange' : 'purple';
+                ctx.beginPath();
+                ctx.moveTo(equilibrium.x, equilibrium.y);
+                ctx.lineTo(lrasX, equilibrium.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = (equilibrium.x > lrasX) ? 'orange' : 'purple';
+                ctx.font = '14px Arial';
+                ctx.fillText(equilibrium.x > lrasX ? 'Expansionary Gap' : 'Contractionary Gap',
+                    (equilibrium.x + lrasX) / 2,
+                    equilibrium.y - 10
+                );
+            }
+
+            // Draw equilibrium point
+            ctx.fillStyle = "black";
+            ctx.beginPath();
+            ctx.arc(equilibrium.x, equilibrium.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawAD(shift) {
+            // Draw initial AD (solid red)
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(100, 100);
+            ctx.lineTo(width - 100, height - 100);
+            ctx.stroke();
+
+            // Draw shifted AD (dashed red)
+            if (shift !== 0) {
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(100 + shift, 100);
+                ctx.lineTo(width - 100 + shift, height - 100);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            ctx.fillStyle = "red";
+            ctx.font = "14px Arial";
+            ctx.fillText("AD", 120 + shift, 80);
+        }
+
+        function drawSRAS(shift) {
+            // Draw initial SRAS (solid blue)
+            ctx.strokeStyle = "blue";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(100, height - 100);
+            ctx.lineTo(width - 100, 100);
+            ctx.stroke();
+
+            // Draw shifted SRAS (dashed blue)
+            if (shift !== 0) {
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(100 + shift, height - 100);
+                ctx.lineTo(width - 100 + shift, 100);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            ctx.fillStyle = "blue";
+            ctx.font = "14px Arial";
+            ctx.fillText("SRAS", width - 130 + shift, 80);
+        }
+
+        function drawLRAS(xCoord) {
+            // Draw initial LRAS (solid green)
+            ctx.strokeStyle = "green";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(initialLRASX, 50);
+            ctx.lineTo(initialLRASX, height - 50);
+            ctx.stroke();
+
+            // Draw shifted LRAS (dashed green) if moved
+            if (xCoord !== initialLRASX) {
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(xCoord, 50);
+                ctx.lineTo(xCoord, height - 50);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            ctx.fillStyle = "green";
+            ctx.font = "14px Arial";
+            ctx.fillText("LRAS", xCoord + 5, 40);
+        }
+
+        function shiftCurve(curve, amount) {
+            if (curve === 'AD') adShift += amount;
+            if (curve === 'SRAS') srasShift += amount;
+            if (curve === 'LRAS') lrasX += amount;
+            
+            // Record the change for time series
+            const equilibrium = findIntersection();
+            timeSeries.push({
+                time: timeStep++,
+                curve: curve,
+                amount: amount,
+                priceLevel: mapYToPriceLevel(equilibrium.y),
+                gdp: mapXToGDP(equilibrium.x)
+            });
+            
+            drawGraph();
+        }
+
+        function mapYToPriceLevel(y) {
+            const padding = 50;
+            // Price level goes from 100 at top (y=50) to 0 at bottom (y=450)
+            return Math.round(100 * (1 - (y - padding) / (height - 2 * padding)) * 100) / 100;
+        }
+
+        function mapXToGDP(x) {
+            const padding = 50;
+            // GDP ranges from 100 (left) to 160 (right)
+            return Math.round((100 + (x - padding) / (width - 2 * padding) * 60) * 100) / 100;
+        }
+        function resetGraph() {
+            adShift = 0;
+            srasShift = 0;
+            lrasX = initialLRASX;
+            timeSeries = [];
+            timeStep = 0;
+            if (animationTimeout) {
+                clearTimeout(animationTimeout);
+                animationTimeout = null;
+            }
+            document.getElementById('timeSeriesContainer').style.display = 'none';
+            drawGraph();
+        }
+
+        function showTimeSeries() {
+            if (timeSeries.length === 0) {
+                alert("No time series data available. Please trigger some economic events first.");
+                return;
+            }
+
+            const container = document.getElementById('timeSeriesContainer');
+            container.style.display = 'block';
+
+            // Prepare data for charts
+            const times = timeSeries.map(item => item.time);
+            const priceLevels = timeSeries.map(item => item.priceLevel);
+            const gdps = timeSeries.map(item => item.gdp);
+
+            // Draw Price Level time series
+            drawTimeSeriesChart(
+                'priceLevelChart', 
+                'Equilibrium Price Level Over Time', 
+                times, 
+                priceLevels, 
+                'Price Level (P)', 
+                'rgba(255, 99, 132, 1)',
+                false
+            );
+
+            // Draw GDP time series with fixed range (100-160)
+            drawTimeSeriesChart(
+                'gdpChart', 
+                'Equilibrium GDP Over Time', 
+                times, 
+                gdps, 
+                'Real GDP (Y)', 
+                'rgba(54, 162, 235, 1)',
+                true
+            );
+        }
+
+        function drawTimeSeriesChart(canvasId, title, times, values, label, color, isGDP) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    
+    // Clear previous chart
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const padding = 30;
+    const graphWidth = canvas.width - 2 * padding;
+    const graphHeight = canvas.height - 2 * padding;
+    
+    // Set ranges - FIXED FOR GDP (100-160)
+    let minValue, maxValue;
+    if (isGDP) {
+        minValue = 100;  // Fixed minimum GDP
+        maxValue = 160;  // Fixed maximum GDP
+    } else {
+        // Auto-scale for price level
+        minValue = Math.min(...values);
+        maxValue = Math.max(...values);
+        // Add some padding
+        minValue = Math.max(0, minValue - 5);
+        maxValue = maxValue + 5;
+    }
+    
+    const valueRange = maxValue - minValue;
+    const scaleY = graphHeight / valueRange;
+    
+    // Draw axes
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding, padding);
+    ctx.lineTo(padding, canvas.height - padding);
+    ctx.lineTo(canvas.width - padding, canvas.height - padding);
+    ctx.stroke();
+    
+    // Draw grid and labels
+    ctx.textAlign = 'center';
+    ctx.font = '10px Arial';
+    ctx.fillStyle = '#000';
+    
+    // Time axis (X)
+    const maxTime = Math.max(...times);
+    for (let i = 0; i <= maxTime; i++) {
+        const x = padding + (i / maxTime) * graphWidth;
+        ctx.beginPath();
+        ctx.moveTo(x, canvas.height - padding);
+        ctx.lineTo(x, canvas.height - padding + 5);
+        ctx.stroke();
+        ctx.fillText(i.toString(), x, canvas.height - padding + 15);
+    }
+    
+    // Value axis (Y) - NOW SHOWS 100-160 FOR GDP
+    ctx.textAlign = 'right';
+    const steps = 5;
+    for (let i = 0; i <= steps; i++) {
+        const value = minValue + (i / steps) * valueRange;
+        const y = canvas.height - padding - (value - minValue) * scaleY;
+        ctx.beginPath();
+        ctx.moveTo(padding - 5, y);
+        ctx.lineTo(padding, y);
+        ctx.stroke();
+        ctx.fillText(value.toFixed(0), padding - 10, y + 4); // Removed decimals for GDP
+    }
+    
+    // Draw data points and lines
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2;
+    
+    // Draw line
+    ctx.beginPath();
+    for (let i = 0; i < times.length; i++) {
+        const x = padding + (times[i] / maxTime) * graphWidth;
+        const y = canvas.height - padding - (values[i] - minValue) * scaleY;
+        
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+        
+        // Draw point
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        if (i > 0) {
+            ctx.moveTo(padding + (times[i-1] / maxTime) * graphWidth, 
+                      canvas.height - padding - (values[i-1] - minValue) * scaleY);
+            ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+    
+    // Draw title and labels
+    ctx.textAlign = 'center';
+    ctx.font = '14px Arial';
+    ctx.fillText(title, canvas.width / 2, 20);
+    
+    ctx.save();
+    ctx.translate(10, canvas.height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(label, 0, 0);
+    ctx.restore();
+    
+    ctx.fillText('Time', canvas.width / 2, canvas.height - 5);
+}
+
+        function playAnimation() {
+            const eventElements = Array.from(document.querySelectorAll('.event-item'));
+            resetGraph();
+            
+            const sequence = eventElements.map(el => {
+                const text = el.textContent.toLowerCase();
+                let curve = 'AD';
+                let amount = 0;
+                
+                if (text.includes('government spending') || text.includes('cut taxes') || text.includes('outlook')) {
+                    curve = 'AD'; amount = 20;
+                } else if (text.includes('confidence')) {
+                    curve = 'AD'; amount = -20;
+                } else if (text.includes('technology') || text.includes('efficiency') || text.includes('falling input')) {
+                    curve = 'SRAS'; amount = 20;
+                } else if (text.includes('labor force') || text.includes('education') || text.includes('innovation')) {
+                    curve = 'LRAS'; amount = 20;
+                } else if (text.includes('depletion')) {
+                    curve = 'LRAS'; amount = -20;
+                } else {
+                    curve = 'SRAS'; amount = -20;
+                }
+                return { el, curve, amount };
+            });
+
+            let i = 0;
+            function nextStep() {
+                if (i >= sequence.length) {
+                    eventElements.forEach(el => el.style.backgroundColor = '');
+                    return;
+                }
+                
+                eventElements.forEach(el => el.style.backgroundColor = '');
+                const { el, curve, amount } = sequence[i];
+                el.style.backgroundColor = '#ffe082';
+                shiftCurve(curve, amount);
+                i++;
+                animationTimeout = setTimeout(nextStep, 1500);
+            }
+            
+            nextStep();
+        }
+
+        function playRandomAnimation() {
+            const eventElements = Array.from(document.querySelectorAll('.event-item'));
+            resetGraph();
+            
+            const sequence = Array.from({ length: 10 }, () => {
+                const el = eventElements[Math.floor(Math.random() * eventElements.length)];
+                const text = el.textContent.toLowerCase();
+                let curve = 'AD';
+                let amount = 0;
+                
+                if (text.includes('government spending') || text.includes('cut taxes') || text.includes('outlook')) {
+                    curve = 'AD'; amount = 20;
+                } else if (text.includes('confidence')) {
+                    curve = 'AD'; amount = -20;
+                } else if (text.includes('technology') || text.includes('efficiency') || text.includes('falling input')) {
+                    curve = 'SRAS'; amount = 20;
+                } else if (text.includes('labor force') || text.includes('education') || text.includes('innovation')) {
+                    curve = 'LRAS'; amount = 20;
+                } else if (text.includes('depletion')) {
+                    curve = 'LRAS'; amount = -20;
+                } else {
+                    curve = 'SRAS'; amount = -20;
+                }
+                return { el, curve, amount };
+            });
+
+            let i = 0;
+            function nextStep() {
+                if (i >= sequence.length) {
+                    eventElements.forEach(el => el.style.backgroundColor = '');
+                    return;
+                }
+                
+                eventElements.forEach(el => el.style.backgroundColor = '');
+                const { el, curve, amount } = sequence[i];
+                el.style.backgroundColor = '#ffe082';
+                shiftCurve(curve, amount);
+                i++;
+                animationTimeout = setTimeout(nextStep, 1500);
+            }
+            
+            nextStep();
+        }
+
+        // Initialize the graph immediately when page loads
+        window.onload = function() {
+            drawGraph();
+            
+            // Set up mouse event handlers
+            let isDragging = false;
+            let dragTarget = null;
+            let lastX = 0;
+
+            canvas.addEventListener("mousedown", function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const adStart = 100 + adShift;
+                const adEnd = width - 100 + adShift;
+                const srasStart = 100 + srasShift;
+                const srasEnd = width - 100 + srasShift;
+
+                // Determine if close to AD
+                const adY = y - ((height - 100 - 100) / (adEnd - adStart)) * (x - adStart) - 100;
+                if (Math.abs(adY) < 10) {
+                    isDragging = true;
+                    dragTarget = 'AD';
+                }
+
+                // Determine if close to SRAS
+                const srasY = y - ((100 - (height - 100)) / (srasEnd - srasStart)) * (x - srasStart) - (height - 100);
+                if (!isDragging && Math.abs(srasY) < 10) {
+                    isDragging = true;
+                    dragTarget = 'SRAS';
+                }
+
+                // Determine if close to LRAS
+                if (!isDragging && Math.abs(x - lrasX) < 10) {
+                    isDragging = true;
+                    dragTarget = 'LRAS';
+                }
+
+                lastX = x;
+            });
+
+            canvas.addEventListener("mousemove", function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                canvas.classList.remove("ad-cursor", "sras-cursor", "lras-cursor");
+
+                const adStart = 100 + adShift;
+                const adEnd = width - 100 + adShift;
+                const srasStart = 100 + srasShift;
+                const srasEnd = width - 100 + srasShift;
+
+                const adY = y - ((height - 100 - 100) / (adEnd - adStart)) * (x - adStart) - 100;
+                const srasY = y - ((100 - (height - 100)) / (srasEnd - srasStart)) * (x - srasStart) - (height - 100);
+
+                if (!isDragging) {
+                    if (Math.abs(adY) < 10) {
+                        canvas.classList.add("ad-cursor");
+                    } else if (Math.abs(srasY) < 10) {
+                        canvas.classList.add("sras-cursor");
+                    } else if (Math.abs(x - lrasX) < 10) {
+                        canvas.classList.add("lras-cursor");
+                    }
+                    return;
+                }
+
+                const dx = x - lastX;
+                lastX = x;
+
+                if (dragTarget === 'AD') adShift += dx;
+                if (dragTarget === 'SRAS') srasShift += dx;
+                if (dragTarget === 'LRAS') lrasX += dx;
+
+                drawGraph();
+            });
+
+            canvas.addEventListener("mouseup", function() {
+                isDragging = false;
+                dragTarget = null;
+            });
+
+            canvas.addEventListener("mouseleave", function() {
+                isDragging = false;
+                dragTarget = null;
+            });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactive AD-AS Diagram</title>
+    <style>
+        .ad-cursor { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><line x1="0" y1="8" x2="16" y2="8" stroke="%23ff0000" stroke-width="2"/></svg>') 8 8, ew-resize; }
+        .sras-cursor { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><line x1="0" y1="8" x2="16" y2="8" stroke="%230000ff" stroke-width="2"/></svg>') 8 8, ew-resize; }
+        .lras-cursor { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><line x1="0" y1="8" x2="16" y2="8" stroke="%23008000" stroke-width="2"/></svg>') 8 8, ew-resize; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .main-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        canvas {
+            border: 1px solid #ccc;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .policy-panel {
+            width: 280px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        button {
+            padding: 8px 15px;
+            margin-right: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .panel-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 14px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        .policy-item {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 4px 0;
+            background-color: white;
+            cursor: pointer;
+            font-size: 12px;
+            line-height: 1.3;
+            transition: background-color 0.2s;
+        }
+        .policy-item:hover {
+            background-color: #f0f0f0;
+        }
+        .policy-item.active {
+            background-color: #ffe082;
+            font-weight: bold;
+        }
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            text-align: center;
+        }
+        .feedback.correct {
+            background-color: rgba(76, 175, 80, 0.9);
+            color: white;
+        }
+        .feedback.incorrect {
+            background-color: rgba(244, 67, 54, 0.9);
+            color: white;
+        }
+        .check-button {
+            background-color: #2196F3;
+            display: none;
+        }
+        .check-button.visible {
+            display: inline-block;
+        }
+        /* Custom scrollbar */
+        .policy-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        .policy-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        .policy-panel::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        .policy-panel::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Interactive AD-AS Diagram</h1>
+    
+    <div class="controls">
+        <button onclick="resetGraph()">Reset</button>
+        <button id="checkButton" class="check-button" onclick="checkUserResponse()">Check Answer</button>
+    </div>
+
+    <div class="main-container">
+        <canvas id="adAsCanvas" width="700" height="500"></canvas>
+        
+        <div class="policy-panel">
+            <div class="panel-title">Policy Scenarios - Click to select</div>
+            
+            <!-- Fiscal Policy Items -->
+            <div class="policy-item" data-curve="AD" data-amount="10">Increase government spending</div>
+            <div class="policy-item" data-curve="AD" data-amount="-10">Increase Tax</div>
+            <div class="policy-item" data-curve="AD" data-amount="0">Gov spending + tax increase</div>
+            <div class="policy-item" data-curve="AD" data-amount="10">Cut tax</div>
+            <div class="policy-item" data-curve="AD" data-amount="-10">Decrease government spending</div>
+            
+            <!-- AD Shifters -->
+            <div class="policy-item" data-curve="AD" data-amount="10">Improved global outlook</div>
+            <div class="policy-item" data-curve="AD" data-amount="-10">Reduced confidence</div>
+            
+            <!-- SRAS Shifters -->
+            <div class="policy-item" data-curve="SRAS" data-amount="-10">Natural disaster</div>
+            <div class="policy-item" data-curve="SRAS" data-amount="-10">Supply chain issues</div>
+            <div class="policy-item" data-curve="SRAS" data-amount="-10">Increased regulation</div>
+            <div class="policy-item" data-curve="SRAS" data-amount="10">Falling input costs</div>
+            
+            <!-- LRAS Shifters -->
+            <div class="policy-item" data-curve="LRAS" data-amount="-10">Resource depletion</div>
+            
+            <!-- Combined SRAS + LRAS Shifters -->
+            <div class="policy-item" data-curve="BOTH" data-primary-curve="LRAS" data-primary-amount="10" data-secondary-curve="SRAS" data-secondary-amount="10">Technology innovation</div>
+            <div class="policy-item" data-curve="BOTH" data-primary-curve="LRAS" data-primary-amount="10" data-secondary-curve="SRAS" data-secondary-amount="10">Labor force increase</div>
+            <div class="policy-item" data-curve="BOTH" data-primary-curve="LRAS" data-primary-amount="10" data-secondary-curve="SRAS" data-secondary-amount="10">Improved education</div>
+            <div class="policy-item" data-curve="BOTH" data-primary-curve="LRAS" data-primary-amount="10" data-secondary-curve="SRAS" data-secondary-amount="10">Production efficiency</div>
+        </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <script>
+        const canvas = document.getElementById("adAsCanvas");
+        const ctx = canvas.getContext("2d");
+        const width = canvas.width;
+        const height = canvas.height;
+        const checkButton = document.getElementById("checkButton");
+
+        // Original positions (never change)
+        const originalAdShift = 0;
+        const originalSrasShift = 0;
+        const originalLRASX = width / 2;
+
+        // Current positions (can be changed by user)
+        let adShift = originalAdShift;
+        let srasShift = originalSrasShift;
+        let lrasX = originalLRASX;
+        
+        let timeSeries = [];
+        let timeStep = 0;
+        let currentPolicyItem = null;
+        let policyItems = [];
+        let isDragging = false;
+        let dragTarget = null;
+        let lastX = 0;
+        let userHasMadeChanges = false;
+
+        function findIntersection() {
+            const x1 = 100 + adShift;
+            const y1 = 100;
+            const x2 = width - 100 + adShift;
+            const y2 = height - 100;
+            const x3 = 100 + srasShift;
+            const y3 = height - 100;
+            const x4 = width - 100 + srasShift;
+            const y4 = 100;
+
+            const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (denom === 0) return { x: width / 2, y: height / 2 };
+
+            const px = ((x1 * y2 - y1 * x2)*(x3 - x4) - (x1 - x2)*(x3 * y4 - y3 * x4)) / denom;
+            const py = ((x1 * y2 - y1 * x2)*(y3 - y4) - (y1 - y2)*(x3 * y4 - y3 * x4)) / denom;
+
+            return { x: px, y: py };
+        }
+
+        function drawGraph() {
+            const equilibrium = findIntersection();
+                        
+            ctx.clearRect(0, 0, width, height);
+
+            const padding = 50;
+
+            // Draw axes
+            ctx.strokeStyle = "#000";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+
+            // Draw vertical (Price Level) axis scalor
+            ctx.textAlign = "right";
+            ctx.font = "12px Arial";
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + i * ((height - 2 * padding) / 5);
+                const label = (100 - i * 20).toString();
+                ctx.fillText(label, padding - 5, y + 4);
+                ctx.beginPath();
+                ctx.moveTo(padding - 3, y);
+                ctx.lineTo(padding, y);
+                ctx.stroke();
+            }
+
+            // Draw horizontal (Real GDP) axis scalor
+            ctx.textAlign = "center";
+            for (let i = 0; i <= 5; i++) {
+                const x = padding + i * ((width - 2 * padding) / 5);
+                const label = (i * 20 + 80).toString();
+                ctx.fillText(label, x, height - padding + 15);
+                ctx.beginPath();
+                ctx.moveTo(x, height - padding);
+                ctx.lineTo(x, height - padding + 3);
+                ctx.stroke();
+            }
+
+            // Axis labels
+            ctx.font = "14px Arial";
+            ctx.fillText("Real GDP (Y)", width / 2, height - 10);
+            ctx.save();
+            ctx.translate(15, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText("Price Level (P)", 0, 0);
+            ctx.restore();
+
+            drawAD(adShift);
+            drawSRAS(srasShift);
+            drawLRAS(lrasX);
+
+            // Indicate GDP gap if off LRAS
+            if (Math.abs(equilibrium.x - lrasX) > 5) {
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = (equilibrium.x > lrasX) ? 'orange' : 'purple';
+                ctx.beginPath();
+                ctx.moveTo(equilibrium.x, equilibrium.y);
+                ctx.lineTo(lrasX, equilibrium.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = (equilibrium.x > lrasX) ? 'orange' : 'purple';
+                ctx.font = '14px Arial';
+                ctx.fillText(equilibrium.x > lrasX ? 'Expansionary Gap' : 'Contractionary Gap',
+                    (equilibrium.x + lrasX) / 2,
+                    equilibrium.y - 10
+                );
+            }
+
+            // Draw equilibrium point
+            ctx.fillStyle = "black";
+            ctx.beginPath();
+            ctx.arc(equilibrium.x, equilibrium.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawAD(shift) {
+            // Draw initial AD (solid red)
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(100, 100);
+            ctx.lineTo(width - 100, height - 100);
+            ctx.stroke();
+
+            // Draw shifted AD (dashed red)
+            if (shift !== 0) {
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(100 + shift, 100);
+                ctx.lineTo(width - 100 + shift, height - 100);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            
+            // Place AD label at the top left of the line
+            ctx.fillStyle = "red";
+            ctx.font = "14px Arial";
+            ctx.fillText("AD", 100 + shift - 20, 100 - 15);
+        }
+
+        function drawSRAS(shift) {
+            // Draw initial SRAS (solid blue)
+            ctx.strokeStyle = "blue";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(100, height - 100);
+            ctx.lineTo(width - 100, 100);
+            ctx.stroke();
+
+            // Draw shifted SRAS (dashed blue)
+            if (shift !== 0) {
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(100 + shift, height - 100);
+                ctx.lineTo(width - 100 + shift, 100);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            
+            // Place SRAS label at the top right of the line
+            ctx.fillStyle = "blue";
+            ctx.font = "14px Arial";
+            ctx.fillText("SRAS", width - 100 + shift + 5, 100 - 15);
+        }
+
+        function drawLRAS(xCoord) {
+            // Draw initial LRAS (solid green)
+            ctx.strokeStyle = "green";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(originalLRASX, 50);
+            ctx.lineTo(originalLRASX, height - 50);
+            ctx.stroke();
+
+            // Draw shifted LRAS (dashed green) if moved
+            if (xCoord !== originalLRASX) {
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(xCoord, 50);
+                ctx.lineTo(xCoord, height - 50);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+            
+            // Place LRAS label above the line
+            ctx.fillStyle = "green";
+            ctx.font = "14px Arial";
+            ctx.fillText("LRAS", xCoord + 5, 40);
+        }
+
+        function shiftCurve(curve, amount) {
+            if (curve === 'AD') adShift += amount;
+            if (curve === 'SRAS') srasShift += amount;
+            if (curve === 'LRAS') lrasX += amount;
+            
+            userHasMadeChanges = true;
+            checkButton.classList.add('visible');
+            
+            // Record the change for time series
+            timeSeries.push({
+                step: timeStep++,
+                curve: curve,
+                amount: amount,
+                adShift: adShift,
+                srasShift: srasShift,
+                lrasX: lrasX,
+                equilibrium: findIntersection()
+            });
+            
+            drawGraph();
+        }
+
+        function checkUserResponse() {
+            if (!currentPolicyItem) return;
+
+            const expectedCurve = currentPolicyItem.dataset.curve;
+            let correct = false;
+
+            // For combined SRAS + LRAS shifters
+            if (expectedCurve === 'BOTH') {
+                const primaryCurve = currentPolicyItem.dataset.primaryCurve;
+                const primaryAmount = parseInt(currentPolicyItem.dataset.primaryAmount);
+                const secondaryCurve = currentPolicyItem.dataset.secondaryCurve;
+                const secondaryAmount = parseInt(currentPolicyItem.dataset.secondaryAmount);
+                
+                // Check if both curves shifted correctly from original position
+                const primaryCorrect = checkCurveShift(primaryCurve, primaryAmount);
+                const secondaryCorrect = checkCurveShift(secondaryCurve, secondaryAmount);
+                
+                correct = primaryCorrect && secondaryCorrect;
+            }
+            // For the balanced budget case (spending increase = tax increase)
+            else if (currentPolicyItem.textContent.includes("+ tax")) {
+                // AD should remain essentially unchanged from original
+                correct = Math.abs(adShift - originalAdShift) < 5;
+            } 
+            // For all other single curve cases
+            else {
+                const expectedAmount = parseInt(currentPolicyItem.dataset.amount);
+                correct = checkCurveShift(expectedCurve, expectedAmount);
+            }
+
+            showFeedback(correct);
+            checkButton.classList.remove('visible');
+            userHasMadeChanges = false;
+        }
+
+        function checkCurveShift(curve, expectedAmount) {
+            let actualShift;
+            
+            if (curve === 'AD') {
+                actualShift = adShift - originalAdShift;
+            } else if (curve === 'SRAS') {
+                actualShift = srasShift - originalSrasShift;
+            } else if (curve === 'LRAS') {
+                actualShift = lrasX - originalLRASX;
+            }
+            
+            // Check if the shift is in the correct direction and significant enough
+            return Math.sign(actualShift) === Math.sign(expectedAmount) && Math.abs(actualShift) >= 5;
+        }
+
+        function showFeedback(isCorrect) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = isCorrect ? 'Well done!' : 'Try again';
+            feedback.className = 'feedback ' + (isCorrect ? 'correct' : 'incorrect');
+            
+            // Show feedback
+            feedback.style.opacity = 1;
+            
+            // Hide after delay
+            setTimeout(() => {
+                feedback.style.opacity = 0;
+            }, 1000);
+        }
+
+        function resetGraph() {
+            // Reset to original positions (not policy-specific positions)
+            adShift = originalAdShift;
+            srasShift = originalSrasShift;
+            lrasX = originalLRASX;
+            
+            timeSeries = [];
+            timeStep = 0;
+            userHasMadeChanges = false;
+            checkButton.classList.remove('visible');
+            drawGraph();
+        }
+
+        function selectPolicyItem(item) {
+            // Remove active class from all items
+            policyItems.forEach(policyItem => policyItem.classList.remove('active'));
+            
+            // Set current policy item and add active class
+            currentPolicyItem = item;
+            item.classList.add('active');
+            
+            // Reset graph for new challenge
+            resetGraph();
+        }
+
+        // Initialize the graph
+        drawGraph();
+
+        // Get all policy items and add event listeners
+        policyItems = Array.from(document.querySelectorAll('.policy-item'));
+        policyItems.forEach(item => {
+            item.addEventListener('click', function() {
+                selectPolicyItem(this);
+            });
+        });
+
+        canvas.addEventListener("mousedown", function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const adStart = 100 + adShift;
+            const adEnd = width - 100 + adShift;
+            const srasStart = 100 + srasShift;
+            const srasEnd = width - 100 + srasShift;
+
+            // Determine if close to AD
+            const adY = y - ((height - 100 - 100) / (adEnd - adStart)) * (x - adStart) - 100;
+            if (Math.abs(adY) < 10) {
+                isDragging = true;
+                dragTarget = 'AD';
+            }
+
+            // Determine if close to SRAS
+            const srasY = y - ((100 - (height - 100)) / (srasEnd - srasStart)) * (x - srasStart) - (height - 100);
+            if (!isDragging && Math.abs(srasY) < 10) {
+                isDragging = true;
+                dragTarget = 'SRAS';
+            }
+
+            // Determine if close to LRAS
+            if (!isDragging && Math.abs(x - lrasX) < 10) {
+                isDragging = true;
+                dragTarget = 'LRAS';
+            }
+
+            lastX = x;
+        });
+
+        canvas.addEventListener("mousemove", function(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            canvas.classList.remove("ad-cursor", "sras-cursor", "lras-cursor");
+
+            const adStart = 100 + adShift;
+            const adEnd = width - 100 + adShift;
+            const srasStart = 100 + srasShift;
+            const srasEnd = width - 100 + srasShift;
+
+            const adY = y - ((height - 100 - 100) / (adEnd - adStart)) * (x - adStart) - 100;
+            const srasY = y - ((100 - (height - 100)) / (srasEnd - srasStart)) * (x - srasStart) - (height - 100);
+
+            if (!isDragging) {
+                if (Math.abs(adY) < 10) {
+                    canvas.classList.add("ad-cursor");
+                } else if (Math.abs(srasY) < 10) {
+                    canvas.classList.add("sras-cursor");
+                } else if (Math.abs(x - lrasX) < 10) {
+                    canvas.classList.add("lras-cursor");
+                }
+                return;
+            }
+
+            const dx = x - lastX;
+            lastX = x;
+
+            if (dragTarget === 'AD') adShift += dx;
+            if (dragTarget === 'SRAS') srasShift += dx;
+            if (dragTarget === 'LRAS') lrasX += dx;
+
+            userHasMadeChanges = true;
+            checkButton.classList.add('visible');
+            drawGraph();
+        });
+
+        canvas.addEventListener("mouseup", function() {
+            isDragging = false;
+            dragTarget = null;
+        });
+
+        canvas.addEventListener("mouseleave", function() {
+            isDragging = false;
+            dragTarget = null;
+        });
+    </script>
+</body>
+</html>
