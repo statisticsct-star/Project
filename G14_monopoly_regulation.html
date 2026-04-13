@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G14_monopoly_regulation</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs,
+    .subtabs,
+    .summary-strip,
+    .legend-row,
+    .button-row,
+    .scenario-bank,
+    .case-step-row,
+    .note-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .module-tabs,
+    .subtabs,
+    .summary-strip,
+    .case-step-row {
+      margin-bottom: 16px;
+    }
+    .module-tab,
+    .subtab,
+    .mode-chip,
+    .case-step-btn,
+    .scenario-chip,
+    .regime-btn,
+    .pd-mode-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+      text-align: center;
+      line-height: 1.25;
+    }
+    .module-tab:hover,
+    .subtab:hover,
+    .case-step-btn:hover,
+    .scenario-chip:hover,
+    .regime-btn:hover,
+    .pd-mode-btn:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active,
+    .subtab.active,
+    .case-step-btn.active,
+    .scenario-chip.active,
+    .regime-btn.active,
+    .pd-mode-btn.active {
+      background: #eef5ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+    .module-section,
+    .subsection {
+      display: none;
+    }
+    .module-section.active,
+    .subsection.active {
+      display: block;
+    }
+
+    .summary-chip,
+    .mini-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-muted);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 16px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 150px;
+    }
+    .control-inline.wide {
+      min-width: 240px;
+    }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.95fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .graph-card,
+    .panel-card,
+    .answer-card,
+    .data-card,
+    .source-note,
+    .chart-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .panel-stack,
+    .answer-grid,
+    .data-grid,
+    .chart-grid {
+      display: grid;
+      gap: 16px;
+    }
+    .answer-grid.two,
+    .data-grid.two,
+    .chart-grid.two,
+    .metric-grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .metric-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .card-title,
+    .status-title,
+    .data-title,
+    .chart-title,
+    .table-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+    .small-muted,
+    .graph-note,
+    .source-note,
+    .status-copy,
+    .data-note,
+    .table-note,
+    .formula-copy,
+    .feedback-copy,
+    .case-copy {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .small-muted strong,
+    .graph-note strong,
+    .status-copy strong,
+    .data-note strong,
+    .feedback-copy strong,
+    .case-copy strong {
+      color: var(--color-text);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.demand { border-color: var(--color-demand); }
+    .legend-line.mr { border-color: var(--color-external); }
+    .legend-line.mc { border-color: var(--color-supply); }
+    .legend-line.atc { border-color: var(--color-long-run); }
+    .legend-line.regulated {
+      border-color: var(--color-government);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.reference {
+      border-color: var(--color-baseline);
+      border-top-style: dashed;
+      border-top-width: 2px;
+    }
+    .legend-fill {
+      width: 22px;
+      height: 12px;
+      border-radius: 4px;
+      border: 1px solid rgba(31,41,55,0.12);
+      display: inline-block;
+    }
+    .legend-fill.cs { background: var(--fill-cs); }
+    .legend-fill.profit { background: rgba(46,139,87,0.18); }
+    .legend-fill.loss { background: rgba(216,74,58,0.18); }
+    .legend-fill.dwl { background: var(--fill-dwl); }
+
+    .metric-grid {
+      display: grid;
+      gap: 10px 14px;
+    }
+    .metric-item {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .metric-label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+    }
+    .metric-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: white;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .data-table th,
+    .data-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--color-frame);
+      text-align: right;
+      vertical-align: top;
+    }
+    .data-table th:first-child,
+    .data-table td:first-child {
+      text-align: left;
+    }
+    .data-table thead th {
+      background: #f4f7fb;
+      color: var(--color-text);
+      font-weight: 600;
+    }
+    .data-table tbody tr.active-row td {
+      background: #f0f7ff;
+    }
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .delta-up { color: var(--color-supply); font-weight: 600; }
+    .delta-down { color: var(--color-demand); font-weight: 600; }
+    .delta-flat { color: var(--color-muted); font-weight: 600; }
+
+    .feedback-panel.success {
+      border-left: 4px solid var(--color-government);
+    }
+    .feedback-panel.warning {
+      border-left: 4px solid var(--color-supply);
+    }
+    .feedback-panel.neutral {
+      border-left: 4px solid var(--color-baseline);
+    }
+
+    .answer-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .answer-card label {
+      display: block;
+      font-size: 12px;
+      color: var(--color-text);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .answer-card select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      font-size: 13px;
+      color: var(--color-text);
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #eef5ff;
+      color: var(--color-demand);
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid #cfe0ff;
+      margin-bottom: 10px;
+    }
+
+    .source-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .source-list li { margin-bottom: 6px; }
+    .source-list a { color: var(--color-demand); }
+
+    .case-figure-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .case-card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .data-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 4px;
+    }
+
+    .formula-copy code {
+      background: #f2f4f8;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .workspace,
+      .case-figure-grid {
+        grid-template-columns: 1fr;
+      }
+      .answer-grid,
+      .metric-grid.two,
+      .metric-grid.three,
+      .data-grid.two,
+      .chart-grid.two,
+      .case-card-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Monopoly, regulation, and price discrimination</h1>
+        <p class="diagram-subtitle">
+          Compare single-price monopoly with competition and common regulatory rules, then switch to segmented-demand comparisons for single pricing, third-degree price discrimination, and perfect price discrimination. The built-in case study uses Australia Post’s reserved letter service to show how a regulated legal monopoly behaves when demand keeps shrinking because of digital substitution.
+        </p>
+      </div>
+
+      <div class="summary-strip">
+        <span class="summary-chip">Monopoly versus competition</span>
+        <span class="summary-chip">MC regulation and AC regulation</span>
+        <span class="summary-chip">Profit, losses, and deadweight loss</span>
+        <span class="summary-chip">Single-price and discriminatory pricing</span>
+        <span class="summary-chip">Real-world Australia Post case</span>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore and compare</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Real-world case study</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="subtabs">
+          <button class="subtab active" data-parent="exploreSection" data-target="marketSubsection">Market structure and regulation</button>
+          <button class="subtab" data-parent="exploreSection" data-target="pdSubsection">Price discrimination comparisons</button>
+        </div>
+
+        <div id="marketSubsection" class="subsection active">
+          <div class="control-row">
+            <div class="control-inline">
+              <label for="presetSelect">Preset market</label>
+              <select id="presetSelect">
+                <option value="standard">Standard monopoly market</option>
+                <option value="natural">Natural monopoly / high fixed cost</option>
+                <option value="boom">Stronger demand market</option>
+                <option value="costly">Higher marginal cost market</option>
+              </select>
+            </div>
+            <div class="control-inline wide">
+              <label for="demandIntercept">Demand intercept <span class="inline-value" id="demandInterceptLabel"></span></label>
+              <input id="demandIntercept" type="range" min="12" max="24" step="0.2" value="18" />
+            </div>
+            <div class="control-inline wide">
+              <label for="demandSlope">Demand slope <span class="inline-value" id="demandSlopeLabel"></span></label>
+              <input id="demandSlope" type="range" min="0.35" max="0.9" step="0.01" value="0.55" />
+            </div>
+            <div class="control-inline wide">
+              <label for="mcIntercept">MC intercept <span class="inline-value" id="mcInterceptLabel"></span></label>
+              <input id="mcIntercept" type="range" min="0.5" max="8" step="0.1" value="3" />
+            </div>
+            <div class="control-inline wide">
+              <label for="mcSlope">MC slope <span class="inline-value" id="mcSlopeLabel"></span></label>
+              <input id="mcSlope" type="range" min="0.05" max="0.5" step="0.01" value="0.25" />
+            </div>
+            <div class="control-inline wide">
+              <label for="fixedCost">Fixed cost <span class="inline-value" id="fixedCostLabel"></span></label>
+              <input id="fixedCost" type="range" min="6" max="90" step="1" value="22" />
+            </div>
+            <div class="control-inline">
+              <label>Regime</label>
+              <div class="button-row" id="regimeButtons">
+                <button class="regime-btn active" data-regime="competition">Competition</button>
+                <button class="regime-btn" data-regime="monopoly">Single-price monopoly</button>
+                <button class="regime-btn" data-regime="mcReg">MC regulation</button>
+                <button class="regime-btn" data-regime="acReg">AC regulation</button>
+              </div>
+            </div>
+            <div class="control-inline">
+              <label>&nbsp;</label>
+              <div class="button-row">
+                <button class="btn-secondary" id="toggleBenchmarkButton">Hide benchmark</button>
+                <button class="btn-secondary" id="resetExploreButton">Reset explore</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="workspace">
+            <div class="graph-card">
+              <canvas id="marketCanvas" class="graph-canvas" width="960" height="600"></canvas>
+              <div class="legend-row" style="margin-top: 10px;">
+                <span class="legend-item"><span class="legend-line demand"></span>Demand</span>
+                <span class="legend-item"><span class="legend-line mr"></span>Marginal revenue</span>
+                <span class="legend-item"><span class="legend-line mc"></span>Marginal cost</span>
+                <span class="legend-item"><span class="legend-line atc"></span>Average total cost</span>
+                <span class="legend-item"><span class="legend-line regulated"></span>Selected price line</span>
+                <span class="legend-item"><span class="legend-line reference"></span>Competitive benchmark</span>
+                <span class="legend-item"><span class="legend-fill cs"></span>Consumer surplus</span>
+                <span class="legend-item"><span class="legend-fill profit"></span>Profit</span>
+                <span class="legend-item"><span class="legend-fill loss"></span>Loss</span>
+                <span class="legend-item"><span class="legend-fill dwl"></span>DWL</span>
+              </div>
+              <div class="graph-note" id="marketGraphNote"></div>
+            </div>
+
+            <div class="panel-stack">
+              <div class="panel-card">
+                <div class="status-chip" id="marketStatusChip">Competition</div>
+                <div class="status-title">Economic interpretation</div>
+                <div class="status-copy" id="marketStatusCopy"></div>
+              </div>
+
+              <div class="panel-card">
+                <div class="card-title">Live outcomes</div>
+                <div class="metric-grid three">
+                  <div class="metric-item"><div class="metric-label">Price</div><div class="metric-value" id="metricPrice">—</div></div>
+                  <div class="metric-item"><div class="metric-label">Quantity</div><div class="metric-value" id="metricQuantity">—</div></div>
+                  <div class="metric-item"><div class="metric-label">Profit / loss</div><div class="metric-value" id="metricProfit">—</div></div>
+                  <div class="metric-item"><div class="metric-label">Consumer surplus</div><div class="metric-value" id="metricCS">—</div></div>
+                  <div class="metric-item"><div class="metric-label">Total surplus</div><div class="metric-value" id="metricTS">—</div></div>
+                  <div class="metric-item"><div class="metric-label">Deadweight loss</div><div class="metric-value" id="metricDWL">—</div></div>
+                </div>
+              </div>
+
+              <div class="panel-card">
+                <div class="table-title">Four-regime comparison</div>
+                <table class="data-table" id="outcomeTable"></table>
+                <div class="table-note" id="marketTableNote"></div>
+              </div>
+
+              <div class="panel-card">
+                <div class="card-title">Model logic</div>
+                <div class="formula-copy">
+                  Inverse demand: <code>P = a - bQ</code><br />
+                  Marginal revenue: <code>MR = a - 2bQ</code><br />
+                  Marginal cost: <code>MC = c + dQ</code><br />
+                  Average total cost: <code>ATC = F / Q + c + 0.5dQ</code><br />
+                  Competition and MC regulation choose the efficient quantity where <code>P = MC</code>.<br />
+                  Monopoly chooses the output where <code>MR = MC</code>. AC regulation sets price high enough for the firm to break even, so <code>P = ATC</code> at the regulated quantity.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="pdSubsection" class="subsection">
+          <div class="control-row">
+            <div class="control-inline">
+              <label for="pdPresetSelect">Segmented demand preset</label>
+              <select id="pdPresetSelect">
+                <option value="businessHousehold">Business mail versus households</option>
+                <option value="peakOffPeak">Peak travellers versus off-peak travellers</option>
+                <option value="touristLocal">Tourists versus locals</option>
+              </select>
+            </div>
+            <div class="control-inline wide">
+              <label for="pdMc">Common marginal cost <span class="inline-value" id="pdMcLabel"></span></label>
+              <input id="pdMc" type="range" min="2" max="7" step="0.1" value="4" />
+            </div>
+            <div class="control-inline">
+              <label>Displayed method</label>
+              <div class="button-row" id="pdMethodButtons">
+                <button class="pd-mode-btn active" data-method="single">Single price</button>
+                <button class="pd-mode-btn" data-method="third">Third-degree</button>
+                <button class="pd-mode-btn" data-method="perfect">Perfect discrimination</button>
+              </div>
+            </div>
+            <div class="control-inline">
+              <label>&nbsp;</label>
+              <div class="button-row">
+                <button class="btn-secondary" id="pdResetButton">Reset discrimination</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="workspace">
+            <div class="graph-card">
+              <canvas id="pdCanvas" class="graph-canvas" width="960" height="600"></canvas>
+              <div class="legend-row" style="margin-top: 10px;">
+                <span class="legend-item"><span class="legend-line demand"></span>Segment demand</span>
+                <span class="legend-item"><span class="legend-line mc"></span>Common marginal cost</span>
+                <span class="legend-item"><span class="legend-line regulated"></span>Chosen price</span>
+                <span class="legend-item"><span class="legend-fill profit"></span>Producer gain</span>
+                <span class="legend-item"><span class="legend-fill cs"></span>Consumer surplus</span>
+                <span class="legend-item"><span class="legend-fill dwl"></span>DWL versus perfect discrimination</span>
+              </div>
+              <div class="graph-note" id="pdGraphNote"></div>
+            </div>
+
+            <div class="panel-stack">
+              <div class="panel-card">
+                <div class="status-chip" id="pdStatusChip">Single price</div>
+                <div class="status-title">Pricing logic</div>
+                <div class="status-copy" id="pdStatusCopy"></div>
+              </div>
+
+              <div class="panel-card">
+                <div class="card-title">Current displayed method</div>
+                <div class="metric-grid two">
+                  <div class="metric-item"><div class="metric-label">Total quantity</div><div class="metric-value" id="pdMetricQ">—</div></div>
+                  <div class="metric-item"><div class="metric-label">Total profit</div><div class="metric-value" id="pdMetricProfit">—</div></div>
+                  <div class="metric-item"><div class="metric-label">Consumer surplus</div><div class="metric-value" id="pdMetricCS">—</div></div>
+                  <div class="metric-item"><div class="metric-label">Total welfare</div><div class="metric-value" id="pdMetricWelfare">—</div></div>
+                  <div class="metric-item"><div class="metric-label">DWL</div><div class="metric-value" id="pdMetricDWL">—</div></div>
+                  <div class="metric-item"><div class="metric-label">Average realised price</div><div class="metric-value" id="pdMetricPrice">—</div></div>
+                </div>
+              </div>
+
+              <div class="panel-card">
+                <div class="table-title">Method comparison table</div>
+                <table class="data-table" id="pdTable"></table>
+                <div class="table-note" id="pdTableNote"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Scenario bank</label>
+            <div class="scenario-bank" id="practiceScenarioBank"></div>
+          </div>
+          <div class="control-inline">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="practiceRandomButton">Random scenario</button>
+              <button class="btn-secondary" id="practiceResetButton">Reset answers</button>
+              <button class="btn-primary" id="practiceCheckButton">Check answer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            <div class="legend-row" style="margin-top: 10px;">
+              <span class="legend-item"><span class="legend-line demand"></span>Demand</span>
+              <span class="legend-item"><span class="legend-line mr"></span>Marginal revenue</span>
+              <span class="legend-item"><span class="legend-line mc"></span>Marginal cost</span>
+              <span class="legend-item"><span class="legend-line atc"></span>Average total cost</span>
+              <span class="legend-item"><span class="legend-line reference"></span>Reference outcome</span>
+              <span class="legend-item"><span class="legend-line regulated"></span>Target outcome after reveal</span>
+              <span class="legend-item"><span class="legend-fill dwl"></span>Target DWL</span>
+            </div>
+            <div class="graph-note" id="practiceGraphNote"></div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="panel-card">
+              <div class="status-chip" id="practiceStatusChip">Choose a scenario</div>
+              <div class="status-title">Practice prompt</div>
+              <div class="status-copy" id="practiceStatusCopy"></div>
+            </div>
+
+            <div class="answer-grid two">
+              <div class="answer-card">
+                <label for="practicePriceAnswer">Relative to the reference, the price is…</label>
+                <select id="practicePriceAnswer">
+                  <option value="">Choose</option>
+                  <option value="higher">Higher</option>
+                  <option value="lower">Lower</option>
+                  <option value="same">Unchanged</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="practiceQuantityAnswer">Relative to the reference, the quantity is…</label>
+                <select id="practiceQuantityAnswer">
+                  <option value="">Choose</option>
+                  <option value="higher">Higher</option>
+                  <option value="lower">Lower</option>
+                  <option value="same">Unchanged</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="practiceProfitAnswer">Relative to the reference, firm profit (or loss) is…</label>
+                <select id="practiceProfitAnswer">
+                  <option value="">Choose</option>
+                  <option value="higher">Higher</option>
+                  <option value="lower">Lower</option>
+                  <option value="same">Unchanged</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="practiceDwlAnswer">Relative to the reference, deadweight loss is…</label>
+                <select id="practiceDwlAnswer">
+                  <option value="">Choose</option>
+                  <option value="higher">Higher</option>
+                  <option value="lower">Lower</option>
+                  <option value="same">Unchanged</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="feedback-panel neutral" id="practiceFeedback">
+              <div class="feedback-copy">Choose a scenario, answer all four comparison questions, and then click <strong>Check answer</strong>. The graph will reveal the target outcome and explain the economics.</div>
+            </div>
+
+            <div class="panel-card">
+              <div class="table-title">Reference versus target</div>
+              <table class="data-table" id="practiceTable"></table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="case-step-row" id="caseStepRow"></div>
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Sequence controls</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="casePlayButton">Play sequence</button>
+              <button class="btn-secondary" id="caseResetButton">Reset case</button>
+            </div>
+          </div>
+          <div class="control-inline wide">
+            <label>Case summary</label>
+            <div class="status-copy" id="caseSummaryCopy"></div>
+          </div>
+        </div>
+
+        <div class="case-figure-grid">
+          <div class="graph-card">
+            <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            <div class="legend-row" style="margin-top: 10px;">
+              <span class="legend-item"><span class="legend-line demand"></span>Demand for reserved letters</span>
+              <span class="legend-item"><span class="legend-line mr"></span>Marginal revenue</span>
+              <span class="legend-item"><span class="legend-line mc"></span>Marginal cost</span>
+              <span class="legend-item"><span class="legend-line atc"></span>Average total cost</span>
+              <span class="legend-item"><span class="legend-line regulated"></span>Observed / proposed regulated price</span>
+              <span class="legend-item"><span class="legend-line reference"></span>Notional monopoly benchmark</span>
+              <span class="legend-item"><span class="legend-fill loss"></span>Regulated accounting loss</span>
+            </div>
+            <div class="graph-note" id="caseGraphNote"></div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="panel-card">
+              <div class="status-chip" id="caseStatusChip">Australia Post letters</div>
+              <div class="status-title">What the case is teaching</div>
+              <div class="case-copy" id="caseStatusCopy"></div>
+            </div>
+            <div class="panel-card">
+              <div class="card-title">Current step data card</div>
+              <div class="case-card-grid">
+                <div class="data-card">
+                  <div class="data-title">Basic postage rate</div>
+                  <div class="data-value" id="casePriceValue">—</div>
+                  <div class="data-note" id="casePriceNote"></div>
+                </div>
+                <div class="data-card">
+                  <div class="data-title">Reserved letters volume</div>
+                  <div class="data-value" id="caseVolumeValue">—</div>
+                  <div class="data-note" id="caseVolumeNote"></div>
+                </div>
+                <div class="data-card">
+                  <div class="data-title">Main mechanism</div>
+                  <div class="data-value" id="caseMechanismValue">—</div>
+                  <div class="data-note" id="caseMechanismNote"></div>
+                </div>
+                <div class="data-card">
+                  <div class="data-title">Pedagogical takeaway</div>
+                  <div class="data-value" id="caseTakeawayValue">—</div>
+                  <div class="data-note" id="caseTakeawayNote"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-grid two" style="margin-top: 16px;">
+          <div class="chart-card">
+            <div class="chart-title">Basic postage rate path</div>
+            <canvas id="casePriceChart" class="graph-canvas" width="960" height="360"></canvas>
+            <div class="small-muted">Official / proposed basic postage rate path used in the case narrative. Later years marked with an asterisk are proposed or indicative rather than final outcomes.</div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Reserved letters volume path</div>
+            <canvas id="caseVolumeChart" class="graph-canvas" width="960" height="360"></canvas>
+            <div class="small-muted">Official 2023–24 level and official Australia Post / ACCC forecast reserved-services volumes for later years, measured in millions of items.</div>
+          </div>
+        </div>
+
+        <div class="data-grid two" style="margin-top: 16px;">
+          <div class="panel-card">
+            <div class="card-title">Why this is a monopoly-and-regulation case</div>
+            <div class="case-copy">
+              Australia Post’s reserved ordinary letter services are a <strong>statutory monopoly</strong>. The ACCC and the Minister oversee price changes because competitive pressure is not strong enough to discipline price on its own. The case therefore gives students a real-world example of a monopolist that is also <strong>regulated</strong> rather than left free to choose its static profit-maximising price.
+            </div>
+          </div>
+          <div class="panel-card">
+            <div class="card-title">How to read the graph and charts together</div>
+            <div class="case-copy">
+              The main graph is <strong>stylised</strong>: it shows the intuition that repeated leftward demand shifts and rising average cost make a fixed-price network harder to sustain. The two charts next to it use <strong>official price and quantity data</strong>, so students can connect the stylised monopoly-regulation picture to observed movements in stamp prices and letter volumes.
+            </div>
+          </div>
+        </div>
+
+        <div class="source-note" style="margin-top: 16px;">
+          <div class="card-title">Case study source links used inside the bundle</div>
+          <ul class="source-list">
+            <li><a href="https://www.accc.gov.au/system/files/ACCC%20decision%20on%20Australia%20Post%202024%20price%20notification_0.pdf" target="_blank" rel="noopener noreferrer">ACCC decision on Australia Post’s 2024 price notification</a></li>
+            <li><a href="https://www.accc.gov.au/system/files/accc-decision-australia-post-price-notification.pdf" target="_blank" rel="noopener noreferrer">ACCC decision on Australia Post’s June 2025 price notification</a></li>
+            <li><a href="https://www.accc.gov.au/system/files/diversified-specifics-report-australia-post-letter-volume-demand-update-public-version-updated-november-2024.pdf" target="_blank" rel="noopener noreferrer">Diversified Specifics letter volume demand update (public version, 2024)</a></li>
+            <li><a href="https://www.accc.gov.au/system/files/australia-post-draft-price-notification-12-december-2025-public.pdf?download=y&ref=0" target="_blank" rel="noopener noreferrer">Australia Post December 2025 draft price notification (public version)</a></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const formatNum = (value, digits = 2) => {
+      if (!Number.isFinite(value)) return '—';
+      const rounded = Math.abs(value) < 1e-6 ? 0 : value;
+      return rounded.toFixed(digits).replace(/\.00$/, '').replace(/(\.\d*[1-9])0$/, '$1');
+    };
+
+    const formatMoney = (value) => {
+      if (!Number.isFinite(value)) return '—';
+      const sign = value < 0 ? '-' : '';
+      return sign + '$' + formatNum(Math.abs(value));
+    };
+
+    const directionWord = (delta, tolerance = 0.03) => {
+      if (delta > tolerance) return 'higher';
+      if (delta < -tolerance) return 'lower';
+      return 'same';
+    };
+
+    function sampleCurve(fn, qMax, pMin, pMax, xMap, yMap, step = 0.05) {
+      const pts = [];
+      for (let q = 0; q <= qMax + 1e-9; q += step) {
+        const p = fn(q);
+        if (!Number.isFinite(p)) continue;
+        if (p < pMin - 0.1 || p > pMax + 0.1) continue;
+        pts.push({ x: xMap(q), y: yMap(p), q, p });
+      }
+      return pts;
+    }
+
+    function polygonUnderDemand(q, pLine, params, xMap, yMap) {
+      const points = [{ x: xMap(0), y: yMap(params.A) }];
+      for (let x = 0; x <= q + 1e-9; x += 0.05) {
+        points.push({ x: xMap(x), y: yMap(params.A - params.b * x) });
+      }
+      points.push({ x: xMap(q), y: yMap(pLine) });
+      points.push({ x: xMap(0), y: yMap(pLine) });
+      return points;
+    }
+
+    function rectanglePoints(q, p1, p2, xMap, yMap) {
+      return [
+        { x: xMap(0), y: yMap(p1) },
+        { x: xMap(q), y: yMap(p1) },
+        { x: xMap(q), y: yMap(p2) },
+        { x: xMap(0), y: yMap(p2) }
+      ];
+    }
+
+    function dwlTriangle(qEff, qActual, params, xMap, yMap) {
+      if (qActual >= qEff - 1e-6) return [];
+      return [
+        { x: xMap(qActual), y: yMap(params.A - params.b * qActual) },
+        { x: xMap(qActual), y: yMap(params.c + params.d * qActual) },
+        { x: xMap(qEff), y: yMap(params.A - params.b * qEff) }
+      ];
+    }
+
+    function basePlotHelpers(canvas, qMax, pMin, pMax) {
+      const plot = EconDraw.getPlotArea();
+      return {
+        qMax,
+        pMin,
+        pMax,
+        xMap: (q) => EconDraw.valueToX(q, 0, qMax),
+        yMap: (p) => EconDraw.valueToY(p, pMin, pMax),
+        xTicks: Array.from({ length: 7 }, (_, i) => {
+          const value = (i / 6) * qMax;
+          return { label: formatNum(value, 1), x: EconDraw.valueToX(value, 0, qMax) };
+        }),
+        yTicks: Array.from({ length: 7 }, (_, i) => {
+          const value = pMin + (i / 6) * (pMax - pMin);
+          return { label: formatNum(value, 1), y: EconDraw.valueToY(value, pMin, pMax) };
+        })
+      };
+    }
+
+    function getDemandPrice(params, q) {
+      return params.A - params.b * q;
+    }
+    function getMrPrice(params, q) {
+      return params.A - 2 * params.b * q;
+    }
+    function getMcPrice(params, q) {
+      return params.c + params.d * q;
+    }
+    function getAtcPrice(params, q) {
+      if (q <= 0) return Infinity;
+      return params.F / q + params.c + 0.5 * params.d * q;
+    }
+    function getTR(params, q) {
+      const p = getDemandPrice(params, q);
+      return p * q;
+    }
+    function getTC(params, q) {
+      return params.F + params.c * q + 0.5 * params.d * q * q;
+    }
+    function getCS(params, q, p) {
+      if (q <= 0) return 0;
+      return 0.5 * (params.A - p) * q;
+    }
+    function getProfit(params, q, p) {
+      return p * q - getTC(params, q);
+    }
+    function getTS(params, q, p) {
+      return getCS(params, q, p) + getProfit(params, q, p);
+    }
+    function getEfficientQ(params) {
+      return Math.max(0, (params.A - params.c) / (params.b + params.d));
+    }
+    function getMonopolyQ(params) {
+      return Math.max(0, (params.A - params.c) / (2 * params.b + params.d));
+    }
+    function getDwlRelativeToEfficient(params, q) {
+      const qEff = getEfficientQ(params);
+      const qUsed = Math.max(0, Math.min(q, qEff));
+      const dq = qEff - qUsed;
+      if (dq <= 0) return 0;
+      return 0.5 * dq * ((getDemandPrice(params, qUsed) - getMcPrice(params, qUsed)) + 0);
+    }
+
+    function solveACReg(params, qCap) {
+      const qEff = qCap == null ? getEfficientQ(params) : qCap;
+      const pEff = getDemandPrice(params, qEff);
+      if (getAtcPrice(params, qEff) <= pEff + 1e-6) {
+        return qEff;
+      }
+
+      const f = (q) => getDemandPrice(params, q) - getAtcPrice(params, q);
+      let roots = [];
+      let lastQ = 0.1;
+      let lastV = f(lastQ);
+      for (let q = 0.15; q <= qEff + 1e-9; q += 0.05) {
+        const v = f(q);
+        if (Number.isFinite(lastV) && Number.isFinite(v) && lastV * v <= 0) {
+          let a = lastQ;
+          let b = q;
+          let fa = lastV;
+          let fb = v;
+          for (let i = 0; i < 60; i += 1) {
+            const m = 0.5 * (a + b);
+            const fm = f(m);
+            if (!Number.isFinite(fm)) break;
+            if (fa * fm <= 0) {
+              b = m;
+              fb = fm;
+            } else {
+              a = m;
+              fa = fm;
+            }
+          }
+          roots.push(0.5 * (a + b));
+        }
+        lastQ = q;
+        lastV = v;
+      }
+      if (roots.length) return roots[roots.length - 1];
+
+      let bestQ = Math.max(0.2, qEff * 0.6);
+      let bestGap = Infinity;
+      for (let q = 0.2; q <= qEff + 1e-9; q += 0.02) {
+        const gap = Math.abs(f(q));
+        if (gap < bestGap) {
+          bestGap = gap;
+          bestQ = q;
+        }
+      }
+      return bestQ;
+    }
+
+    const PRESETS = {
+      standard: { A: 18, b: 0.55, c: 3, d: 0.25, F: 22 },
+      natural: { A: 17, b: 0.55, c: 1.5, d: 0.2, F: 70 },
+      boom: { A: 21, b: 0.6, c: 4, d: 0.3, F: 28 },
+      costly: { A: 18, b: 0.55, c: 5.2, d: 0.35, F: 25 }
+    };
+
+    const exploreState = {
+      preset: 'standard',
+      regime: 'competition',
+      showBenchmark: true,
+      A: PRESETS.standard.A,
+      b: PRESETS.standard.b,
+      c: PRESETS.standard.c,
+      d: PRESETS.standard.d,
+      F: PRESETS.standard.F
+    };
+
+    function getParamsFromExploreState() {
+      return {
+        A: Number(exploreState.A),
+        b: Number(exploreState.b),
+        c: Number(exploreState.c),
+        d: Number(exploreState.d),
+        F: Number(exploreState.F)
+      };
+    }
+
+    function computeMarketOutcomes(params) {
+      const qComp = getEfficientQ(params);
+      const pComp = getDemandPrice(params, qComp);
+
+      const qMon = getMonopolyQ(params);
+      const pMon = getDemandPrice(params, qMon);
+
+      const qMcReg = qComp;
+      const pMcReg = pComp;
+
+      const qAcReg = solveACReg(params, qComp);
+      const pAcReg = getDemandPrice(params, qAcReg);
+
+      const build = (id, label, q, p) => {
+        const profit = getProfit(params, q, p);
+        const cs = getCS(params, q, p);
+        const ts = getTS(params, q, p);
+        const dwl = getDwlRelativeToEfficient(params, q);
+        const atc = getAtcPrice(params, q);
+        return {
+          id,
+          label,
+          q,
+          p,
+          atc,
+          profit,
+          cs,
+          ts,
+          dwl,
+          needsSubsidy: profit < -0.01,
+          breaksEven: Math.abs(profit) < 0.25
+        };
+      };
+
+      const outcomes = {
+        competition: build('competition', 'Competition', qComp, pComp),
+        monopoly: build('monopoly', 'Single-price monopoly', qMon, pMon),
+        mcReg: build('mcReg', 'MC regulation', qMcReg, pMcReg),
+        acReg: build('acReg', 'AC regulation', qAcReg, pAcReg)
+      };
+      return outcomes;
+    }
+
+    function getMarketInterpretation(regime, selected, competitive) {
+      if (regime === 'competition') {
+        return 'At the competitive benchmark, price equals marginal cost. This removes allocative deadweight loss, but if fixed costs are large the firm may still earn only a small profit or even make a loss. That is why a natural monopoly often cannot be left at pure marginal-cost pricing without some additional funding rule.';
+      }
+      if (regime === 'monopoly') {
+        return 'A single-price monopolist restricts output to the point where marginal revenue equals marginal cost. Quantity falls below the competitive level, price rises above marginal cost, profit usually rises, and the grey triangle marks deadweight loss from units that consumers value above marginal cost but that are not produced.';
+      }
+      if (regime === 'mcReg') {
+        return selected.profit < -0.1
+          ? 'Marginal-cost regulation pushes output back to the efficient quantity and removes deadweight loss, but in a high-fixed-cost industry the regulated price can sit below average total cost. The firm then needs a subsidy or another funding arrangement to stay viable.'
+          : 'Marginal-cost regulation pushes the firm to the efficient quantity and price. If average total cost is low enough at that quantity, the firm can survive without a subsidy.';
+      }
+      if (Math.abs(selected.q - competitive.q) < 0.05 && selected.profit > 0.05) {
+        return 'In this market the competitive price already covers average total cost, so AC regulation is effectively non-binding. The regulated outcome collapses back to the competitive benchmark.';
+      }
+      return selected.profit < -0.1
+        ? 'AC regulation lifts the permitted price until the firm just breaks even. This reduces the need for subsidy compared with MC regulation, but because price remains above marginal cost it still leaves some deadweight loss.'
+        : 'AC regulation sets price where demand intersects average total cost. The firm breaks even and remains in the market, but the regulated quantity is still below the efficient quantity, so some deadweight loss remains.';
+    }
+
+    function renderMarketExplore() {
+      const params = getParamsFromExploreState();
+      const outcomes = computeMarketOutcomes(params);
+      const selected = outcomes[exploreState.regime];
+      const competitive = outcomes.competition;
+
+      document.getElementById('demandInterceptLabel').textContent = 'a = ' + formatNum(params.A);
+      document.getElementById('demandSlopeLabel').textContent = 'b = ' + formatNum(params.b, 2);
+      document.getElementById('mcInterceptLabel').textContent = 'c = ' + formatNum(params.c, 2);
+      document.getElementById('mcSlopeLabel').textContent = 'd = ' + formatNum(params.d, 2);
+      document.getElementById('fixedCostLabel').textContent = 'F = ' + formatNum(params.F, 0);
+
+      const canvas = document.getElementById('marketCanvas');
+      const ctx = canvas.getContext('2d');
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+
+      const pMax = Math.max(params.A + 1.5, selected.p + 2, selected.atc + 2, competitive.p + 2);
+      const qMax = Math.max(24, competitive.q * 1.25, selected.q * 1.4);
+      const helpers = basePlotHelpers(canvas, qMax, 0, pMax);
+      const { xMap, yMap, xTicks, yTicks } = helpers;
+      EconDraw.drawAxes(ctx, { xLabel: 'Quantity', yLabel: 'Price / cost', xTicks, yTicks });
+
+      const demandPts = sampleCurve((q) => getDemandPrice(params, q), qMax, 0, pMax, xMap, yMap);
+      const mrPts = sampleCurve((q) => getMrPrice(params, q), qMax, 0, pMax, xMap, yMap);
+      const mcPts = sampleCurve((q) => getMcPrice(params, q), qMax, 0, pMax, xMap, yMap);
+      const atcPts = sampleCurve((q) => getAtcPrice(params, q), qMax, 0, pMax, xMap, yMap, 0.08);
+
+      if (selected.q > 0.05) {
+        EconDraw.fillPolygon(ctx, polygonUnderDemand(selected.q, selected.p, params, xMap, yMap), { fill: ECON_THEME.color.csFill });
+        const rect = rectanglePoints(selected.q, Math.max(selected.p, selected.atc), Math.min(selected.p, selected.atc), xMap, yMap);
+        EconDraw.fillPolygon(ctx, rect, { fill: selected.profit >= 0 ? 'rgba(46,139,87,0.18)' : 'rgba(216,74,58,0.18)' });
+        if (selected.dwl > 0.02) {
+          const tri = dwlTriangle(competitive.q, selected.q, params, xMap, yMap);
+          if (tri.length) {
+            EconDraw.fillPolygon(ctx, tri, { fill: ECON_THEME.color.dwlFill });
+          }
+        }
+      }
+
+      EconDraw.drawLine(ctx, demandPts, { color: ECON_THEME.color.demand });
+      EconDraw.drawLine(ctx, mrPts, { color: ECON_THEME.color.external });
+      EconDraw.drawLine(ctx, mcPts, { color: ECON_THEME.color.supply });
+      EconDraw.drawLine(ctx, atcPts, { color: ECON_THEME.color.longRun, dash: [10, 6] });
+
+      if (exploreState.showBenchmark) {
+        EconDraw.drawLine(ctx, [
+          { x: xMap(0), y: yMap(competitive.p) },
+          { x: xMap(qMax), y: yMap(competitive.p) }
+        ], { color: ECON_THEME.color.baseline, dash: ECON_THEME.dash.baseline, lineWidth: 2 });
+        EconDraw.drawCircle(ctx, xMap(competitive.q), yMap(competitive.p), { stroke: ECON_THEME.color.baseline, fill: '#ffffff', radius: 6 });
+        EconDraw.drawText(ctx, 'Eᶜ', xMap(competitive.q) + 8, yMap(competitive.p) - 10, { color: ECON_THEME.color.baseline, weight: '600' });
+      }
+
+      EconDraw.drawLine(ctx, [
+        { x: xMap(0), y: yMap(selected.p) },
+        { x: xMap(qMax), y: yMap(selected.p) }
+      ], { color: ECON_THEME.color.government, dash: [10, 6], lineWidth: 2.5 });
+      EconDraw.drawCircle(ctx, xMap(selected.q), yMap(selected.p), { stroke: ECON_THEME.color.text, fill: '#ffffff', radius: 6 });
+      EconDraw.drawText(ctx, 'E*', xMap(selected.q) + 8, yMap(selected.p) - 10, { color: ECON_THEME.color.text, weight: '600' });
+
+      EconDraw.drawText(ctx, 'D', xMap(Math.max(0.6, qMax * 0.82)), yMap(getDemandPrice(params, qMax * 0.82)) - 12, { color: ECON_THEME.color.demand, weight: '600' });
+      EconDraw.drawText(ctx, 'MR', xMap(Math.max(0.6, qMax * 0.46)), yMap(Math.max(0.2, getMrPrice(params, qMax * 0.46))) - 12, { color: ECON_THEME.color.external, weight: '600' });
+      EconDraw.drawText(ctx, 'MC', xMap(Math.max(0.6, qMax * 0.76)), yMap(getMcPrice(params, qMax * 0.76)) - 12, { color: ECON_THEME.color.supply, weight: '600' });
+      EconDraw.drawText(ctx, 'ATC', xMap(Math.max(0.8, qMax * 0.35)), yMap(Math.min(pMax - 0.2, getAtcPrice(params, qMax * 0.35))) - 12, { color: ECON_THEME.color.longRun, weight: '600' });
+
+      const subsidyNote = exploreState.regime === 'mcReg' && selected.profit < -0.1
+        ? ` At this price the firm loses ${formatMoney(selected.profit)}, so a subsidy or franchise payment would be needed to keep service operating.`
+        : '';
+      const benchmarkNote = exploreState.showBenchmark
+        ? ` The light dashed line marks the competitive benchmark at P = ${formatNum(competitive.p)} and Q = ${formatNum(competitive.q)}.`
+        : '';
+      document.getElementById('marketGraphNote').innerHTML = `<strong>Graph reading:</strong> the coloured price line shows the active regime. Consumer surplus is the blue triangle, the green or red rectangle shows profit or loss, and the grey triangle measures allocative deadweight loss relative to the competitive quantity.${benchmarkNote}${subsidyNote}`;
+
+      document.getElementById('metricPrice').textContent = formatMoney(selected.p);
+      document.getElementById('metricQuantity').textContent = formatNum(selected.q);
+      document.getElementById('metricProfit').textContent = formatMoney(selected.profit);
+      document.getElementById('metricCS').textContent = formatMoney(selected.cs);
+      document.getElementById('metricTS').textContent = formatMoney(selected.ts);
+      document.getElementById('metricDWL').textContent = formatMoney(selected.dwl);
+      document.getElementById('marketStatusChip').textContent = selected.label;
+      document.getElementById('marketStatusCopy').textContent = getMarketInterpretation(exploreState.regime, selected, competitive);
+
+      const rows = [outcomes.competition, outcomes.monopoly, outcomes.mcReg, outcomes.acReg].map((outcome) => {
+        const activeClass = outcome.id === exploreState.regime ? ' class="active-row"' : '';
+        return `<tr${activeClass}><td>${outcome.label}</td><td>${formatMoney(outcome.p)}</td><td>${formatNum(outcome.q)}</td><td>${formatMoney(outcome.profit)}</td><td>${formatMoney(outcome.dwl)}</td></tr>`;
+      }).join('');
+      document.getElementById('outcomeTable').innerHTML = `
+        <thead><tr><th>Outcome</th><th>P</th><th>Q</th><th>Profit</th><th>DWL</th></tr></thead>
+        <tbody>${rows}</tbody>
+      `;
+      document.getElementById('marketTableNote').innerHTML = exploreState.regime === 'acReg'
+        ? 'AC regulation normally lands between monopoly and competition: higher quantity and lower deadweight loss than monopoly, but a higher regulated price than MC pricing.'
+        : exploreState.regime === 'mcReg'
+          ? 'MC regulation restores the efficient quantity. In a natural monopoly it can still leave the firm with a loss because average total cost lies above marginal cost.'
+          : 'Use the table to compare the active regime with the other three outcomes under the same demand and cost conditions.';
+    }
+
+    const PD_PRESETS = {
+      businessHousehold: {
+        nameA: 'Business users',
+        nameB: 'Households',
+        note: 'Business users are less price-sensitive and have higher willingness to pay than households.',
+        aA: 18,
+        bA: 0.8,
+        aB: 10,
+        bB: 1.2,
+        mc: 4
+      },
+      peakOffPeak: {
+        nameA: 'Peak travellers',
+        nameB: 'Off-peak travellers',
+        note: 'Peak users are less flexible, so the seller charges them more under third-degree discrimination.',
+        aA: 20,
+        bA: 1.0,
+        aB: 10,
+        bB: 1.2,
+        mc: 4.2
+      },
+      touristLocal: {
+        nameA: 'Tourists',
+        nameB: 'Locals',
+        note: 'Tourists often have higher willingness to pay and fewer close substitutes than locals.',
+        aA: 19,
+        bA: 0.9,
+        aB: 9,
+        bB: 1.3,
+        mc: 4
+      }
+    };
+
+    const pdState = {
+      preset: 'businessHousehold',
+      method: 'single',
+      mc: PD_PRESETS.businessHousehold.mc
+    };
+
+    function computePdMethods(preset, mcOverride = null) {
+      const mc = mcOverride == null ? preset.mc : mcOverride;
+      const methods = {};
+      const welfareSegment = (a, b, q) => a * q - 0.5 * b * q * q - mc * q;
+      const revenueSegment = (a, b, q) => a * q - 0.5 * b * q * q;
+
+      let best = { profit: -Infinity, price: mc, qA: 0, qB: 0 };
+      const maxPrice = Math.max(preset.aA, preset.aB);
+      for (let p = mc; p <= maxPrice + 0.0001; p += 0.01) {
+        const qA = Math.max(0, (preset.aA - p) / preset.bA);
+        const qB = Math.max(0, (preset.aB - p) / preset.bB);
+        const q = qA + qB;
+        const profit = (p - mc) * q;
+        if (profit > best.profit) best = { profit, price: p, qA, qB };
+      }
+      methods.single = {
+        id: 'single',
+        label: 'Single price',
+        pA: best.price,
+        pB: best.price,
+        qA: best.qA,
+        qB: best.qB,
+        q: best.qA + best.qB,
+        cs: 0.5 * Math.max(0, preset.aA - best.price) * best.qA + 0.5 * Math.max(0, preset.aB - best.price) * best.qB,
+        profit: best.profit,
+        averagePrice: best.price,
+        producerAreaA: best.profit * (best.qA / (best.qA + best.qB || 1)),
+        producerAreaB: best.profit * (best.qB / (best.qA + best.qB || 1))
+      };
+      methods.single.welfare = methods.single.cs + methods.single.profit;
+
+      const pA = preset.aA > mc ? (preset.aA + mc) / 2 : mc;
+      const pB = preset.aB > mc ? (preset.aB + mc) / 2 : mc;
+      const qA = Math.max(0, (preset.aA - pA) / preset.bA);
+      const qB = Math.max(0, (preset.aB - pB) / preset.bB);
+      methods.third = {
+        id: 'third',
+        label: 'Third-degree discrimination',
+        pA, pB, qA, qB,
+        q: qA + qB,
+        cs: 0.5 * Math.max(0, preset.aA - pA) * qA + 0.5 * Math.max(0, preset.aB - pB) * qB,
+        profit: (pA - mc) * qA + (pB - mc) * qB,
+        averagePrice: (revenueSegment(preset.aA, preset.bA, qA) + revenueSegment(preset.aB, preset.bB, qB)) / Math.max(1e-9, qA + qB)
+      };
+      methods.third.welfare = methods.third.cs + methods.third.profit;
+
+      const qAperf = Math.max(0, (preset.aA - mc) / preset.bA);
+      const qBperf = Math.max(0, (preset.aB - mc) / preset.bB);
+      const profitPerf = welfareSegment(preset.aA, preset.bA, qAperf) + welfareSegment(preset.aB, preset.bB, qBperf);
+      methods.perfect = {
+        id: 'perfect',
+        label: 'Perfect discrimination',
+        pA: null,
+        pB: null,
+        qA: qAperf,
+        qB: qBperf,
+        q: qAperf + qBperf,
+        cs: 0,
+        profit: profitPerf,
+        averagePrice: (revenueSegment(preset.aA, preset.bA, qAperf) + revenueSegment(preset.aB, preset.bB, qBperf)) / Math.max(1e-9, qAperf + qBperf)
+      };
+      methods.perfect.welfare = methods.perfect.profit;
+
+      const welfarePerfect = methods.perfect.welfare;
+      Object.values(methods).forEach((method) => {
+        method.dwl = Math.max(0, welfarePerfect - method.welfare);
+      });
+      return methods;
+    }
+
+    function drawPdMarket(ctx, left, top, width, height, title, a, b, mc, q, price, methodId, fillMode) {
+      const maxPrice = Math.max(a + 1, mc + 1.5);
+      const maxQ = Math.max((a - mc) / b + 1, q + 1);
+      const x = (val) => left + (val / maxQ) * width;
+      const y = (val) => top + height - (val / maxPrice) * height;
+
+      ctx.save();
+      ctx.strokeStyle = ECON_THEME.color.axis;
+      ctx.lineWidth = ECON_THEME.line.axis;
+      ctx.beginPath();
+      ctx.moveTo(left, top);
+      ctx.lineTo(left, top + height);
+      ctx.lineTo(left + width, top + height);
+      ctx.stroke();
+
+      ctx.fillStyle = ECON_THEME.color.text;
+      ctx.font = `600 13px ${ECON_THEME.font.family}`;
+      ctx.fillText(title, left, top - 10);
+      ctx.font = `12px ${ECON_THEME.font.family}`;
+      ctx.fillText('Q', left + width - 12, top + height + 18);
+      ctx.save();
+      ctx.translate(left - 34, top + height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('P', 0, 0);
+      ctx.restore();
+
+      const demandPts = [];
+      for (let qv = 0; qv <= maxQ + 0.001; qv += maxQ / 100) {
+        const p = a - b * qv;
+        if (p < 0) continue;
+        demandPts.push({ x: x(qv), y: y(p) });
+      }
+      EconDraw.drawLine(ctx, demandPts, { color: ECON_THEME.color.demand });
+      EconDraw.drawLine(ctx, [{ x: x(0), y: y(mc) }, { x: x(maxQ), y: y(mc) }], { color: ECON_THEME.color.supply });
+
+      if (q > 0.02) {
+        if (methodId === 'perfect') {
+          const poly = [{ x: x(0), y: y(a) }];
+          for (let qv = 0; qv <= q + 0.001; qv += maxQ / 100) poly.push({ x: x(qv), y: y(a - b * qv) });
+          poly.push({ x: x(q), y: y(mc) });
+          poly.push({ x: x(0), y: y(mc) });
+          EconDraw.fillPolygon(ctx, poly, { fill: 'rgba(46,139,87,0.18)' });
+          EconDraw.drawLine(ctx, [{ x: x(q), y: y(0) }, { x: x(q), y: y(maxPrice) }], { color: ECON_THEME.color.government, dash: [8, 6], lineWidth: 2 });
+          EconDraw.drawText(ctx, 'Serve until D = MC', left + 12, top + 18, { size: 12, color: ECON_THEME.color.government, weight: '600' });
+        } else {
+          const csPoly = [{ x: x(0), y: y(a) }];
+          for (let qv = 0; qv <= q + 0.001; qv += maxQ / 100) csPoly.push({ x: x(qv), y: y(a - b * qv) });
+          csPoly.push({ x: x(q), y: y(price) });
+          csPoly.push({ x: x(0), y: y(price) });
+          EconDraw.fillPolygon(ctx, csPoly, { fill: ECON_THEME.color.csFill });
+          EconDraw.fillPolygon(ctx, [
+            { x: x(0), y: y(price) },
+            { x: x(q), y: y(price) },
+            { x: x(q), y: y(mc) },
+            { x: x(0), y: y(mc) }
+          ], { fill: 'rgba(46,139,87,0.18)' });
+          EconDraw.drawLine(ctx, [{ x: x(0), y: y(price) }, { x: x(maxQ), y: y(price) }], { color: ECON_THEME.color.government, dash: [8, 6], lineWidth: 2.5 });
+        }
+
+        EconDraw.drawCircle(ctx, x(q), y(methodId === 'perfect' ? mc : price), { stroke: ECON_THEME.color.text, fill: '#ffffff', radius: 5 });
+        EconDraw.drawText(ctx, 'Q*', x(q) + 6, y(0) - 8, { size: 12, color: ECON_THEME.color.text, weight: '600' });
+      }
+
+      EconDraw.drawText(ctx, 'D', x(Math.min(maxQ * 0.75, Math.max(0.5, q + 0.7))), y(Math.max(0.2, a - b * Math.min(maxQ * 0.75, Math.max(0.5, q + 0.7)))) - 10, { size: 12, color: ECON_THEME.color.demand, weight: '600' });
+      EconDraw.drawText(ctx, 'MC', x(maxQ * 0.78), y(mc) - 8, { size: 12, color: ECON_THEME.color.supply, weight: '600' });
+      if (methodId !== 'perfect' && price != null) {
+        EconDraw.drawText(ctx, 'P', x(maxQ * 0.8), y(price) - 8, { size: 12, color: ECON_THEME.color.government, weight: '600' });
+      }
+      ctx.restore();
+    }
+
+    function renderPdSection() {
+      const preset = PD_PRESETS[pdState.preset];
+      const methods = computePdMethods(preset, pdState.mc);
+      const active = methods[pdState.method];
+
+      const canvas = document.getElementById('pdCanvas');
+      const ctx = canvas.getContext('2d');
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+
+      const leftMargin = 70;
+      const topMargin = 72;
+      const panelWidth = 360;
+      const panelHeight = 360;
+      const gap = 90;
+      drawPdMarket(ctx, leftMargin, topMargin, panelWidth, panelHeight, preset.nameA, preset.aA, preset.bA, pdState.mc, active.qA, active.pA, pdState.method, 'A');
+      drawPdMarket(ctx, leftMargin + panelWidth + gap, topMargin, panelWidth, panelHeight, preset.nameB, preset.aB, preset.bB, pdState.mc, active.qB, active.pB, pdState.method, 'B');
+
+      EconDraw.drawText(ctx, `Current comparison: ${active.label}`, 80, 36, { size: 16, weight: '600', color: ECON_THEME.color.text });
+      EconDraw.drawText(ctx, preset.note, 80, 56, { size: 12, color: ECON_THEME.color.muted });
+
+      document.getElementById('pdMcLabel').textContent = 'MC = ' + formatNum(pdState.mc);
+      document.getElementById('pdStatusChip').textContent = active.label;
+      document.getElementById('pdStatusCopy').textContent = pdState.method === 'single'
+        ? 'A uniform price must be charged in both sub-markets. The firm trades off extracting more revenue from the less elastic group against keeping the more elastic group in the market.'
+        : pdState.method === 'third'
+          ? 'With third-degree price discrimination, the firm can charge different prices in the two markets. The less elastic group receives the higher price, total output usually rises, and deadweight loss typically falls relative to a single price.'
+          : 'Under perfect price discrimination, each unit is priced at its willingness to pay. Consumer surplus is eliminated, producer surplus expands to the full total surplus, and allocative deadweight loss disappears.';
+
+      document.getElementById('pdMetricQ').textContent = formatNum(active.q);
+      document.getElementById('pdMetricProfit').textContent = formatMoney(active.profit);
+      document.getElementById('pdMetricCS').textContent = formatMoney(active.cs);
+      document.getElementById('pdMetricWelfare').textContent = formatMoney(active.welfare);
+      document.getElementById('pdMetricDWL').textContent = formatMoney(active.dwl);
+      document.getElementById('pdMetricPrice').textContent = formatMoney(active.averagePrice);
+
+      const pdRows = ['single', 'third', 'perfect'].map((key) => {
+        const m = methods[key];
+        return `<tr${key === pdState.method ? ' class="active-row"' : ''}><td>${m.label}</td><td>${formatMoney(m.averagePrice)}</td><td>${formatNum(m.q)}</td><td>${formatMoney(m.profit)}</td><td>${formatMoney(m.cs)}</td><td>${formatMoney(m.dwl)}</td></tr>`;
+      }).join('');
+      document.getElementById('pdTable').innerHTML = `
+        <thead><tr><th>Method</th><th>Avg. price</th><th>Total Q</th><th>Profit</th><th>CS</th><th>DWL</th></tr></thead>
+        <tbody>${pdRows}</tbody>
+      `;
+      document.getElementById('pdTableNote').textContent = 'The table reports total quantity, average realised price, profit, consumer surplus, and deadweight loss relative to perfect discrimination.';
+      document.getElementById('pdGraphNote').innerHTML = `<strong>Graph reading:</strong> each panel is a separate market segment. Under single pricing the same price line is used in both panels; under third-degree discrimination the price lines differ; under perfect discrimination the firm sells each unit until willingness to pay reaches marginal cost.`;
+    }
+
+    const PRACTICE_SCENARIOS = [
+      {
+        id: 'monoVsComp',
+        label: 'Monopoly versus competition',
+        prompt: 'Start from the competitive benchmark and compare it with the single-price monopoly outcome in the same market. Decide how price, quantity, profit, and deadweight loss change.',
+        preset: 'standard',
+        reference: 'competition',
+        target: 'monopoly'
+      },
+      {
+        id: 'mcVsMono',
+        label: 'MC regulation versus monopoly',
+        prompt: 'Start from the monopoly outcome, then compare it with marginal-cost regulation. Focus on the efficient quantity, the firm’s accounting result, and the direction of deadweight loss.',
+        preset: 'natural',
+        reference: 'monopoly',
+        target: 'mcReg'
+      },
+      {
+        id: 'acVsMono',
+        label: 'AC regulation versus monopoly',
+        prompt: 'Start from monopoly in a natural monopoly market, then move to average-cost regulation. Compare price, quantity, profit, and deadweight loss.',
+        preset: 'natural',
+        reference: 'monopoly',
+        target: 'acReg'
+      },
+      {
+        id: 'acVsMc',
+        label: 'AC regulation versus MC regulation',
+        prompt: 'Compare AC regulation with MC regulation in a natural monopoly market. Think carefully about the trade-off between cost recovery and allocative efficiency.',
+        preset: 'natural',
+        reference: 'mcReg',
+        target: 'acReg'
+      }
+    ];
+
+    const practiceState = {
+      currentId: 'monoVsComp',
+      revealed: false
+    };
+
+    function renderPracticeBank() {
+      const bank = document.getElementById('practiceScenarioBank');
+      bank.innerHTML = PRACTICE_SCENARIOS.map((scenario) => `<button class="scenario-chip${scenario.id === practiceState.currentId ? ' active' : ''}" data-scenario="${scenario.id}">${scenario.label}</button>`).join('');
+      bank.querySelectorAll('.scenario-chip').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          practiceState.currentId = btn.dataset.scenario;
+          practiceState.revealed = false;
+          clearPracticeAnswers();
+          renderPracticeBank();
+          renderPracticeSection();
+        });
+      });
+    }
+
+    function currentPracticeScenario() {
+      return PRACTICE_SCENARIOS.find((item) => item.id === practiceState.currentId) || PRACTICE_SCENARIOS[0];
+    }
+
+    function clearPracticeAnswers() {
+      ['practicePriceAnswer', 'practiceQuantityAnswer', 'practiceProfitAnswer', 'practiceDwlAnswer'].forEach((id) => {
+        document.getElementById(id).value = '';
+      });
+      const feedback = document.getElementById('practiceFeedback');
+      feedback.className = 'feedback-panel neutral';
+      feedback.innerHTML = '<div class="feedback-copy">Choose a scenario, answer all four comparison questions, and then click <strong>Check answer</strong>. The graph will reveal the target outcome and explain the economics.</div>';
+    }
+
+    function renderPracticeSection() {
+      const scenario = currentPracticeScenario();
+      const params = PRESETS[scenario.preset];
+      const outcomes = computeMarketOutcomes(params);
+      const ref = outcomes[scenario.reference];
+      const target = outcomes[scenario.target];
+
+      document.getElementById('practiceStatusChip').textContent = scenario.label;
+      document.getElementById('practiceStatusCopy').textContent = scenario.prompt;
+
+      const canvas = document.getElementById('practiceCanvas');
+      const ctx = canvas.getContext('2d');
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+
+      const pMax = Math.max(params.A + 1.5, ref.p + 2, target.p + 2, target.atc + 2);
+      const qMax = Math.max(24, getEfficientQ(params) * 1.25, ref.q * 1.4, target.q * 1.4);
+      const helpers = basePlotHelpers(canvas, qMax, 0, pMax);
+      const { xMap, yMap, xTicks, yTicks } = helpers;
+      EconDraw.drawAxes(ctx, { xLabel: 'Quantity', yLabel: 'Price / cost', xTicks, yTicks });
+
+      EconDraw.drawLine(ctx, sampleCurve((q) => getDemandPrice(params, q), qMax, 0, pMax, xMap, yMap), { color: ECON_THEME.color.demand });
+      EconDraw.drawLine(ctx, sampleCurve((q) => getMrPrice(params, q), qMax, 0, pMax, xMap, yMap), { color: ECON_THEME.color.external });
+      EconDraw.drawLine(ctx, sampleCurve((q) => getMcPrice(params, q), qMax, 0, pMax, xMap, yMap), { color: ECON_THEME.color.supply });
+      EconDraw.drawLine(ctx, sampleCurve((q) => getAtcPrice(params, q), qMax, 0, pMax, xMap, yMap, 0.08), { color: ECON_THEME.color.longRun, dash: [10, 6] });
+
+      EconDraw.drawLine(ctx, [{ x: xMap(0), y: yMap(ref.p) }, { x: xMap(qMax), y: yMap(ref.p) }], { color: ECON_THEME.color.baseline, dash: ECON_THEME.dash.baseline, lineWidth: 2 });
+      EconDraw.drawCircle(ctx, xMap(ref.q), yMap(ref.p), { stroke: ECON_THEME.color.baseline, fill: '#ffffff', radius: 6 });
+      EconDraw.drawText(ctx, 'Reference', xMap(ref.q) + 8, yMap(ref.p) - 10, { size: 12, color: ECON_THEME.color.baseline, weight: '600' });
+
+      if (practiceState.revealed) {
+        if (target.q > 0.05) {
+          EconDraw.fillPolygon(ctx, polygonUnderDemand(target.q, target.p, params, xMap, yMap), { fill: ECON_THEME.color.csFill });
+          if (target.dwl > 0.02) {
+            const tri = dwlTriangle(outcomes.competition.q, target.q, params, xMap, yMap);
+            if (tri.length) EconDraw.fillPolygon(ctx, tri, { fill: ECON_THEME.color.dwlFill });
+          }
+        }
+        EconDraw.drawLine(ctx, [{ x: xMap(0), y: yMap(target.p) }, { x: xMap(qMax), y: yMap(target.p) }], { color: ECON_THEME.color.government, dash: [10, 6], lineWidth: 2.5 });
+        EconDraw.drawCircle(ctx, xMap(target.q), yMap(target.p), { stroke: ECON_THEME.color.text, fill: '#ffffff', radius: 6 });
+        EconDraw.drawText(ctx, 'Target', xMap(target.q) + 8, yMap(target.p) - 10, { size: 12, color: ECON_THEME.color.text, weight: '600' });
+      }
+
+      document.getElementById('practiceGraphNote').innerHTML = `<strong>Before checking:</strong> use the scenario prompt and the reference outcome to predict the target regime. <strong>After checking:</strong> the solid green dashed line reveals the target outcome and the grey fill shows the target deadweight loss.`;
+
+      document.getElementById('practiceTable').innerHTML = `
+        <thead><tr><th>Outcome</th><th>Price</th><th>Quantity</th><th>Profit</th><th>DWL</th></tr></thead>
+        <tbody>
+          <tr><td>Reference (${ref.label})</td><td>${formatMoney(ref.p)}</td><td>${formatNum(ref.q)}</td><td>${formatMoney(ref.profit)}</td><td>${formatMoney(ref.dwl)}</td></tr>
+          <tr${practiceState.revealed ? ' class="active-row"' : ''}><td>Target (${target.label})</td><td>${practiceState.revealed ? formatMoney(target.p) : 'Check answer'}</td><td>${practiceState.revealed ? formatNum(target.q) : 'Check answer'}</td><td>${practiceState.revealed ? formatMoney(target.profit) : 'Check answer'}</td><td>${practiceState.revealed ? formatMoney(target.dwl) : 'Check answer'}</td></tr>
+        </tbody>
+      `;
+    }
+
+    function checkPracticeAnswers() {
+      const scenario = currentPracticeScenario();
+      const params = PRESETS[scenario.preset];
+      const outcomes = computeMarketOutcomes(params);
+      const ref = outcomes[scenario.reference];
+      const target = outcomes[scenario.target];
+      const correct = {
+        price: directionWord(target.p - ref.p),
+        quantity: directionWord(target.q - ref.q),
+        profit: directionWord(target.profit - ref.profit),
+        dwl: directionWord(target.dwl - ref.dwl)
+      };
+      const answers = {
+        price: document.getElementById('practicePriceAnswer').value,
+        quantity: document.getElementById('practiceQuantityAnswer').value,
+        profit: document.getElementById('practiceProfitAnswer').value,
+        dwl: document.getElementById('practiceDwlAnswer').value
+      };
+      const missing = Object.values(answers).some((value) => !value);
+      const feedback = document.getElementById('practiceFeedback');
+      if (missing) {
+        feedback.className = 'feedback-panel warning';
+        feedback.innerHTML = '<div class="feedback-copy"><strong>Complete all four answers first.</strong> Then check again.</div>';
+        return;
+      }
+      practiceState.revealed = true;
+      renderPracticeSection();
+
+      const wrong = [];
+      if (answers.price !== correct.price) wrong.push(`price should be ${correct.price}`);
+      if (answers.quantity !== correct.quantity) wrong.push(`quantity should be ${correct.quantity}`);
+      if (answers.profit !== correct.profit) wrong.push(`profit should be ${correct.profit}`);
+      if (answers.dwl !== correct.dwl) wrong.push(`deadweight loss should be ${correct.dwl}`);
+
+      if (!wrong.length) {
+        feedback.className = 'feedback-panel success';
+        feedback.innerHTML = `<div class="feedback-copy"><strong>Correct.</strong> In this scenario, ${target.label.toLowerCase()} gives a ${correct.price} price, a ${correct.quantity} quantity, ${correct.profit} firm profit, and ${correct.dwl} deadweight loss relative to the reference. ${scenario.target === 'mcReg' ? 'Because MC regulation restores the efficient quantity, deadweight loss falls.' : ''}</div>`;
+      } else {
+        feedback.className = 'feedback-panel warning';
+        feedback.innerHTML = `<div class="feedback-copy"><strong>Not quite.</strong> ${wrong.join('; ')}. ${scenario.target === 'acReg' ? 'Remember that AC regulation raises price enough to cover total cost, so it tends to sit between MC regulation and monopoly.' : scenario.target === 'monopoly' ? 'Remember that monopoly restricts output where MR = MC, so price rises and quantity falls.' : 'Use the revealed target line to compare the two regimes carefully.'}</div>`;
+      }
+    }
+
+    const CASE_STEPS = [
+      {
+        id: 'pre2024',
+        label: '2023–24 baseline',
+        price: 1.20,
+        volume: 1269,
+        graph: { A: 4.3, b: 0.18, c: 0.75, d: 0.05, F: 14, regulatedPrice: 1.20 },
+        mechanism: 'Demand already shrinking because of e-substitution',
+        takeaway: 'The regulated monopoly starts from a high-fixed-cost network with falling letter demand.',
+        note: 'Before the April 2024 increase, the basic postage rate was $1.20. Reserved letter volumes in the ACCC’s 2025 decision are anchored at about 1,269 million letters for 2023–24.'
+      },
+      {
+        id: 'apr2024',
+        label: 'Apr 2024 price rise',
+        price: 1.50,
+        volume: 1116.5,
+        graph: { A: 3.9, b: 0.18, c: 0.85, d: 0.05, F: 14.5, regulatedPrice: 1.50 },
+        mechanism: 'Regulated price rises while demand continues to shift left',
+        takeaway: 'Regulation allows a higher price to limit losses, but quantity still falls as customers keep switching away from letters.',
+        note: 'The ACCC did not object to a 25% increase from $1.20 to $1.50 from 3 April 2024. The later ACCC volume table forecasts about 1,116.5 million reserved letters in 2024–25.'
+      },
+      {
+        id: 'jul2025',
+        label: 'Jul 2025 price rise',
+        price: 1.70,
+        volume: 997.2,
+        graph: { A: 3.55, b: 0.18, c: 0.92, d: 0.055, F: 15.2, regulatedPrice: 1.70 },
+        mechanism: 'A further regulated increase attempts to stabilise revenue',
+        takeaway: 'Because demand is price inelastic, raising postage increases revenue more than it reduces quantity, but it still does not fully solve the cost-recovery problem.',
+        note: 'The ACCC did not object to a further increase from $1.50 to $1.70 from 17 July 2025. The same 2025 decision reported an indicative path to $1.85 in 2026–27 and $2.00 in 2027–28, with forecast reserved volume of 997.2 million in 2025–26.'
+      },
+      {
+        id: 'mid2026',
+        label: '2026 consultation',
+        price: 1.85,
+        volume: 895.1,
+        graph: { A: 3.25, b: 0.18, c: 1.0, d: 0.06, F: 15.8, regulatedPrice: 1.85 },
+        mechanism: 'Low elasticity, rising average cost, and persistent under-recovery',
+        takeaway: 'The policy lesson is that a regulated monopoly can keep lifting price to slow losses, but when demand keeps collapsing the network still faces under-recovery because average cost rises as volume falls.',
+        note: 'In Australia Post’s December 2025 draft notification, letter demand is described as low elasticity and reserved letter volume is projected to fall from 1,181 million in 2024–25 to 760 million by 2028–29. Even at a proposed $1.85 basic postage rate, the forecast 2026–27 shortfall is about $85.7 million.'
+      }
+    ];
+
+    const caseState = {
+      stepId: 'pre2024',
+      timer: null
+    };
+
+    function currentCaseStep() {
+      return CASE_STEPS.find((step) => step.id === caseState.stepId) || CASE_STEPS[0];
+    }
+
+    function renderCaseButtons() {
+      const row = document.getElementById('caseStepRow');
+      row.innerHTML = CASE_STEPS.map((step) => `<button class="case-step-btn${step.id === caseState.stepId ? ' active' : ''}" data-step="${step.id}">${step.label}</button>`).join('');
+      row.querySelectorAll('.case-step-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          caseState.stepId = btn.dataset.step;
+          if (caseState.timer) window.clearInterval(caseState.timer);
+          caseState.timer = null;
+          renderCaseButtons();
+          renderCaseSection();
+        });
+      });
+    }
+
+    function drawSimpleLineChart(canvasId, labels, values, color, yLabel, valueFormatter, pointIndex = -1) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+
+      const theme = ECON_THEME;
+      const margin = { left: 80, right: 36, top: 48, bottom: 60 };
+      const plot = { left: margin.left, top: margin.top, width: canvas.width - margin.left - margin.right, height: canvas.height - margin.top - margin.bottom };
+      const minY = Math.min(...values) * 0.85;
+      const maxY = Math.max(...values) * 1.1;
+      const x = (i) => plot.left + (i / (labels.length - 1)) * plot.width;
+      const y = (v) => plot.top + plot.height - ((v - minY) / (maxY - minY)) * plot.height;
+
+      ctx.save();
+      ctx.strokeStyle = theme.color.grid;
+      ctx.lineWidth = theme.line.grid;
+      for (let i = 0; i < 5; i += 1) {
+        const yy = plot.top + (i / 4) * plot.height;
+        ctx.beginPath();
+        ctx.moveTo(plot.left, yy);
+        ctx.lineTo(plot.left + plot.width, yy);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = theme.color.axis;
+      ctx.lineWidth = theme.line.axis;
+      ctx.beginPath();
+      ctx.moveTo(plot.left, plot.top);
+      ctx.lineTo(plot.left, plot.top + plot.height);
+      ctx.lineTo(plot.left + plot.width, plot.top + plot.height);
+      ctx.stroke();
+
+      ctx.font = `12px ${theme.font.family}`;
+      ctx.fillStyle = theme.color.muted;
+      for (let i = 0; i < labels.length; i += 1) {
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(labels[i], x(i), plot.top + plot.height + 10);
+      }
+      for (let i = 0; i < 5; i += 1) {
+        const value = minY + ((4 - i) / 4) * (maxY - minY);
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(valueFormatter(value), plot.left - 10, plot.top + (i / 4) * plot.height);
+      }
+      ctx.save();
+      ctx.translate(26, plot.top + plot.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+
+      const pts = values.map((value, i) => ({ x: x(i), y: y(value) }));
+      EconDraw.drawLine(ctx, pts, { color, lineWidth: 3 });
+      pts.forEach((pt, i) => {
+        EconDraw.drawCircle(ctx, pt.x, pt.y, { stroke: i === pointIndex ? theme.color.text : color, fill: '#ffffff', radius: i === pointIndex ? 6 : 5, lineWidth: 2 });
+      });
+      ctx.restore();
+    }
+
+    function renderCaseSection() {
+      const step = currentCaseStep();
+      document.getElementById('caseSummaryCopy').textContent = step.note;
+      document.getElementById('caseStatusChip').textContent = step.label;
+      document.getElementById('caseStatusCopy').textContent = step.takeaway;
+      document.getElementById('casePriceValue').textContent = formatMoney(step.price);
+      document.getElementById('casePriceNote').textContent = 'Basic postage rate used in this step of the narrative.';
+      document.getElementById('caseVolumeValue').textContent = formatNum(step.volume, 1) + 'm';
+      document.getElementById('caseVolumeNote').textContent = 'Official or official-forecast reserved letter volume for the matching year.';
+      document.getElementById('caseMechanismValue').textContent = step.mechanism;
+      document.getElementById('caseMechanismNote').textContent = 'This is the shift or constraint being translated into the stylised graph.';
+      document.getElementById('caseTakeawayValue').textContent = step.label;
+      document.getElementById('caseTakeawayNote').textContent = step.takeaway;
+
+      const canvas = document.getElementById('caseCanvas');
+      const ctx = canvas.getContext('2d');
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+
+      const params = step.graph;
+      const qActual = Math.max(0, (params.A - params.regulatedPrice) / params.b);
+      const qMon = Math.max(0, (params.A - params.c) / (2 * params.b + params.d));
+      const pMon = params.A - params.b * qMon;
+      const atcActual = getAtcPrice(params, qActual);
+      const qMax = 20;
+      const pMax = 4.6;
+      const helpers = basePlotHelpers(canvas, qMax, 0, pMax);
+      const { xMap, yMap, xTicks, yTicks } = helpers;
+      EconDraw.drawAxes(ctx, { xLabel: 'Stylised quantity index', yLabel: 'Letter price ($)', xTicks, yTicks });
+
+      EconDraw.drawLine(ctx, sampleCurve((q) => getDemandPrice(params, q), qMax, 0, pMax, xMap, yMap, 0.04), { color: ECON_THEME.color.demand });
+      EconDraw.drawLine(ctx, sampleCurve((q) => getMrPrice(params, q), qMax, 0, pMax, xMap, yMap, 0.04), { color: ECON_THEME.color.external });
+      EconDraw.drawLine(ctx, sampleCurve((q) => getMcPrice(params, q), qMax, 0, pMax, xMap, yMap, 0.04), { color: ECON_THEME.color.supply });
+      EconDraw.drawLine(ctx, sampleCurve((q) => getAtcPrice(params, q), qMax, 0, pMax, xMap, yMap, 0.05), { color: ECON_THEME.color.longRun, dash: [10, 6] });
+
+      if (qActual > 0.05) {
+        EconDraw.fillPolygon(ctx, rectanglePoints(qActual, Math.max(params.regulatedPrice, atcActual), Math.min(params.regulatedPrice, atcActual), xMap, yMap), { fill: 'rgba(216,74,58,0.18)' });
+      }
+      EconDraw.drawLine(ctx, [{ x: xMap(0), y: yMap(params.regulatedPrice) }, { x: xMap(qMax), y: yMap(params.regulatedPrice) }], { color: ECON_THEME.color.government, dash: [10, 6], lineWidth: 2.5 });
+      EconDraw.drawLine(ctx, [{ x: xMap(0), y: yMap(pMon) }, { x: xMap(qMax), y: yMap(pMon) }], { color: ECON_THEME.color.baseline, dash: [8, 6], lineWidth: 2 });
+      EconDraw.drawCircle(ctx, xMap(qActual), yMap(params.regulatedPrice), { stroke: ECON_THEME.color.text, fill: '#ffffff', radius: 6 });
+      EconDraw.drawCircle(ctx, xMap(qMon), yMap(pMon), { stroke: ECON_THEME.color.baseline, fill: '#ffffff', radius: 5 });
+      EconDraw.drawText(ctx, 'Observed / proposed regulated outcome', xMap(qActual) + 10, yMap(params.regulatedPrice) - 10, { size: 12, color: ECON_THEME.color.text, weight: '600' });
+      EconDraw.drawText(ctx, 'Notional monopoly benchmark', xMap(qMon) + 10, yMap(pMon) - 10, { size: 12, color: ECON_THEME.color.baseline, weight: '600' });
+      EconDraw.drawText(ctx, 'D', xMap(15.6), yMap(getDemandPrice(params, 15.6)) - 10, { color: ECON_THEME.color.demand, weight: '600' });
+      EconDraw.drawText(ctx, 'MR', xMap(8.2), yMap(getMrPrice(params, 8.2)) - 10, { color: ECON_THEME.color.external, weight: '600' });
+      EconDraw.drawText(ctx, 'MC', xMap(15.5), yMap(getMcPrice(params, 15.5)) - 10, { color: ECON_THEME.color.supply, weight: '600' });
+      EconDraw.drawText(ctx, 'ATC', xMap(5.4), yMap(Math.min(pMax - 0.1, getAtcPrice(params, 5.4))) - 10, { color: ECON_THEME.color.longRun, weight: '600' });
+
+      const loss = getProfit(params, qActual, params.regulatedPrice);
+      document.getElementById('caseGraphNote').innerHTML = `<strong>Stylised reading:</strong> repeated leftward demand shifts and a high-fixed-cost network push average total cost upward as volume falls. The green dashed line shows the observed or proposed regulated price, while the grey dashed line shows a notional static monopoly benchmark. At this step the stylised accounting result is ${formatMoney(loss)}. The actual charts below use official price and quantity data.`;
+
+      const labelsPrice = ['2023', 'Apr 2024', 'Jul 2025', 'Mid 2026*', 'Mid 2027*'];
+      const priceValues = [1.20, 1.50, 1.70, 1.85, 2.00];
+      const volumeLabels = ['2023–24', '2024–25', '2025–26', '2026–27', '2027–28'];
+      const volumeValues = [1269, 1116.5, 997.2, 895.1, 810.2];
+      const priceIndexMap = { pre2024: 0, apr2024: 1, jul2025: 2, mid2026: 3 };
+      const volumeIndexMap = { pre2024: 0, apr2024: 1, jul2025: 2, mid2026: 3 };
+      drawSimpleLineChart('casePriceChart', labelsPrice, priceValues, ECON_THEME.color.government, 'BPR ($)', (v) => '$' + formatNum(v, 2), priceIndexMap[step.id]);
+      drawSimpleLineChart('caseVolumeChart', volumeLabels, volumeValues, ECON_THEME.color.demand, 'Volume (m)', (v) => formatNum(v, 0), volumeIndexMap[step.id]);
+    }
+
+    function initTabs() {
+      document.querySelectorAll('.module-tab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.module-tab').forEach((el) => el.classList.toggle('active', el === btn));
+          document.querySelectorAll('.module-section').forEach((section) => {
+            section.classList.toggle('active', section.id === btn.dataset.target);
+          });
+          if (btn.dataset.target === 'exploreSection') renderMarketExplore();
+          if (btn.dataset.target === 'practiceSection') renderPracticeSection();
+          if (btn.dataset.target === 'caseSection') renderCaseSection();
+        });
+      });
+
+      document.querySelectorAll('.subtab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const parent = btn.dataset.parent;
+          document.querySelectorAll(`.subtab[data-parent="${parent}"]`).forEach((el) => el.classList.toggle('active', el === btn));
+          document.querySelectorAll(`#${parent} .subsection`).forEach((section) => {
+            section.classList.toggle('active', section.id === btn.dataset.target);
+          });
+          if (btn.dataset.target === 'marketSubsection') renderMarketExplore();
+          if (btn.dataset.target === 'pdSubsection') renderPdSection();
+        });
+      });
+    }
+
+    function initExploreControls() {
+      const presetSelect = document.getElementById('presetSelect');
+      const sliders = {
+        demandIntercept: 'A',
+        demandSlope: 'b',
+        mcIntercept: 'c',
+        mcSlope: 'd',
+        fixedCost: 'F'
+      };
+      presetSelect.addEventListener('change', () => {
+        const preset = PRESETS[presetSelect.value];
+        exploreState.preset = presetSelect.value;
+        exploreState.A = preset.A;
+        exploreState.b = preset.b;
+        exploreState.c = preset.c;
+        exploreState.d = preset.d;
+        exploreState.F = preset.F;
+        document.getElementById('demandIntercept').value = preset.A;
+        document.getElementById('demandSlope').value = preset.b;
+        document.getElementById('mcIntercept').value = preset.c;
+        document.getElementById('mcSlope').value = preset.d;
+        document.getElementById('fixedCost').value = preset.F;
+        renderMarketExplore();
+      });
+      Object.entries(sliders).forEach(([id, key]) => {
+        document.getElementById(id).addEventListener('input', (event) => {
+          exploreState[key] = Number(event.target.value);
+          renderMarketExplore();
+        });
+      });
+      document.querySelectorAll('#regimeButtons .regime-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          exploreState.regime = btn.dataset.regime;
+          document.querySelectorAll('#regimeButtons .regime-btn').forEach((el) => el.classList.toggle('active', el === btn));
+          renderMarketExplore();
+        });
+      });
+      document.getElementById('toggleBenchmarkButton').addEventListener('click', () => {
+        exploreState.showBenchmark = !exploreState.showBenchmark;
+        document.getElementById('toggleBenchmarkButton').textContent = exploreState.showBenchmark ? 'Hide benchmark' : 'Show benchmark';
+        renderMarketExplore();
+      });
+      document.getElementById('resetExploreButton').addEventListener('click', () => {
+        const preset = PRESETS.standard;
+        exploreState.preset = 'standard';
+        exploreState.regime = 'competition';
+        exploreState.showBenchmark = true;
+        exploreState.A = preset.A;
+        exploreState.b = preset.b;
+        exploreState.c = preset.c;
+        exploreState.d = preset.d;
+        exploreState.F = preset.F;
+        presetSelect.value = 'standard';
+        document.getElementById('demandIntercept').value = preset.A;
+        document.getElementById('demandSlope').value = preset.b;
+        document.getElementById('mcIntercept').value = preset.c;
+        document.getElementById('mcSlope').value = preset.d;
+        document.getElementById('fixedCost').value = preset.F;
+        document.querySelectorAll('#regimeButtons .regime-btn').forEach((el) => el.classList.toggle('active', el.dataset.regime === 'competition'));
+        document.getElementById('toggleBenchmarkButton').textContent = 'Hide benchmark';
+        renderMarketExplore();
+      });
+    }
+
+    function initPdControls() {
+      document.getElementById('pdPresetSelect').addEventListener('change', (event) => {
+        pdState.preset = event.target.value;
+        pdState.mc = PD_PRESETS[pdState.preset].mc;
+        document.getElementById('pdMc').value = pdState.mc;
+        renderPdSection();
+      });
+      document.getElementById('pdMc').addEventListener('input', (event) => {
+        pdState.mc = Number(event.target.value);
+        renderPdSection();
+      });
+      document.querySelectorAll('#pdMethodButtons .pd-mode-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          pdState.method = btn.dataset.method;
+          document.querySelectorAll('#pdMethodButtons .pd-mode-btn').forEach((el) => el.classList.toggle('active', el === btn));
+          renderPdSection();
+        });
+      });
+      document.getElementById('pdResetButton').addEventListener('click', () => {
+        pdState.preset = 'businessHousehold';
+        pdState.method = 'single';
+        pdState.mc = PD_PRESETS.businessHousehold.mc;
+        document.getElementById('pdPresetSelect').value = 'businessHousehold';
+        document.getElementById('pdMc').value = pdState.mc;
+        document.querySelectorAll('#pdMethodButtons .pd-mode-btn').forEach((el) => el.classList.toggle('active', el.dataset.method === 'single'));
+        renderPdSection();
+      });
+    }
+
+    function initPracticeControls() {
+      document.getElementById('practiceRandomButton').addEventListener('click', () => {
+        const next = PRACTICE_SCENARIOS[Math.floor(Math.random() * PRACTICE_SCENARIOS.length)];
+        practiceState.currentId = next.id;
+        practiceState.revealed = false;
+        clearPracticeAnswers();
+        renderPracticeBank();
+        renderPracticeSection();
+      });
+      document.getElementById('practiceResetButton').addEventListener('click', () => {
+        practiceState.revealed = false;
+        clearPracticeAnswers();
+        renderPracticeSection();
+      });
+      document.getElementById('practiceCheckButton').addEventListener('click', checkPracticeAnswers);
+    }
+
+    function initCaseControls() {
+      document.getElementById('casePlayButton').addEventListener('click', () => {
+        const ids = CASE_STEPS.map((step) => step.id);
+        if (caseState.timer) window.clearInterval(caseState.timer);
+        let index = ids.indexOf(caseState.stepId);
+        caseState.timer = window.setInterval(() => {
+          index = (index + 1) % ids.length;
+          caseState.stepId = ids[index];
+          renderCaseButtons();
+          renderCaseSection();
+        }, 1700);
+      });
+      document.getElementById('caseResetButton').addEventListener('click', () => {
+        if (caseState.timer) window.clearInterval(caseState.timer);
+        caseState.timer = null;
+        caseState.stepId = 'pre2024';
+        renderCaseButtons();
+        renderCaseSection();
+      });
+    }
+
+    function initialRender() {
+      initTabs();
+      initExploreControls();
+      initPdControls();
+      initPracticeControls();
+      initCaseControls();
+      renderPracticeBank();
+      renderCaseButtons();
+      renderMarketExplore();
+      renderPdSection();
+      renderPracticeSection();
+      renderCaseSection();
+    }
+
+    initialRender();
+  </script>
+</body>
+</html>

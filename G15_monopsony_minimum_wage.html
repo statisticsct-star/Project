@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G15_monopsony_minimum_wage</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs,
+    .summary-strip,
+    .legend-row,
+    .button-row,
+    .scenario-bank,
+    .case-step-row,
+    .note-row,
+    .mini-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .module-tabs,
+    .summary-strip,
+    .case-step-row,
+    .mini-tabs {
+      margin-bottom: 16px;
+    }
+    .module-tab,
+    .case-step-btn,
+    .scenario-chip,
+    .mini-tab,
+    .preset-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+      text-align: center;
+      line-height: 1.25;
+    }
+    .module-tab:hover,
+    .case-step-btn:hover,
+    .scenario-chip:hover,
+    .mini-tab:hover,
+    .preset-btn:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active,
+    .case-step-btn.active,
+    .scenario-chip.active,
+    .mini-tab.active,
+    .preset-btn.active {
+      background: #eef5ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+    .module-section,
+    .mini-section {
+      display: none;
+    }
+    .module-section.active,
+    .mini-section.active {
+      display: block;
+    }
+
+    .summary-chip,
+    .mini-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-muted);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 16px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 160px;
+    }
+    .control-inline.wide {
+      min-width: 260px;
+    }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    input[type="range"] {
+      width: 220px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.52fr) minmax(300px, 0.98fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .graph-card,
+    .panel-card,
+    .answer-card,
+    .data-card,
+    .source-note,
+    .chart-card,
+    .status-card,
+    .formula-card,
+    .table-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .panel-stack,
+    .answer-grid,
+    .data-grid,
+    .chart-grid,
+    .metric-grid,
+    .two-col-grid {
+      display: grid;
+      gap: 16px;
+    }
+    .answer-grid.two,
+    .data-grid.two,
+    .chart-grid.two,
+    .metric-grid.two,
+    .two-col-grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .metric-grid.four {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .card-title,
+    .status-title,
+    .data-title,
+    .chart-title,
+    .table-title,
+    .answer-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+    .small-muted,
+    .graph-note,
+    .source-note,
+    .status-copy,
+    .data-note,
+    .table-note,
+    .formula-copy,
+    .feedback-copy,
+    .case-copy,
+    .metric-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .small-muted strong,
+    .graph-note strong,
+    .status-copy strong,
+    .data-note strong,
+    .feedback-copy strong,
+    .case-copy strong,
+    .metric-note strong {
+      color: var(--color-text);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.mrp { border-color: var(--color-demand); }
+    .legend-line.supply { border-color: var(--color-supply); }
+    .legend-line.mfc { border-color: var(--color-long-run); }
+    .legend-line.minimum {
+      border-color: var(--color-government);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.guess {
+      border-color: var(--color-guess);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.reference {
+      border-color: var(--color-baseline);
+      border-top-style: dashed;
+      border-top-width: 2px;
+    }
+    .legend-fill {
+      width: 22px;
+      height: 12px;
+      border-radius: 4px;
+      border: 1px solid rgba(31,41,55,0.12);
+      display: inline-block;
+    }
+    .legend-fill.gap { background: var(--fill-dwl); }
+    .legend-fill.benefit { background: rgba(47,107,255,0.12); }
+
+    .metric-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      padding: 10px 12px;
+    }
+    .metric-label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+    }
+    .metric-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .status-card.good {
+      border-left: 4px solid var(--color-government);
+    }
+    .status-card.warn {
+      border-left: 4px solid var(--color-inflation);
+    }
+    .status-card.neutral {
+      border-left: 4px solid var(--color-baseline);
+    }
+
+    .answer-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .answer-card label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--color-text);
+    }
+    .answer-card select {
+      width: 100%;
+    }
+
+    .feedback-panel {
+      margin-top: 16px;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      font-size: var(--font-panel);
+    }
+    .feedback-success {
+      border-left: 4px solid var(--color-government);
+    }
+    .feedback-warning {
+      border-left: 4px solid var(--color-inflation);
+    }
+    .feedback-neutral {
+      border-left: 4px solid var(--color-baseline);
+    }
+
+    .practice-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .practice-table th,
+    .practice-table td {
+      padding: 8px 6px;
+      border-bottom: 1px solid var(--color-frame);
+      text-align: left;
+      vertical-align: top;
+    }
+    .practice-table th {
+      font-weight: 600;
+      color: var(--color-text);
+      background: #f7f9fc;
+    }
+    .practice-table td.answer-good { color: var(--color-government); font-weight: 600; }
+    .practice-table td.answer-bad { color: var(--color-supply); font-weight: 600; }
+    .practice-table td.answer-neutral { color: var(--color-muted); }
+
+    .case-step-copy {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--color-muted);
+      margin-bottom: 12px;
+    }
+    .case-step-copy strong {
+      color: var(--color-text);
+    }
+
+    .source-list {
+      margin: 8px 0 0 18px;
+      padding: 0;
+    }
+    .source-list li {
+      margin-bottom: 6px;
+    }
+
+    .chart-canvas,
+    .graph-canvas-large,
+    .graph-canvas-medium {
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      display: block;
+    }
+    .graph-canvas-large { max-width: 960px; }
+    .graph-canvas-medium { max-width: 960px; }
+
+    .footer-note {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 980px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+      .answer-grid,
+      .metric-grid.four,
+      .chart-grid.two,
+      .data-grid.two,
+      .two-col-grid.two {
+        grid-template-columns: 1fr;
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">G15. Monopsony, labor-market power, and minimum wage under monopsony</h1>
+        <p class="diagram-subtitle">
+          Compare the monopsony benchmark with the competitive benchmark, then add a minimum wage and see when it raises wages alone, raises both wages and employment, or becomes too high and cuts hiring. The case study uses the 1992 New Jersey fast-food minimum-wage episode as a real-world teaching calibration.
+        </p>
+      </div>
+
+      <div class="summary-strip">
+        <div class="summary-chip">Labor supply to the firm</div>
+        <div class="summary-chip">Marginal factor cost above wage</div>
+        <div class="summary-chip">MRP as labor demand</div>
+        <div class="summary-chip">Monopsony vs competition</div>
+        <div class="summary-chip">Minimum wage can raise employment</div>
+        <div class="summary-chip">Too-high wage floor can reduce employment</div>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreModule">Explore and compare</button>
+        <button class="module-tab" data-target="practiceModule">Practice and check</button>
+        <button class="module-tab" data-target="caseModule">Real-world case study</button>
+      </div>
+
+      <section id="exploreModule" class="module-section active">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label for="supplyInterceptSlider">Labor-supply intercept <span class="inline-value" id="supplyInterceptValue"></span></label>
+            <input id="supplyInterceptSlider" type="range" min="2" max="12" step="0.1" value="6" />
+          </div>
+          <div class="control-inline wide">
+            <label for="supplySlopeSlider">Labor-supply steepness <span class="inline-value" id="supplySlopeValue"></span></label>
+            <input id="supplySlopeSlider" type="range" min="0.08" max="0.45" step="0.01" value="0.25" />
+          </div>
+          <div class="control-inline wide">
+            <label for="mrpInterceptSlider">MRP intercept <span class="inline-value" id="mrpInterceptValue"></span></label>
+            <input id="mrpInterceptSlider" type="range" min="14" max="30" step="0.2" value="24" />
+          </div>
+          <div class="control-inline wide">
+            <label for="mrpSlopeSlider">MRP steepness <span class="inline-value" id="mrpSlopeValue"></span></label>
+            <input id="mrpSlopeSlider" type="range" min="0.12" max="0.60" step="0.01" value="0.35" />
+          </div>
+          <div class="control-inline wide">
+            <label for="minimumWageSlider">Minimum wage <span class="inline-value" id="minimumWageValue"></span></label>
+            <input id="minimumWageSlider" type="range" min="0" max="22" step="0.1" value="0" />
+          </div>
+          <div class="control-inline">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="resetExploreButton">Reset explore</button>
+          </div>
+        </div>
+
+        <div class="button-row" style="margin-bottom:16px;">
+          <button class="preset-btn" data-preset="weakPower">Weak labor-market power</button>
+          <button class="preset-btn" data-preset="strongPower">Strong labor-market power</button>
+          <button class="preset-btn" data-preset="sweetSpot">Helpful minimum wage</button>
+          <button class="preset-btn" data-preset="tooHigh">Too-high minimum wage</button>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <canvas id="exploreCanvas" class="graph-canvas-large" width="960" height="600"></canvas>
+            <div class="legend-row" style="margin-top:12px;">
+              <div class="legend-item"><span class="legend-line mrp"></span><span>MRP (labor demand)</span></div>
+              <div class="legend-item"><span class="legend-line supply"></span><span>Labor supply to the firm</span></div>
+              <div class="legend-item"><span class="legend-line mfc"></span><span>MFC</span></div>
+              <div class="legend-item"><span class="legend-line minimum"></span><span>Minimum wage</span></div>
+              <div class="legend-item"><span class="legend-line reference"></span><span>Benchmark guides</span></div>
+              <div class="legend-item"><span class="legend-fill gap"></span><span>Underemployment gap relative to competition</span></div>
+            </div>
+            <div class="graph-note" id="exploreGraphNote">
+              Drag the green minimum-wage line directly on the graph or use the slider above. The monopsony outcome is where <strong>MFC = MRP</strong>; the competitive benchmark is where <strong>labor supply = MRP</strong>. When the wage floor sits between those two wage benchmarks, employment can rise.
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="status-card neutral" id="exploreStatusCard">
+              <div class="status-title">How to read the outcome</div>
+              <div class="status-copy" id="exploreStatusCopy"></div>
+            </div>
+
+            <div class="panel-card">
+              <div class="card-title">Live metrics</div>
+              <div class="metric-grid four">
+                <div class="metric-card">
+                  <div class="metric-label">Monopsony benchmark</div>
+                  <div class="metric-value" id="metricMonopsony"></div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Competitive benchmark</div>
+                  <div class="metric-value" id="metricCompetitive"></div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Actual with current wage floor</div>
+                  <div class="metric-value" id="metricActual"></div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Employment gap</div>
+                  <div class="metric-value" id="metricGap"></div>
+                </div>
+              </div>
+              <div class="metric-note" style="margin-top:10px;" id="metricExtraNote"></div>
+            </div>
+
+            <div class="formula-card">
+              <div class="card-title">Decision rules</div>
+              <div class="formula-copy">
+                <strong>Monopsony:</strong> choose employment where <strong>MFC = MRP</strong>, then read the wage from the labor-supply curve.<br />
+                <strong>Competition:</strong> employment is where <strong>labor supply = MRP</strong>.<br />
+                <strong>Minimum wage:</strong> if the wage floor is between the monopsony wage and the competitive wage, the firm hires more workers because the effective marginal cost of labor becomes flatter up to the kink.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceModule" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Scenario bank</label>
+            <div class="small-muted">Choose a case, predict the regime, and then reveal the answer.</div>
+          </div>
+          <div class="control-inline">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="randomPracticeButton">Random scenario</button>
+          </div>
+          <div class="control-inline">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="resetPracticeButton">Reset answers</button>
+          </div>
+          <div class="control-inline">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="checkPracticeButton">Check answer</button>
+          </div>
+        </div>
+
+        <div class="scenario-bank" id="practiceScenarioBank" style="margin-bottom:16px;"></div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <canvas id="practiceCanvas" class="graph-canvas-large" width="960" height="600"></canvas>
+            <div class="legend-row" style="margin-top:12px;">
+              <div class="legend-item"><span class="legend-line mrp"></span><span>MRP (labor demand)</span></div>
+              <div class="legend-item"><span class="legend-line supply"></span><span>Labor supply to the firm</span></div>
+              <div class="legend-item"><span class="legend-line mfc"></span><span>MFC</span></div>
+              <div class="legend-item"><span class="legend-line guess"></span><span>Hidden actual wage floor before checking</span></div>
+              <div class="legend-item"><span class="legend-line minimum"></span><span>Revealed actual wage floor</span></div>
+            </div>
+            <div class="graph-note" id="practiceGraphNote"></div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="panel-card">
+              <div class="card-title">Scenario prompt</div>
+              <div class="small-muted" id="practicePrompt"></div>
+            </div>
+
+            <div class="answer-grid">
+              <div class="answer-card">
+                <label for="practiceBinding">Is the minimum wage binding?</label>
+                <select id="practiceBinding">
+                  <option value="">Choose</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="practiceEmployment">Employment relative to monopsony</label>
+                <select id="practiceEmployment">
+                  <option value="">Choose</option>
+                  <option value="increase">Increase</option>
+                  <option value="decrease">Decrease</option>
+                  <option value="unchanged">Unchanged</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="practiceRule">Which rule determines hiring?</label>
+                <select id="practiceRule">
+                  <option value="">Choose</option>
+                  <option value="monopsony">MRP = MFC at the monopsony point</option>
+                  <option value="kink">At the kink where the wage floor meets labor supply</option>
+                  <option value="flat">MRP = wage floor on the flat segment</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="practiceFeedback">
+              Predict first, then use <strong>Check answer</strong> to reveal the actual point and the policy line.
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Answer check</div>
+              <table class="practice-table">
+                <thead>
+                  <tr>
+                    <th>Question</th>
+                    <th>Your answer</th>
+                    <th>Correct answer</th>
+                  </tr>
+                </thead>
+                <tbody id="practiceTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseModule" class="module-section">
+        <div class="case-step-row" id="caseStepRow"></div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="case-step-copy" id="caseStepCopy"></div>
+            <canvas id="caseCanvas" class="graph-canvas-large" width="960" height="600"></canvas>
+            <div class="legend-row" style="margin-top:12px;">
+              <div class="legend-item"><span class="legend-line mrp"></span><span>MRP (stylized labor demand)</span></div>
+              <div class="legend-item"><span class="legend-line supply"></span><span>Labor supply to the firm</span></div>
+              <div class="legend-item"><span class="legend-line mfc"></span><span>MFC</span></div>
+              <div class="legend-item"><span class="legend-line minimum"></span><span>New Jersey minimum wage policy</span></div>
+              <div class="legend-item"><span class="legend-fill gap"></span><span>Underemployment gap in the stylized graph</span></div>
+            </div>
+            <div class="graph-note" id="caseGraphNote"></div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="data-card">
+              <div class="data-title">Key data anchors</div>
+              <div class="data-grid two">
+                <div class="metric-card">
+                  <div class="metric-label">Policy shock</div>
+                  <div class="metric-value">$4.25 → $5.05</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Sample</div>
+                  <div class="metric-value">410 stores</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">NJ starting wage</div>
+                  <div class="metric-value">$4.61 → $5.08</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">PA starting wage</div>
+                  <div class="metric-value">$4.63 → $4.62</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">NJ FTE per store</div>
+                  <div class="metric-value">20.44 → 21.03</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">PA FTE per store</div>
+                  <div class="metric-value">23.33 → 21.17</div>
+                </div>
+              </div>
+              <div class="data-note" style="margin-top:10px;" id="caseMetricsNote"></div>
+            </div>
+
+            <div class="chart-grid two">
+              <div class="chart-card">
+                <div class="chart-title">Starting wage before and after</div>
+                <canvas id="caseWageChart" class="chart-canvas" width="420" height="260"></canvas>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">FTE employment per store</div>
+                <canvas id="caseEmploymentChart" class="chart-canvas" width="420" height="260"></canvas>
+              </div>
+            </div>
+
+            <div class="source-note">
+              <div class="card-title">Case interpretation</div>
+              <div class="case-copy" id="caseInterpretationCopy"></div>
+              <ul class="source-list case-copy">
+                <li>The graph is a <strong>stylized monopsony teaching translation</strong> of the New Jersey fast-food episode, not a structural estimate of the exact labor-supply and MRP curves.</li>
+                <li>The supporting charts use the paper’s reported before-and-after means for starting wages and FTE employment in New Jersey and eastern Pennsylvania.</li>
+                <li>A later labor-market-concentration literature gives the monopsony interpretation extra support by showing that minimum-wage employment effects are more positive in more concentrated low-wage labor markets.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer-note">
+        This file follows the shared project standards for roadmap graph <strong>G15</strong>, using the common theme files and the explore / practice / case-study pattern from the project pack.
+      </div>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const Theme = window.ECON_THEME;
+    const Draw = window.EconDraw;
+
+    function fmt(value, digits = 2) {
+      if (!Number.isFinite(value)) return '—';
+      const rounded = Math.abs(value) < 1e-9 ? 0 : value;
+      return rounded.toFixed(digits).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function buildTicks(min, max, count, axis) {
+      const ticks = [];
+      for (let i = 0; i <= count; i += 1) {
+        const value = min + (i / count) * (max - min);
+        ticks.push({
+          label: fmt(value, 0),
+          x: axis === 'x' ? Draw.valueToX(value, min, max, Theme) : undefined,
+          y: axis === 'y' ? Draw.valueToY(value, min, max, Theme) : undefined
+        });
+      }
+      return ticks;
+    }
+
+    function computeOutcome(params) {
+      const a = params.supplyIntercept;
+      const b = params.supplySlope;
+      const A = params.mrpIntercept;
+      const d = params.mrpSlope;
+      const minWage = Math.max(0, params.minimumWage || 0);
+
+      const Lc = Math.max(0, (A - a) / (b + d));
+      const Wc = a + b * Lc;
+      const Lm = Math.max(0, (A - a) / (d + 2 * b));
+      const Wm = a + b * Lm;
+
+      let actualL = Lm;
+      let actualW = Wm;
+      let regime = 'nonbinding';
+      let rule = 'monopsony';
+
+      if (minWage > Wm + 1e-6) {
+        const kinkL = Math.max(0, (minWage - a) / b);
+        if (minWage < Wc - 1e-6) {
+          actualL = kinkL;
+          actualW = minWage;
+          regime = 'helpful';
+          rule = 'kink';
+        } else if (minWage < A - 1e-6) {
+          actualL = Math.max(0, (A - minWage) / d);
+          actualW = minWage;
+          regime = 'tooHigh';
+          rule = 'flat';
+        } else {
+          actualL = 0;
+          actualW = minWage;
+          regime = 'shutdown';
+          rule = 'flat';
+        }
+      }
+
+      const gap = Math.max(0, Lc - actualL);
+      const employmentChange = actualL - Lm;
+      const wageChange = actualW - Wm;
+      const markdown = Math.max(0, (A - d * actualL) - actualW);
+
+      return {
+        a, b, A, d, minWage,
+        Lc, Wc, Lm, Wm,
+        actualL, actualW,
+        gap, employmentChange, wageChange, markdown,
+        regime, rule,
+        kinkL: Math.max(0, (minWage - a) / b)
+      };
+    }
+
+    function supply(outcome, L) {
+      return outcome.a + outcome.b * L;
+    }
+    function mfc(outcome, L) {
+      return outcome.a + 2 * outcome.b * L;
+    }
+    function mrp(outcome, L) {
+      return outcome.A - outcome.d * L;
+    }
+
+    function makeCurvePoints(outcome, type, xMin, xMax, yMin, yMax, samples = 160) {
+      const pts = [];
+      for (let i = 0; i <= samples; i += 1) {
+        const L = xMin + (i / samples) * (xMax - xMin);
+        let W = 0;
+        if (type === 'supply') W = supply(outcome, L);
+        else if (type === 'mfc') W = mfc(outcome, L);
+        else W = mrp(outcome, L);
+        if (W < yMin - 0.5 || W > yMax + 0.5) continue;
+        pts.push({ x: Draw.valueToX(L, xMin, xMax, Theme), y: Draw.valueToY(W, yMin, yMax, Theme) });
+      }
+      return pts;
+    }
+
+    function drawGuideLine(ctx, x1, y1, x2, y2) {
+      ctx.save();
+      ctx.strokeStyle = Theme.color.baseline;
+      ctx.lineWidth = Theme.line.baseline;
+      ctx.setLineDash(Theme.dash.baseline);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawHorizontalLine(ctx, y, color, dash, width) {
+      const plot = Draw.getPlotArea(Theme);
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width || Theme.line.policy;
+      if (dash) ctx.setLineDash(dash);
+      ctx.beginPath();
+      ctx.moveTo(plot.left, y);
+      ctx.lineTo(plot.right, y);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function fillUnderemploymentGap(ctx, outcome, xMin, xMax, yMin, yMax, actualLOverride = null) {
+      const actualL = actualLOverride === null ? outcome.actualL : actualLOverride;
+      if (!(actualL < outcome.Lc - 1e-6)) return;
+      const points = [];
+      for (let i = 0; i <= 70; i += 1) {
+        const L = actualL + (i / 70) * (outcome.Lc - actualL);
+        points.push({ x: Draw.valueToX(L, xMin, xMax, Theme), y: Draw.valueToY(mrp(outcome, L), yMin, yMax, Theme) });
+      }
+      for (let i = 70; i >= 0; i -= 1) {
+        const L = actualL + (i / 70) * (outcome.Lc - actualL);
+        points.push({ x: Draw.valueToX(L, xMin, xMax, Theme), y: Draw.valueToY(supply(outcome, L), yMin, yMax, Theme) });
+      }
+      Draw.fillPolygon(ctx, points, { fill: Theme.color.dwlFill });
+    }
+
+    function labelCurve(ctx, text, valueX, valueY, xMin, xMax, yMin, yMax, color) {
+      Draw.drawText(ctx, text, Draw.valueToX(valueX, xMin, xMax, Theme), Draw.valueToY(valueY, yMin, yMax, Theme), {
+        color,
+        size: 13,
+        weight: '600'
+      });
+    }
+
+    function drawPoint(ctx, L, W, label, xMin, xMax, yMin, yMax, color, hollow = false) {
+      const x = Draw.valueToX(L, xMin, xMax, Theme);
+      const y = Draw.valueToY(W, yMin, yMax, Theme);
+      Draw.drawCircle(ctx, x, y, {
+        fill: hollow ? '#ffffff' : color,
+        stroke: color,
+        radius: Theme.radius.marker,
+        lineWidth: 2
+      });
+      Draw.drawText(ctx, label, x + 8, y - 10, { color, size: 13, weight: '600' });
+    }
+
+    function drawMonopsonyGraph(canvas, params, options = {}) {
+      const ctx = canvas.getContext('2d');
+      const outcome = computeOutcome(params);
+      const xMax = Math.max(40, outcome.Lc * 1.35, outcome.actualL * 1.3 + 2, outcome.Lm * 1.3 + 2);
+      const yMax = Math.max(18, outcome.A * 1.18, outcome.actualW + 4, outcome.Wc + 4, outcome.minWage + 4);
+      const xMin = 0;
+      const yMin = 0;
+
+      Draw.clearCanvas(ctx, Theme);
+      Draw.drawFrame(ctx, Theme);
+      Draw.drawAxes(ctx, {
+        theme: Theme,
+        xLabel: 'Employment',
+        yLabel: 'Wage / marginal revenue product',
+        xTicks: buildTicks(xMin, xMax, 8, 'x'),
+        yTicks: buildTicks(yMin, yMax, 8, 'y')
+      });
+
+      if (!options.suppressGap) {
+      fillUnderemploymentGap(ctx, outcome, xMin, xMax, yMin, yMax, options.actualLOverride);
+      }
+
+      Draw.drawLine(ctx, makeCurvePoints(outcome, 'mrp', xMin, xMax, yMin, yMax), { theme: Theme, color: Theme.color.demand });
+      Draw.drawLine(ctx, makeCurvePoints(outcome, 'supply', xMin, xMax, yMin, yMax), { theme: Theme, color: Theme.color.supply });
+      Draw.drawLine(ctx, makeCurvePoints(outcome, 'mfc', xMin, xMax, yMin, yMax), { theme: Theme, color: Theme.color.longRun });
+
+      if (options.showGuess && options.guessWage > 0) {
+        drawHorizontalLine(ctx, Draw.valueToY(options.guessWage, yMin, yMax, Theme), Theme.color.guess, Theme.dash.guess, Theme.line.policy);
+        Draw.drawText(ctx, 'Guess', Draw.getPlotArea(Theme).right - 54, Draw.valueToY(options.guessWage, yMin, yMax, Theme) - 8, {
+          color: Theme.color.guess,
+          size: 12,
+          weight: '600',
+          align: 'right'
+        });
+      }
+
+      if (options.showMinimumWage !== false && outcome.minWage > 0) {
+        drawHorizontalLine(ctx, Draw.valueToY(outcome.minWage, yMin, yMax, Theme), Theme.color.government, Theme.dash.policy, Theme.line.policy);
+        Draw.drawText(ctx, 'Minimum wage', Draw.getPlotArea(Theme).right - 10, Draw.valueToY(outcome.minWage, yMin, yMax, Theme) - 8, {
+          color: Theme.color.government,
+          size: 12,
+          weight: '600',
+          align: 'right'
+        });
+      }
+
+      const actualL = options.actualLOverride !== undefined ? options.actualLOverride : outcome.actualL;
+      const actualW = options.actualWOverride !== undefined ? options.actualWOverride : outcome.actualW;
+      const hideActual = !!options.hideActual;
+
+      const plot = Draw.getPlotArea(Theme);
+      const monoX = Draw.valueToX(outcome.Lm, xMin, xMax, Theme);
+      const monoY = Draw.valueToY(outcome.Wm, yMin, yMax, Theme);
+      drawGuideLine(ctx, monoX, monoY, monoX, plot.bottom);
+      drawGuideLine(ctx, monoX, monoY, plot.left, monoY);
+      drawPoint(ctx, outcome.Lm, outcome.Wm, 'M', xMin, xMax, yMin, yMax, Theme.color.longRun);
+
+      const compX = Draw.valueToX(outcome.Lc, xMin, xMax, Theme);
+      const compY = Draw.valueToY(outcome.Wc, yMin, yMax, Theme);
+      drawGuideLine(ctx, compX, compY, compX, plot.bottom);
+      drawGuideLine(ctx, compX, compY, plot.left, compY);
+      drawPoint(ctx, outcome.Lc, outcome.Wc, 'C', xMin, xMax, yMin, yMax, Theme.color.baseline, true);
+
+      if (!hideActual) {
+        const actualX = Draw.valueToX(actualL, xMin, xMax, Theme);
+        const actualY = Draw.valueToY(actualW, yMin, yMax, Theme);
+        drawGuideLine(ctx, actualX, actualY, actualX, plot.bottom);
+        drawGuideLine(ctx, actualX, actualY, plot.left, actualY);
+        drawPoint(ctx, actualL, actualW, options.actualLabel || 'A', xMin, xMax, yMin, yMax, Theme.color.government);
+      }
+
+      labelCurve(ctx, 'MRP', xMax * 0.78, mrp(outcome, xMax * 0.78) + 0.35, xMin, xMax, yMin, yMax, Theme.color.demand);
+      labelCurve(ctx, 'Labor supply', xMax * 0.68, supply(outcome, xMax * 0.68) + 0.35, xMin, xMax, yMin, yMax, Theme.color.supply);
+      labelCurve(ctx, 'MFC', xMax * 0.43, mfc(outcome, xMax * 0.43) + 0.55, xMin, xMax, yMin, yMax, Theme.color.longRun);
+
+      if (options.allowDrag && outcome.minWage > 0) {
+        const handleX = plot.right - 18;
+        const handleY = Draw.valueToY(outcome.minWage, yMin, yMax, Theme);
+        Draw.drawCircle(ctx, handleX, handleY, {
+          fill: '#ffffff',
+          stroke: Theme.color.government,
+          radius: 7,
+          lineWidth: 2
+        });
+      }
+
+      return { outcome, xMin, xMax, yMin, yMax };
+    }
+
+    const exploreState = {
+      supplyIntercept: 6,
+      supplySlope: 0.25,
+      mrpIntercept: 24,
+      mrpSlope: 0.35,
+      minimumWage: 0
+    };
+
+    const exploreEls = {
+      supplyIntercept: document.getElementById('supplyInterceptSlider'),
+      supplySlope: document.getElementById('supplySlopeSlider'),
+      mrpIntercept: document.getElementById('mrpInterceptSlider'),
+      mrpSlope: document.getElementById('mrpSlopeSlider'),
+      minimumWage: document.getElementById('minimumWageSlider'),
+      values: {
+        supplyIntercept: document.getElementById('supplyInterceptValue'),
+        supplySlope: document.getElementById('supplySlopeValue'),
+        mrpIntercept: document.getElementById('mrpInterceptValue'),
+        mrpSlope: document.getElementById('mrpSlopeValue'),
+        minimumWage: document.getElementById('minimumWageValue')
+      },
+      canvas: document.getElementById('exploreCanvas'),
+      metricMonopsony: document.getElementById('metricMonopsony'),
+      metricCompetitive: document.getElementById('metricCompetitive'),
+      metricActual: document.getElementById('metricActual'),
+      metricGap: document.getElementById('metricGap'),
+      extra: document.getElementById('metricExtraNote'),
+      statusCard: document.getElementById('exploreStatusCard'),
+      statusCopy: document.getElementById('exploreStatusCopy')
+    };
+
+    function updateExploreControls() {
+      exploreEls.values.supplyIntercept.textContent = '$' + fmt(exploreState.supplyIntercept, 1);
+      exploreEls.values.supplySlope.textContent = fmt(exploreState.supplySlope, 2);
+      exploreEls.values.mrpIntercept.textContent = '$' + fmt(exploreState.mrpIntercept, 1);
+      exploreEls.values.mrpSlope.textContent = fmt(exploreState.mrpSlope, 2);
+      exploreEls.values.minimumWage.textContent = exploreState.minimumWage > 0 ? '$' + fmt(exploreState.minimumWage, 1) : 'No floor';
+    }
+
+    function renderExplore() {
+      updateExploreControls();
+      const { outcome } = drawMonopsonyGraph(exploreEls.canvas, exploreState, { allowDrag: true });
+      exploreEls.metricMonopsony.textContent = 'Wₘ = $' + fmt(outcome.Wm, 2) + ', Lₘ = ' + fmt(outcome.Lm, 2);
+      exploreEls.metricCompetitive.textContent = 'Wᶜ = $' + fmt(outcome.Wc, 2) + ', Lᶜ = ' + fmt(outcome.Lc, 2);
+      exploreEls.metricActual.textContent = 'W = $' + fmt(outcome.actualW, 2) + ', L = ' + fmt(outcome.actualL, 2);
+      exploreEls.metricGap.textContent = outcome.gap > 0.01 ? fmt(outcome.gap, 2) + ' below competition' : 'No remaining gap';
+      exploreEls.extra.innerHTML = '<strong>Employment relative to monopsony:</strong> ' +
+        (Math.abs(outcome.employmentChange) < 0.01 ? 'unchanged.' : (outcome.employmentChange > 0 ? 'higher by ' + fmt(outcome.employmentChange, 2) + ' units.' : 'lower by ' + fmt(Math.abs(outcome.employmentChange), 2) + ' units.')) +
+        ' <strong>Labor markdown at the actual point:</strong> $' + fmt(outcome.markdown, 2) + '.';
+
+      let copy = '';
+      let cardClass = 'status-card ';
+      if (outcome.regime === 'nonbinding') {
+        cardClass += 'neutral';
+        copy = 'The current minimum wage is below the monopsony wage, so the firm behaves exactly like an unconstrained monopsonist. Employment stays at the <strong>M</strong> point where <strong>MFC = MRP</strong>.';
+      } else if (outcome.regime === 'helpful') {
+        cardClass += 'good';
+        copy = 'The wage floor lies between the monopsony and competitive wages. That flattens the effective marginal factor cost up to the kink, so employment rises toward the competitive benchmark. This is the classic case where a minimum wage can raise both wages and employment under monopsony.';
+      } else if (outcome.regime === 'tooHigh') {
+        cardClass += 'warn';
+        copy = 'The wage floor is above the competitive wage. The firm now hires where <strong>MRP = minimum wage</strong> on the flat segment, so employment falls relative to the competitive benchmark and can eventually fall below the monopsony benchmark if the wage floor is pushed high enough.';
+      } else {
+        cardClass += 'warn';
+        copy = 'The wage floor is so high that the firm shuts down hiring in this stylized model because no worker’s marginal revenue product reaches the legal minimum.';
+      }
+      exploreEls.statusCard.className = cardClass;
+      exploreEls.statusCopy.innerHTML = copy;
+    }
+
+    ['supplyIntercept', 'supplySlope', 'mrpIntercept', 'mrpSlope', 'minimumWage'].forEach((key) => {
+      exploreEls[key].addEventListener('input', (event) => {
+        exploreState[key] = Number(event.target.value);
+        renderExplore();
+      });
+    });
+
+    document.getElementById('resetExploreButton').addEventListener('click', () => {
+      Object.assign(exploreState, {
+        supplyIntercept: 6,
+        supplySlope: 0.25,
+        mrpIntercept: 24,
+        mrpSlope: 0.35,
+        minimumWage: 0
+      });
+      exploreEls.supplyIntercept.value = exploreState.supplyIntercept;
+      exploreEls.supplySlope.value = exploreState.supplySlope;
+      exploreEls.mrpIntercept.value = exploreState.mrpIntercept;
+      exploreEls.mrpSlope.value = exploreState.mrpSlope;
+      exploreEls.minimumWage.value = exploreState.minimumWage;
+      document.querySelectorAll('.preset-btn').forEach((btn) => btn.classList.remove('active'));
+      renderExplore();
+    });
+
+    const explorePresets = {
+      weakPower: { supplyIntercept: 6, supplySlope: 0.14, mrpIntercept: 24, mrpSlope: 0.34, minimumWage: 0 },
+      strongPower: { supplyIntercept: 6, supplySlope: 0.35, mrpIntercept: 24, mrpSlope: 0.28, minimumWage: 0 },
+      sweetSpot: { supplyIntercept: 6, supplySlope: 0.25, mrpIntercept: 24, mrpSlope: 0.35, minimumWage: 12.2 },
+      tooHigh: { supplyIntercept: 6, supplySlope: 0.25, mrpIntercept: 24, mrpSlope: 0.35, minimumWage: 17.5 }
+    };
+
+    document.querySelectorAll('.preset-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const preset = explorePresets[btn.dataset.preset];
+        if (!preset) return;
+        Object.assign(exploreState, preset);
+        exploreEls.supplyIntercept.value = exploreState.supplyIntercept;
+        exploreEls.supplySlope.value = exploreState.supplySlope;
+        exploreEls.mrpIntercept.value = exploreState.mrpIntercept;
+        exploreEls.mrpSlope.value = exploreState.mrpSlope;
+        exploreEls.minimumWage.value = exploreState.minimumWage;
+        document.querySelectorAll('.preset-btn').forEach((el) => el.classList.remove('active'));
+        btn.classList.add('active');
+        renderExplore();
+      });
+    });
+
+    const exploreDrag = { active: false, lastY: 0 };
+    exploreEls.canvas.addEventListener('mousedown', (event) => {
+      const rect = exploreEls.canvas.getBoundingClientRect();
+      const y = ((event.clientY - rect.top) / rect.height) * exploreEls.canvas.height;
+      const rendered = drawMonopsonyGraph(exploreEls.canvas, exploreState, { allowDrag: true });
+      const targetY = Draw.valueToY(rendered.outcome.minWage, rendered.yMin, rendered.yMax, Theme);
+      const handleX = Draw.getPlotArea(Theme).right - 18;
+      const x = ((event.clientX - rect.left) / rect.width) * exploreEls.canvas.width;
+      if (Math.abs(x - handleX) < 18 && Math.abs(y - targetY) < 18) {
+        exploreDrag.active = true;
+        exploreDrag.lastY = y;
+      }
+    });
+    exploreEls.canvas.addEventListener('mousemove', (event) => {
+      if (!exploreDrag.active) return;
+      const rect = exploreEls.canvas.getBoundingClientRect();
+      const y = ((event.clientY - rect.top) / rect.height) * exploreEls.canvas.height;
+      const rendered = drawMonopsonyGraph(exploreEls.canvas, exploreState, { allowDrag: true });
+      const deltaValue = (exploreDrag.lastY - y) / Draw.getPlotArea(Theme).height * (rendered.yMax - rendered.yMin);
+      exploreDrag.lastY = y;
+      exploreState.minimumWage = clamp(exploreState.minimumWage + deltaValue, 0, 22);
+      exploreEls.minimumWage.value = exploreState.minimumWage;
+      document.querySelectorAll('.preset-btn').forEach((btn) => btn.classList.remove('active'));
+      renderExplore();
+    });
+    ['mouseup', 'mouseleave'].forEach((name) => exploreEls.canvas.addEventListener(name, () => { exploreDrag.active = false; }));
+
+    const practiceScenarios = [
+      {
+        id: 'lowFloor',
+        title: 'Non-binding floor',
+        prompt: 'A local labor market has monopsony power, but the legal minimum wage is set below the monopsony wage. Predict the outcome.',
+        params: { supplyIntercept: 6, supplySlope: 0.25, mrpIntercept: 24, mrpSlope: 0.35, minimumWage: 10.5 }
+      },
+      {
+        id: 'helpfulFloor',
+        title: 'Helpful floor',
+        prompt: 'The wage floor is above the monopsony wage but still below the competitive wage. In a monopsony model, this is the classic case where employment can rise.',
+        params: { supplyIntercept: 6, supplySlope: 0.25, mrpIntercept: 24, mrpSlope: 0.35, minimumWage: 12.2 }
+      },
+      {
+        id: 'tooHighFloor',
+        title: 'Too-high floor',
+        prompt: 'The wage floor is pushed well above the competitive benchmark. Predict whether employment now falls below the monopsony level.',
+        params: { supplyIntercept: 6, supplySlope: 0.25, mrpIntercept: 24, mrpSlope: 0.35, minimumWage: 17.5 }
+      },
+      {
+        id: 'strongDemandHelpful',
+        title: 'Higher MRP with a moderate floor',
+        prompt: 'Product demand rises, shifting MRP up. The wage floor is still above the monopsony wage but not too high. Predict which hiring rule now determines employment.',
+        params: { supplyIntercept: 6, supplySlope: 0.25, mrpIntercept: 27, mrpSlope: 0.34, minimumWage: 13.4 }
+      }
+    ];
+
+    const practiceState = {
+      scenarioIndex: 0,
+      revealed: false
+    };
+
+    const practiceEls = {
+      bank: document.getElementById('practiceScenarioBank'),
+      canvas: document.getElementById('practiceCanvas'),
+      prompt: document.getElementById('practicePrompt'),
+      feedback: document.getElementById('practiceFeedback'),
+      tableBody: document.getElementById('practiceTableBody'),
+      graphNote: document.getElementById('practiceGraphNote'),
+      binding: document.getElementById('practiceBinding'),
+      employment: document.getElementById('practiceEmployment'),
+      rule: document.getElementById('practiceRule')
+    };
+
+    function practiceScenario() {
+      return practiceScenarios[practiceState.scenarioIndex];
+    }
+
+    function renderPracticeBank() {
+      practiceEls.bank.innerHTML = '';
+      practiceScenarios.forEach((scenario, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'scenario-chip' + (practiceState.scenarioIndex === index ? ' active' : '');
+        btn.textContent = scenario.title;
+        btn.addEventListener('click', () => {
+          practiceState.scenarioIndex = index;
+          practiceState.revealed = false;
+          resetPracticeAnswers(false);
+          renderPracticeBank();
+          renderPractice();
+        });
+        practiceEls.bank.appendChild(btn);
+      });
+    }
+
+    function answerLabel(value) {
+      if (value === 'yes') return 'Yes';
+      if (value === 'no') return 'No';
+      if (value === 'increase') return 'Increase';
+      if (value === 'decrease') return 'Decrease';
+      if (value === 'unchanged') return 'Unchanged';
+      if (value === 'monopsony') return 'MRP = MFC at the monopsony point';
+      if (value === 'kink') return 'At the kink where the wage floor meets labor supply';
+      if (value === 'flat') return 'MRP = wage floor on the flat segment';
+      return '—';
+    }
+
+    function actualPracticeAnswers(outcome) {
+      return {
+        binding: outcome.regime === 'nonbinding' ? 'no' : 'yes',
+        employment: Math.abs(outcome.employmentChange) < 0.01 ? 'unchanged' : (outcome.employmentChange > 0 ? 'increase' : 'decrease'),
+        rule: outcome.rule
+      };
+    }
+
+    function renderPractice() {
+      const scenario = practiceScenario();
+      const outcome = computeOutcome(scenario.params);
+      practiceEls.prompt.innerHTML = '<strong>' + scenario.title + '.</strong> ' + scenario.prompt +
+        '<br /><br /><strong>Scenario parameters:</strong> labor supply intercept $' + fmt(scenario.params.supplyIntercept, 1) +
+        ', labor-supply steepness ' + fmt(scenario.params.supplySlope, 2) +
+        ', MRP intercept $' + fmt(scenario.params.mrpIntercept, 1) +
+        ', MRP steepness ' + fmt(scenario.params.mrpSlope, 2) +
+        ', minimum wage $' + fmt(scenario.params.minimumWage, 1) + '.';
+
+      drawMonopsonyGraph(practiceEls.canvas, scenario.params, {
+        showMinimumWage: practiceState.revealed,
+        hideActual: !practiceState.revealed,
+        showGuess: !practiceState.revealed,
+        guessWage: scenario.params.minimumWage,
+        actualLabel: 'A',
+        suppressGap: !practiceState.revealed
+      });
+
+      practiceEls.graphNote.innerHTML = practiceState.revealed
+        ? 'After checking, the green policy line and the actual point are visible. Compare the answer with the monopsony benchmark <strong>M</strong> and the competitive benchmark <strong>C</strong>.'
+        : 'Before checking, the graph hides the actual policy outcome. Use the scenario description plus the benchmark points to predict whether the floor binds and which hiring rule applies.';
+
+      const actual = actualPracticeAnswers(outcome);
+      const rows = [
+        ['Is the minimum wage binding?', practiceEls.binding.value, actual.binding],
+        ['Employment relative to monopsony', practiceEls.employment.value, actual.employment],
+        ['Which rule determines hiring?', practiceEls.rule.value, actual.rule]
+      ];
+      practiceEls.tableBody.innerHTML = rows.map((row) => {
+        const good = practiceState.revealed && row[1] === row[2];
+        const bad = practiceState.revealed && row[1] && row[1] !== row[2];
+        return '<tr>' +
+          '<td>' + row[0] + '</td>' +
+          '<td class="' + (good ? 'answer-good' : bad ? 'answer-bad' : 'answer-neutral') + '">' + answerLabel(row[1]) + '</td>' +
+          '<td class="' + (practiceState.revealed ? 'answer-good' : 'answer-neutral') + '">' + (practiceState.revealed ? answerLabel(row[2]) : 'Check answer') + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    function resetPracticeAnswers(updateFeedback = true) {
+      practiceEls.binding.value = '';
+      practiceEls.employment.value = '';
+      practiceEls.rule.value = '';
+      if (updateFeedback) {
+        practiceEls.feedback.className = 'feedback-panel feedback-neutral';
+        practiceEls.feedback.innerHTML = 'Predict first, then use <strong>Check answer</strong> to reveal the actual point and the policy line.';
+      }
+    }
+
+    document.getElementById('randomPracticeButton').addEventListener('click', () => {
+      practiceState.scenarioIndex = Math.floor(Math.random() * practiceScenarios.length);
+      practiceState.revealed = false;
+      resetPracticeAnswers();
+      renderPracticeBank();
+      renderPractice();
+    });
+
+    document.getElementById('resetPracticeButton').addEventListener('click', () => {
+      practiceState.revealed = false;
+      resetPracticeAnswers();
+      renderPractice();
+    });
+
+    document.getElementById('checkPracticeButton').addEventListener('click', () => {
+      const missing = [practiceEls.binding, practiceEls.employment, practiceEls.rule].some((el) => !el.value);
+      if (missing) {
+        practiceEls.feedback.className = 'feedback-panel feedback-warning';
+        practiceEls.feedback.innerHTML = 'Complete all three answers before checking.';
+        return;
+      }
+      practiceState.revealed = true;
+      const outcome = computeOutcome(practiceScenario().params);
+      const actual = actualPracticeAnswers(outcome);
+      const correct = practiceEls.binding.value === actual.binding && practiceEls.employment.value === actual.employment && practiceEls.rule.value === actual.rule;
+      if (correct) {
+        practiceEls.feedback.className = 'feedback-panel feedback-success';
+        practiceEls.feedback.innerHTML = 'Correct. ' +
+          (outcome.regime === 'nonbinding'
+            ? 'Because the legal minimum sits below the monopsony wage, the firm stays at the monopsony point.'
+            : outcome.regime === 'helpful'
+              ? 'Because the wage floor lies between the monopsony and competitive wages, the firm moves to the kink and hires more labor.'
+              : 'Because the wage floor is above the competitive benchmark, the firm hires where MRP equals the legal minimum on the flat segment.');
+      } else {
+        practiceEls.feedback.className = 'feedback-panel feedback-warning';
+        practiceEls.feedback.innerHTML = 'Not quite. The correct pattern is: binding = <strong>' + answerLabel(actual.binding) +
+          '</strong>, employment relative to monopsony = <strong>' + answerLabel(actual.employment) +
+          '</strong>, and the hiring rule is <strong>' + answerLabel(actual.rule) + '</strong>.';
+      }
+      renderPractice();
+    });
+
+    const caseSteps = [
+      {
+        id: 'baseline',
+        title: '1. Before the policy',
+        copy: '<strong>Before April 1992:</strong> read the fast-food labor market through a monopsony lens. Firms face an upward-sloping labor supply curve, so the wage paid sits below workers\' marginal revenue product and employment is below the competitive benchmark.',
+        graphParams: { supplyIntercept: 3.4, supplySlope: 0.08, mrpIntercept: 7.635, mrpSlope: 0.12, minimumWage: 0 },
+        note: 'The stylized graph is calibrated so the monopsony wage is close to the observed pre-policy New Jersey starting wage of about $4.61.'
+      },
+      {
+        id: 'policy',
+        title: '2. New Jersey raises the minimum wage',
+        copy: '<strong>April 1, 1992:</strong> New Jersey raised the minimum wage from $4.25 to $5.05. In a monopsony model, a floor set a little above the monopsony wage can flatten effective marginal labor cost and raise employment.',
+        graphParams: { supplyIntercept: 3.4, supplySlope: 0.08, mrpIntercept: 7.635, mrpSlope: 0.12, minimumWage: 5.05 },
+        note: 'The $5.05 policy line sits just below the stylized competitive wage, so the graph predicts a move toward the competitive benchmark instead of a fall in employment.'
+      },
+      {
+        id: 'wages',
+        title: '3. Wages rose sharply in New Jersey',
+        copy: '<strong>Observed wage change:</strong> in the sample, the mean starting wage rose from $4.61 to $5.08 in New Jersey, while eastern Pennsylvania was essentially unchanged at $4.63 to $4.62.',
+        graphParams: { supplyIntercept: 3.4, supplySlope: 0.08, mrpIntercept: 7.635, mrpSlope: 0.12, minimumWage: 5.05 },
+        note: 'That observed wage change is exactly what a binding minimum wage should generate: a clear upward move in the wage, concentrated in the treated state.'
+      },
+      {
+        id: 'employment',
+        title: '4. Employment did not fall',
+        copy: '<strong>Observed employment change:</strong> FTE employment per store rose from 20.44 to 21.03 in New Jersey and fell from 23.33 to 21.17 in eastern Pennsylvania. The paper\'s simple before-after difference-in-differences is +2.76 FTE per store using all available observations.',
+        graphParams: { supplyIntercept: 3.4, supplySlope: 0.08, mrpIntercept: 7.635, mrpSlope: 0.12, minimumWage: 5.05 },
+        note: 'That pattern is what makes the episode so useful for teaching monopsony: the wage floor raised pay and did not produce the standard textbook drop in employment.'
+      },
+      {
+        id: 'interpretation',
+        title: '5. Why economists connect this to monopsony',
+        copy: '<strong>Interpretation:</strong> the New Jersey fast-food case is one famous example consistent with labor-market power. Later research on minimum wages and labor-market concentration finds that minimum-wage employment effects are less negative, and can even become positive, in more concentrated low-wage labor markets.',
+        graphParams: { supplyIntercept: 3.4, supplySlope: 0.08, mrpIntercept: 7.635, mrpSlope: 0.12, minimumWage: 5.05 },
+        note: 'The graph therefore uses the case as a teaching translation: monopsony explains how a moderate minimum wage can move wage and employment closer to the competitive benchmark.'
+      }
+    ];
+
+    const caseState = { stepIndex: 0 };
+    const caseEls = {
+      row: document.getElementById('caseStepRow'),
+      copy: document.getElementById('caseStepCopy'),
+      canvas: document.getElementById('caseCanvas'),
+      graphNote: document.getElementById('caseGraphNote'),
+      metricsNote: document.getElementById('caseMetricsNote'),
+      interpretation: document.getElementById('caseInterpretationCopy')
+    };
+
+    function renderCaseButtons() {
+      caseEls.row.innerHTML = '';
+      caseSteps.forEach((step, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'case-step-btn' + (index === caseState.stepIndex ? ' active' : '');
+        btn.textContent = step.title;
+        btn.addEventListener('click', () => {
+          caseState.stepIndex = index;
+          renderCaseButtons();
+          renderCase();
+        });
+        caseEls.row.appendChild(btn);
+      });
+    }
+
+    function drawCaseLineChart(canvas, datasets, maxY, yLabel) {
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      const margin = { top: 28, right: 24, bottom: 42, left: 46 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.strokeStyle = Theme.color.frame;
+      ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
+
+      ctx.strokeStyle = Theme.color.grid;
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i += 1) {
+        const y = margin.top + (i / 4) * plotH;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y);
+        ctx.lineTo(width - margin.right, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = Theme.color.axis;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, margin.top);
+      ctx.lineTo(margin.left, height - margin.bottom);
+      ctx.lineTo(width - margin.right, height - margin.bottom);
+      ctx.stroke();
+
+      const xPositions = [margin.left + plotW * 0.22, margin.left + plotW * 0.78];
+      const labels = ['Before', 'After'];
+      ctx.fillStyle = Theme.color.text;
+      ctx.font = '12px ' + Theme.font.family;
+      labels.forEach((label, index) => {
+        ctx.textAlign = 'center';
+        ctx.fillText(label, xPositions[index], height - margin.bottom + 20);
+      });
+
+      for (let i = 0; i <= 4; i += 1) {
+        const value = maxY * (1 - i / 4);
+        const y = margin.top + (i / 4) * plotH;
+        ctx.textAlign = 'right';
+        ctx.fillStyle = Theme.color.muted;
+        ctx.fillText(fmt(value, 1), margin.left - 8, y + 4);
+      }
+
+      ctx.save();
+      ctx.translate(16, height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = Theme.color.text;
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+
+      datasets.forEach((dataset) => {
+        ctx.strokeStyle = dataset.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        dataset.values.forEach((value, index) => {
+          const x = xPositions[index];
+          const y = margin.top + (1 - value / maxY) * plotH;
+          if (index === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        dataset.values.forEach((value, index) => {
+          const x = xPositions[index];
+          const y = margin.top + (1 - value / maxY) * plotH;
+          Draw.drawCircle(ctx, x, y, { fill: '#ffffff', stroke: dataset.color, radius: 5, lineWidth: 2 });
+        });
+      });
+
+      const legendY = margin.top - 10;
+      datasets.forEach((dataset, index) => {
+        const x = margin.left + index * 120;
+        ctx.strokeStyle = dataset.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(x, legendY);
+        ctx.lineTo(x + 24, legendY);
+        ctx.stroke();
+        ctx.fillStyle = Theme.color.text;
+        ctx.textAlign = 'left';
+        ctx.fillText(dataset.label, x + 30, legendY + 4);
+      });
+    }
+
+    function renderCase() {
+      const step = caseSteps[caseState.stepIndex];
+      const outcome = computeOutcome(step.graphParams);
+      caseEls.copy.innerHTML = step.copy;
+      caseEls.graphNote.innerHTML = step.note;
+      caseEls.metricsNote.innerHTML = 'The sample contained <strong>410 restaurants</strong>. The starting-wage jump in New Jersey was about <strong>10.2%</strong> (' +
+        '$4.61 to $5.08), while Pennsylvania stayed flat. Using all available observations, the employment difference-in-differences reported in the paper is <strong>+2.76 FTE</strong> per store.';
+
+      if (step.id === 'interpretation') {
+        caseEls.interpretation.innerHTML = 'The New Jersey case is not the final word on minimum-wage policy, but it is an unusually clean teaching case for monopsony. It shows a binding wage floor clearly raising wages, and the employment pattern is hard to reconcile with the simplest perfectly competitive labor-market story.';
+      } else if (step.id === 'employment') {
+        caseEls.interpretation.innerHTML = 'This is the step that matters most pedagogically. If labor markets were perfectly competitive, the standard diagram would predict a fall in employment after a binding wage floor. The data did not show that in this case.';
+      } else if (step.id === 'wages') {
+        caseEls.interpretation.innerHTML = 'The wage evidence is unambiguous: the policy bound in New Jersey. That makes the employment comparison especially informative, because the law clearly did bite where it was supposed to bite.';
+      } else if (step.id === 'policy') {
+        caseEls.interpretation.innerHTML = 'In the stylized monopsony graph, the wage floor is placed just above the pre-policy monopsony wage and close to the competitive benchmark. That is the region where the textbook monopsony model predicts higher employment.';
+      } else {
+        caseEls.interpretation.innerHTML = 'Start with the benchmark labor-market-power story: the firm pays less than workers\' marginal revenue product and hires too few workers relative to the competitive benchmark.';
+      }
+
+      drawMonopsonyGraph(caseEls.canvas, step.graphParams, { showMinimumWage: step.graphParams.minimumWage > 0, actualLabel: 'NJ', hideActual: step.graphParams.minimumWage <= 0 });
+      drawCaseLineChart(document.getElementById('caseWageChart'), [
+        { label: 'New Jersey', values: [4.61, 5.08], color: Theme.color.demand },
+        { label: 'Pennsylvania', values: [4.63, 4.62], color: Theme.color.baseline }
+      ], 6, 'Starting wage ($/hour)');
+      drawCaseLineChart(document.getElementById('caseEmploymentChart'), [
+        { label: 'New Jersey', values: [20.44, 21.03], color: Theme.color.demand },
+        { label: 'Pennsylvania', values: [23.33, 21.17], color: Theme.color.baseline }
+      ], 26, 'FTE employment per store');
+    }
+
+    renderCaseButtons();
+
+    function setActiveModule(targetId) {
+      document.querySelectorAll('.module-tab').forEach((tab) => {
+        tab.classList.toggle('active', tab.dataset.target === targetId);
+      });
+      document.querySelectorAll('.module-section').forEach((section) => {
+        section.classList.toggle('active', section.id === targetId);
+      });
+      if (targetId === 'exploreModule') renderExplore();
+      if (targetId === 'practiceModule') renderPractice();
+      if (targetId === 'caseModule') renderCase();
+    }
+
+    document.querySelectorAll('.module-tab').forEach((tab) => {
+      tab.addEventListener('click', () => setActiveModule(tab.dataset.target));
+    });
+
+    renderPracticeBank();
+    resetPracticeAnswers(false);
+    renderExplore();
+    renderPractice();
+    renderCase();
+  </script>
+</body>
+</html>

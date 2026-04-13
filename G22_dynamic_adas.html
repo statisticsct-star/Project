@@ -1,0 +1,2130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G22_dynamic_adas</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs,
+    .summary-strip,
+    .legend-row,
+    .button-row,
+    .scenario-bank,
+    .case-step-row,
+    .chart-grid,
+    .metric-grid,
+    .note-list,
+    .toggle-row,
+    .data-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .module-tabs,
+    .summary-strip,
+    .case-step-row,
+    .scenario-bank,
+    .chart-grid,
+    .toggle-row,
+    .data-pills {
+      margin-bottom: 16px;
+    }
+    .module-tab,
+    .case-step-btn,
+    .scenario-chip,
+    .toggle-chip,
+    .ghost-btn,
+    .preset-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+      text-align: center;
+      line-height: 1.25;
+    }
+    .module-tab:hover,
+    .case-step-btn:hover,
+    .scenario-chip:hover,
+    .toggle-chip:hover,
+    .ghost-btn:hover,
+    .preset-btn:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active,
+    .case-step-btn.active,
+    .scenario-chip.active,
+    .toggle-chip.active,
+    .ghost-btn.active,
+    .preset-btn.active {
+      background: #eef5ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-chip,
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 16px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 160px;
+    }
+    .control-inline.wide { min-width: 240px; }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    input[type="range"] { width: 210px; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.52fr) minmax(320px, 0.98fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .graph-card,
+    .panel-card,
+    .status-card,
+    .metric-card,
+    .data-card,
+    .table-card,
+    .feedback-card,
+    .source-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .panel-stack {
+      display: grid;
+      gap: 16px;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .metric-item {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .metric-label,
+    .table-wrap th,
+    .answer-grid label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .metric-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.3;
+    }
+
+    .card-title,
+    .status-title,
+    .data-title,
+    .chart-title,
+    .table-title,
+    .feedback-title,
+    .answer-title,
+    .legend-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+    .small-muted,
+    .graph-note,
+    .status-copy,
+    .source-copy,
+    .feedback-copy,
+    .table-note,
+    .answer-copy,
+    .metric-note,
+    .note-list li {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .small-muted strong,
+    .graph-note strong,
+    .status-copy strong,
+    .source-copy strong,
+    .feedback-copy strong,
+    .answer-copy strong,
+    .metric-note strong {
+      color: var(--color-text);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.dad { border-color: var(--color-demand); }
+    .legend-line.sras { border-color: var(--color-supply); }
+    .legend-line.lras { border-color: var(--color-long-run); }
+    .legend-line.baseline { border-color: var(--color-baseline); border-top-style: dashed; }
+    .legend-line.previous { border-color: var(--color-demand); border-top-style: dashed; }
+    .legend-line.path { border-color: #111827; border-top-style: dotted; }
+    .legend-square,
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 2px solid var(--color-text);
+      background: white;
+      flex: 0 0 auto;
+    }
+    .legend-dot.current { border-color: #111827; background: #111827; }
+    .legend-dot.revealed { border-color: var(--color-government); background: white; }
+    .legend-dot.guess { border-color: var(--color-guess); background: white; }
+    .legend-square.gap {
+      border-radius: 4px;
+      border-color: var(--color-baseline);
+      background: rgba(163,170,181,0.16);
+    }
+    .legend-square.target {
+      border-radius: 4px;
+      border-color: var(--color-government);
+      background: rgba(46,139,87,0.12);
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      padding: 8px 8px;
+      border-bottom: 1px solid #e6eaf0;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--color-muted);
+      font-weight: 700;
+      background: rgba(249, 251, 255, 0.85);
+    }
+    td strong { color: var(--color-text); }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .answer-grid select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+    }
+
+    .feedback-card.success { border-left: 4px solid var(--color-government); }
+    .feedback-card.warning { border-left: 4px solid var(--color-inflation); }
+    .feedback-card.neutral { border-left: 4px solid var(--color-baseline); }
+    .result-correct { color: var(--color-government); font-weight: 700; }
+    .result-incorrect { color: var(--color-supply); font-weight: 700; }
+    .result-neutral { color: var(--color-muted); font-weight: 700; }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .chart-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .chart-card canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+
+    .note-list {
+      padding-left: 18px;
+      margin: 8px 0 0 0;
+    }
+    .note-list li + li { margin-top: 6px; }
+
+    @media (max-width: 1080px) {
+      .workspace,
+      .chart-grid,
+      .answer-grid {
+        grid-template-columns: 1fr;
+      }
+      .metric-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 760px) {
+      .metric-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Dynamic AD–AS, trend growth, inflation dynamics, and balanced growth versus overheating versus disinflation</h1>
+        <p class="diagram-subtitle">
+          Track how demand growth, capacity growth, inflation expectations, and supply shocks shift the dynamic AD–AS cross over time. The Australian case study maps the move from below-target inflation in 2019 to overheating in 2022 and disinflation by 2024.
+        </p>
+      </div>
+
+      <div class="summary-strip">
+        <span class="summary-chip">Dynamic AD–AS in inflation-output space</span>
+        <span class="summary-chip">Trend growth from population + productivity</span>
+        <span class="summary-chip">Inflation target and expectations</span>
+        <span class="summary-chip">Balanced growth, overheating, disinflation</span>
+        <span class="summary-chip">Practice and check-answer mode</span>
+        <span class="summary-chip">Australian inflation-cycle case study</span>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Australian case study</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="explorePopGrowth">Population growth <span id="explorePopGrowthLabel" class="inline-value"></span></label>
+            <input id="explorePopGrowth" type="range" min="0.0" max="2.2" step="0.1" value="1.3" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreProdGrowth">Productivity growth <span id="exploreProdGrowthLabel" class="inline-value"></span></label>
+            <input id="exploreProdGrowth" type="range" min="0.0" max="2.0" step="0.1" value="1.0" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreDemandGrowth">Nominal demand growth <span id="exploreDemandGrowthLabel" class="inline-value"></span></label>
+            <input id="exploreDemandGrowth" type="range" min="2.0" max="8.0" step="0.1" value="4.8" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreTargetMid">Inflation-target midpoint <span id="exploreTargetMidLabel" class="inline-value"></span></label>
+            <input id="exploreTargetMid" type="range" min="2.0" max="3.0" step="0.1" value="2.5" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreSupplyShock">Initial supply shock <span id="exploreSupplyShockLabel" class="inline-value"></span></label>
+            <input id="exploreSupplyShock" type="range" min="-1.0" max="3.0" step="0.1" value="0.0" />
+          </div>
+          <div class="control-inline">
+            <label for="explorePolicy">Policy restraint (+ tightens AD) <span id="explorePolicyLabel" class="inline-value"></span></label>
+            <input id="explorePolicy" type="range" min="-1.5" max="2.0" step="0.1" value="0.0" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreAnchor">Expectation anchoring <span id="exploreAnchorLabel" class="inline-value"></span></label>
+            <input id="exploreAnchor" type="range" min="0.30" max="0.90" step="0.05" value="0.65" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreYear">Selected year <span id="exploreYearLabel" class="inline-value"></span></label>
+            <input id="exploreYear" type="range" min="0" max="6" step="1" value="3" />
+          </div>
+          <div class="control-inline wide">
+            <label>View options</label>
+            <div class="toggle-row">
+              <button id="toggleBenchmark" class="toggle-chip active">Balanced benchmark</button>
+              <button id="toggleTargetBand" class="toggle-chip active">Target band</button>
+              <button id="togglePrevious" class="toggle-chip active">Previous year curves</button>
+              <button id="togglePath" class="toggle-chip active">Path markers</button>
+            </div>
+          </div>
+          <div class="control-inline wide">
+            <label>Preset regimes</label>
+            <div class="button-row">
+              <button class="preset-btn" id="explorePresetBalanced">Balanced growth</button>
+              <button class="preset-btn" id="explorePresetOverheat">Overheating</button>
+              <button class="preset-btn" id="explorePresetDisinflation">Disinflation</button>
+            </div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="explorePlay">Play path</button>
+              <button class="btn-secondary" id="exploreRandom">Random scenario</button>
+              <button class="btn-secondary" id="exploreReset">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line baseline"></span>Balanced-growth DAD / DSRAS</span>
+              <span class="legend-item"><span class="legend-line previous"></span>Previous-year DAD / DSRAS</span>
+              <span class="legend-item"><span class="legend-line dad"></span>Current DAD</span>
+              <span class="legend-item"><span class="legend-line sras"></span>Current DSRAS</span>
+              <span class="legend-item"><span class="legend-line lras"></span>Current LRAS</span>
+              <span class="legend-item"><span class="legend-square target"></span>Target band</span>
+              <span class="legend-item"><span class="legend-square gap"></span>Output-gap band</span>
+              <span class="legend-item"><span class="legend-dot current"></span>Current equilibrium</span>
+            </div>
+            <div class="graph-note">
+              <strong>How to read the graph:</strong> in the dynamic AD–AS model, inflation stays near target when nominal demand grows at roughly the same pace as potential output plus the inflation target. If demand runs ahead of that pace, DAD shifts out faster than LRAS and the economy overheats. If demand runs behind it, or policy tightens strongly, inflation falls and output can slip below potential.
+            </div>
+
+            <div class="chart-grid">
+              <div class="chart-card">
+                <div class="chart-title">Inflation path versus the target band</div>
+                <canvas id="exploreInflationCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">The highlighted year matches the main graph.</div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">Actual output versus potential output</div>
+                <canvas id="exploreOutputCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">Potential output grows with population and productivity; output gaps reflect DAD versus DSRAS pressure.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="metric-card">
+              <div class="card-title">Live metrics</div>
+              <div class="metric-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Selected year</div>
+                  <div id="exploreMetricYear" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Regime label</div>
+                  <div id="exploreMetricRegime" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Inflation</div>
+                  <div id="exploreMetricInflation" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Expected inflation</div>
+                  <div id="exploreMetricExpected" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Actual output</div>
+                  <div id="exploreMetricOutput" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Potential output</div>
+                  <div id="exploreMetricPotential" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Output gap</div>
+                  <div id="exploreMetricGap" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Balanced nominal demand growth</div>
+                  <div id="exploreMetricBalanced" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="exploreMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+            <div id="exploreStatus" class="status-card">
+              <div class="status-title">Economic reading</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="data-card">
+              <div class="data-title">How to interpret dynamic AD–AS</div>
+              <ul class="note-list">
+                <li><strong>Balanced growth:</strong> if nominal demand growth roughly equals capacity growth plus the inflation target, DAD and DSRAS keep intersecting LRAS close to the target band.</li>
+                <li><strong>Overheating:</strong> if demand growth runs faster than that benchmark, the output gap turns positive and inflation rises above target.</li>
+                <li><strong>Disinflation:</strong> if demand growth slows relative to capacity, or policy deliberately restrains DAD, inflation falls; output may move below potential during the cooling phase.</li>
+                <li><strong>Supply shocks:</strong> adverse supply shifts lift inflation and reduce output at the same time, making the inflation-output trade-off harder than in a pure demand cycle.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Scenario bank</label>
+            <div id="practiceScenarioBank" class="scenario-bank"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="practiceRandom">Random scenario</button>
+              <button class="btn-secondary" id="practiceResetGuess">Reset guess</button>
+              <button class="btn-primary" id="practiceCheck">Check answer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line baseline"></span>Balanced-growth benchmark</span>
+              <span class="legend-item"><span class="legend-line dad"></span>Current DAD</span>
+              <span class="legend-item"><span class="legend-line sras"></span>Current DSRAS</span>
+              <span class="legend-item"><span class="legend-line lras"></span>Current LRAS</span>
+              <span class="legend-item"><span class="legend-dot guess"></span>Your equilibrium guess</span>
+              <span class="legend-item"><span class="legend-dot revealed"></span>Revealed equilibrium</span>
+              <span class="legend-item"><span class="legend-square target"></span>Target band</span>
+            </div>
+            <div class="graph-note">
+              <strong>Student task:</strong> move the purple point to the equilibrium for the selected horizon year, then classify the regime and policy logic before checking your answer.
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div id="practiceStatus" class="status-card">
+              <div class="status-title">Practice prompt</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="panel-card">
+              <div class="answer-title">Your answers</div>
+              <div class="answer-copy" style="margin-bottom: 10px;">Use the horizon-year graph, not year 0.</div>
+              <div class="answer-grid">
+                <div>
+                  <label for="practiceAnswerRegime">Regime at the horizon</label>
+                  <select id="practiceAnswerRegime">
+                    <option value="">Choose</option>
+                    <option value="balanced">Balanced growth</option>
+                    <option value="overheating">Overheating</option>
+                    <option value="disinflation">Disinflation</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerInflation">Inflation relative to the target band</label>
+                  <select id="practiceAnswerInflation">
+                    <option value="">Choose</option>
+                    <option value="above">Above target</option>
+                    <option value="within">Within target</option>
+                    <option value="below">Below target</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerOutput">Output relative to potential</label>
+                  <select id="practiceAnswerOutput">
+                    <option value="">Choose</option>
+                    <option value="above">Above potential</option>
+                    <option value="near">Near potential</option>
+                    <option value="below">Below potential</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerPolicy">Best policy stance now</label>
+                  <select id="practiceAnswerPolicy">
+                    <option value="">Choose</option>
+                    <option value="tighten">Tighten demand</option>
+                    <option value="hold">Hold broadly steady</option>
+                    <option value="ease">Ease demand</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="practiceFeedback" class="feedback-card neutral">
+              <div class="feedback-title">Feedback</div>
+              <div class="feedback-copy">Choose a scenario, move the purple point to your equilibrium guess, and then check your answers.</div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Answer check</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Your answer</th>
+                      <th>Correct answer</th>
+                    </tr>
+                  </thead>
+                  <tbody id="practiceTableBody"></tbody>
+                </table>
+              </div>
+              <div id="practiceTableNote" class="table-note" style="margin-top: 10px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Case-study sequence</label>
+            <div id="caseStepRow" class="case-step-row"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="casePlay">Play sequence</button>
+              <button class="btn-secondary" id="caseReset">Reset to step 1</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line baseline"></span>Balanced-growth benchmark</span>
+              <span class="legend-item"><span class="legend-line dad"></span>Case-study DAD</span>
+              <span class="legend-item"><span class="legend-line sras"></span>Case-study DSRAS</span>
+              <span class="legend-item"><span class="legend-line lras"></span>Case-study LRAS</span>
+              <span class="legend-item"><span class="legend-line path"></span>Sequence path</span>
+              <span class="legend-item"><span class="legend-square target"></span>Target band</span>
+              <span class="legend-item"><span class="legend-dot current"></span>Case-study equilibrium</span>
+            </div>
+            <div class="graph-note">
+              <strong>Case-study mapping:</strong> this is a stylized translation of official Australian data into the dynamic AD–AS model. The aim is not to estimate Australia’s structural DAD and DSRAS curves, but to use observed inflation, output, unemployment, and cash-rate milestones to tell a clean classroom story about overheating and disinflation.
+            </div>
+
+            <div class="chart-grid">
+              <div class="chart-card">
+                <div class="chart-title">Australia’s real GDP path, indexed to Dec 2019</div>
+                <canvas id="caseGdpCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">Index sets <strong>Dec 2019 = 100</strong>; later points chain official ABS observations for Dec 2021 to Dec 2024.</div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">Inflation and the cash-rate target</div>
+                <canvas id="caseInflationCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">Annual CPI from the ABS and the cash-rate target from the RBA.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div id="caseStatus" class="status-card">
+              <div class="status-title">Current step</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="card-title">Case-study metrics</div>
+              <div class="metric-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Inflation</div>
+                  <div id="caseMetricInflation" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Actual output index</div>
+                  <div id="caseMetricOutput" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Potential output index</div>
+                  <div id="caseMetricPotential" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Output gap</div>
+                  <div id="caseMetricGap" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="caseMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Observed Australian data used in the case</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Observed series</th>
+                      <th>Data point</th>
+                      <th>How the graph uses it</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Pre-pandemic baseline</strong></td>
+                      <td>Annual CPI was 1.8% in Dec 2019, GDP was up 2.2% through the year, unemployment was 5.1%, and the cash rate was 0.75%</td>
+                      <td>Used as the starting benchmark: modest growth, inflation below the midpoint of target, and no large positive output gap.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Reopening rebound</strong></td>
+                      <td>By Dec 2021 GDP was 3.4% above Dec 2019, annual CPI was 3.5%, unemployment was 4.2%, and the cash rate was 0.10%</td>
+                      <td>Anchors the step where DAD rebounds strongly and inflation moves above target while capacity is still catching up.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Overheating / peak inflation</strong></td>
+                      <td>In Dec 2022 GDP was up 2.7% through the year, annual CPI was 7.8%, unemployment was 3.5%, and the cash rate rose to 3.10%</td>
+                      <td>Mapped into a hot economy with inflation far above target and output around or above potential.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Disinflation begins</strong></td>
+                      <td>In Dec 2023 GDP grew 1.5% through the year, annual CPI fell to 4.1%, and the cash rate had reached 4.35%</td>
+                      <td>Shows the turn from overheating toward disinflation as tighter policy restrains demand and inflation starts to come down.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Return to target range</strong></td>
+                      <td>In Dec 2024 GDP grew 1.3% through the year, annual CPI fell to 2.4%, unemployment was 4.0%, and the cash rate remained 4.35%</td>
+                      <td>Anchors the final step where inflation moves back inside target and output growth is much slower than in the reopening surge.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="source-card">
+              <div class="card-title">Interpretation note</div>
+              <div class="source-copy">
+                This is best read as a <strong>stylized dynamic-macro teaching sequence</strong>. The official Australian data show below-target inflation before the pandemic, above-target inflation during the reopening and 2022 price surge, and substantial disinflation by late 2024. The dynamic AD–AS diagram turns that evidence into a compact classroom story about trend growth, overheating, and the cooling phase required to return inflation to target.<br /><br />
+                <strong>Source anchors used:</strong> ABS Consumer Price Index releases for December 2019, 2021, 2022, 2023, and 2024; ABS National Accounts releases for December 2019 to 2024; ABS Labour Force releases for December 2019, 2021, 2022, and 2024; and RBA cash-rate decisions and cash-rate history.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    (() => {
+      const theme = window.ECON_THEME;
+      const MODEL = {
+        periods: 6,
+        adSlope: 0.30,
+        srasSlope: 0.45,
+        demandPersistence: 0.45,
+        adScale: 1.20,
+        supplyDecay: 0.55
+      };
+
+      const palette = {
+        dad: theme.color.demand,
+        sras: theme.color.supply,
+        lras: theme.color.longRun,
+        policy: theme.color.government,
+        baseline: theme.color.baseline,
+        guess: theme.color.guess,
+        point: '#111827',
+        text: theme.color.text,
+        muted: theme.color.muted,
+        frame: theme.color.frame,
+        grid: theme.color.grid,
+        positiveGapFill: 'rgba(224,122,0,0.10)',
+        negativeGapFill: 'rgba(47,107,255,0.10)',
+        targetFill: 'rgba(46,139,87,0.12)'
+      };
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function fmt(value, digits = 1) {
+        return Number(value).toFixed(digits).replace(/\.0$/, '');
+      }
+
+      function pct(value, digits = 1) {
+        return `${fmt(value, digits)}%`;
+      }
+
+      function signed(value, digits = 1) {
+        const fixed = Number(value).toFixed(digits).replace(/\.0$/, '');
+        return `${value > 0 ? '+' : ''}${fixed}`;
+      }
+
+      function linearTicks(min, max, count, axis, range) {
+        const ticks = [];
+        for (let i = 0; i <= count; i += 1) {
+          const value = min + (i / count) * (max - min);
+          ticks.push({
+            label: value.toFixed(axis === 'y' ? 0 : 1).replace(/\.0$/, ''),
+            x: axis === 'x' ? EconDraw.valueToX(value, range.yMin, range.yMax) : undefined,
+            y: axis === 'y' ? EconDraw.valueToY(value, range.piMin, range.piMax) : undefined
+          });
+        }
+        return ticks;
+      }
+
+      function plotX(value, range) {
+        return EconDraw.valueToX(value, range.yMin, range.yMax);
+      }
+
+      function plotY(value, range) {
+        return EconDraw.valueToY(value, range.piMin, range.piMax);
+      }
+
+      function pointToCanvas(point, range) {
+        return { x: plotX(point.y, range), y: plotY(point.pi, range) };
+      }
+
+      function canvasToPoint(mouse, range) {
+        return {
+          y: clamp(EconDraw.xToValue(mouse.x, range.yMin, range.yMax), range.yMin, range.yMax),
+          pi: clamp(EconDraw.yToValue(mouse.y, range.piMin, range.piMax), range.piMin, range.piMax)
+        };
+      }
+
+      function targetBounds(midpoint) {
+        return { lower: midpoint - 0.5, upper: midpoint + 0.5 };
+      }
+
+      function effectiveDemandGrowth(input) {
+        return input.demandGrowth - input.policyStance;
+      }
+
+      function balancedDemandGrowth(input) {
+        return input.populationGrowth + input.productivityGrowth + input.targetMid;
+      }
+
+      function regimeForPoint(point, previousPoint, bounds) {
+        const falling = previousPoint ? point.inflation < previousPoint.inflation - 0.18 : false;
+        if (Math.abs(point.outputGap) < 0.8 && point.inflation >= bounds.lower && point.inflation <= bounds.upper) {
+          return 'Balanced growth';
+        }
+        if (point.outputGap > 0.8 && point.inflation > bounds.upper) {
+          return 'Overheating';
+        }
+        if (falling) {
+          return 'Disinflation';
+        }
+        if (point.outputGap < -0.8 && point.inflation < bounds.lower) {
+          return 'Below-target cooling';
+        }
+        if (point.outputGap < -0.8 && point.inflation > bounds.upper) {
+          return 'Supply-driven inflation';
+        }
+        return 'Transition phase';
+      }
+
+      function policyRecommendation(point, previousPoint, bounds) {
+        const regime = regimeForPoint(point, previousPoint, bounds);
+        if (regime === 'Overheating') return 'tighten';
+        if (point.inflation < bounds.lower && point.outputGap < -0.8) return 'ease';
+        if (regime === 'Balanced growth') return 'hold';
+        if (regime === 'Disinflation' && point.inflation >= bounds.lower && point.inflation <= bounds.upper) return 'hold';
+        if (regime === 'Disinflation' && point.inflation < bounds.lower) return 'ease';
+        if (regime === 'Supply-driven inflation') return 'hold';
+        return 'hold';
+      }
+
+      function inflationBandAnswer(inflation, bounds) {
+        if (inflation > bounds.upper + 0.05) return 'above';
+        if (inflation < bounds.lower - 0.05) return 'below';
+        return 'within';
+      }
+
+      function outputPositionAnswer(outputGap) {
+        if (outputGap > 0.8) return 'above';
+        if (outputGap < -0.8) return 'below';
+        return 'near';
+      }
+
+      function simulateDynamics(input) {
+        const out = [];
+        let yStar = 100;
+        let inflation = input.targetMid;
+        let demandTiltPrev = 0;
+        const gPotential = input.populationGrowth + input.productivityGrowth;
+        const balancedGrowth = balancedDemandGrowth(input);
+        const effDemandGrowth = effectiveDemandGrowth(input);
+        out.push({
+          t: 0,
+          yearLabel: 'Year 0',
+          yStar: 100,
+          y: 100,
+          inflation: input.targetMid,
+          expectedInflation: input.targetMid,
+          supplyShock: 0,
+          demandTilt: 0,
+          outputGap: 0,
+          adShift: 0,
+          srasAnchor: input.targetMid,
+          balancedGrowth,
+          effDemandGrowth
+        });
+        for (let t = 1; t <= MODEL.periods; t += 1) {
+          yStar *= (1 + gPotential / 100);
+          const expectedInflation = input.anchorStrength * input.targetMid + (1 - input.anchorStrength) * inflation;
+          const supplyShock = input.initialSupplyShock * Math.pow(MODEL.supplyDecay, t - 1);
+          const demandRaw = effDemandGrowth - balancedGrowth;
+          const demandTilt = MODEL.demandPersistence * demandTiltPrev + MODEL.adScale * demandRaw;
+          const outputGap = (input.targetMid + demandTilt - expectedInflation - supplyShock) / (MODEL.adSlope + MODEL.srasSlope);
+          const y = yStar + outputGap;
+          inflation = input.targetMid + demandTilt - MODEL.adSlope * outputGap;
+          out.push({
+            t,
+            yearLabel: `Year ${t}`,
+            yStar,
+            y,
+            inflation,
+            expectedInflation,
+            supplyShock,
+            demandTilt,
+            outputGap,
+            adShift: demandTilt,
+            srasAnchor: expectedInflation + supplyShock,
+            balancedGrowth,
+            effDemandGrowth
+          });
+          demandTiltPrev = demandTilt;
+        }
+        return out;
+      }
+
+      function computeRange(points, midpoint, extras = {}) {
+        const yVals = [];
+        const piVals = [];
+        points.forEach((pt) => {
+          yVals.push(pt.y, pt.yStar);
+          piVals.push(pt.inflation, midpoint - 0.5, midpoint + 0.5);
+        });
+        if (extras.guessPoint) {
+          yVals.push(extras.guessPoint.y);
+          piVals.push(extras.guessPoint.pi);
+        }
+        if (extras.revealPoint) {
+          yVals.push(extras.revealPoint.y);
+          piVals.push(extras.revealPoint.pi);
+        }
+        const minY = Math.min(...yVals);
+        const maxY = Math.max(...yVals);
+        const minPi = Math.min(...piVals);
+        const maxPi = Math.max(...piVals);
+        return {
+          yMin: Math.floor((minY - 3) / 2) * 2,
+          yMax: Math.ceil((maxY + 3) / 2) * 2,
+          piMin: Math.floor(minPi - 1.0),
+          piMax: Math.ceil(maxPi + 1.0)
+        };
+      }
+
+      function dadInflation(y, yStar, targetMid, adShift) {
+        return targetMid + adShift - MODEL.adSlope * (y - yStar);
+      }
+
+      function srasInflation(y, yStar, srasAnchor) {
+        return srasAnchor + MODEL.srasSlope * (y - yStar);
+      }
+
+      function curvePoints(range, curveFn) {
+        const pts = [];
+        for (let y = range.yMin; y <= range.yMax; y += 0.2) {
+          const pi = curveFn(y);
+          if (Number.isFinite(pi) && pi >= range.piMin - 1.5 && pi <= range.piMax + 1.5) {
+            pts.push({ x: plotX(y, range), y: plotY(pi, range) });
+          }
+        }
+        return pts;
+      }
+
+      function verticalPoints(range, yValue) {
+        return [
+          { x: plotX(yValue, range), y: plotY(range.piMin, range) },
+          { x: plotX(yValue, range), y: plotY(range.piMax, range) }
+        ];
+      }
+
+      function drawGuide(ctx, x, y, range, color = palette.baseline, dash = theme.dash.guide) {
+        const plot = EconDraw.getPlotArea();
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash(dash);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, plot.bottom);
+        ctx.moveTo(x, y);
+        ctx.lineTo(plot.left, y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawPoint(ctx, point, label, range, style = {}) {
+        const canvasPoint = pointToCanvas(point, range);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(canvasPoint.x, canvasPoint.y, style.radius || 6, 0, Math.PI * 2);
+        ctx.fillStyle = style.fill || 'white';
+        ctx.fill();
+        ctx.lineWidth = style.lineWidth || 2;
+        ctx.strokeStyle = style.stroke || palette.text;
+        if (style.dash) ctx.setLineDash(style.dash);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        if (label) {
+          ctx.font = `700 13px ${theme.font.family}`;
+          ctx.fillStyle = style.text || style.stroke || palette.text;
+          ctx.fillText(label, canvasPoint.x + 10, canvasPoint.y - 10);
+        }
+        ctx.restore();
+      }
+
+      function drawCurveLabel(ctx, label, yVal, piVal, range, color, dx = 0, dy = 0) {
+        if (piVal < range.piMin + 0.3 || piVal > range.piMax - 0.3) return;
+        EconDraw.drawText(ctx, label, plotX(yVal, range) + dx, plotY(piVal, range) + dy, {
+          size: 12,
+          weight: '700',
+          color
+        });
+      }
+
+      function drawTargetBand(ctx, bounds, range) {
+        const plot = EconDraw.getPlotArea();
+        EconDraw.fillPolygon(ctx, [
+          { x: plot.left, y: plotY(bounds.lower, range) },
+          { x: plot.right, y: plotY(bounds.lower, range) },
+          { x: plot.right, y: plotY(bounds.upper, range) },
+          { x: plot.left, y: plotY(bounds.upper, range) }
+        ], { fill: palette.targetFill });
+        ctx.save();
+        ctx.strokeStyle = palette.policy;
+        ctx.lineWidth = 1.3;
+        ctx.setLineDash(theme.dash.policy);
+        ctx.beginPath();
+        ctx.moveTo(plot.left, plotY(bounds.lower, range));
+        ctx.lineTo(plot.right, plotY(bounds.lower, range));
+        ctx.moveTo(plot.left, plotY(bounds.upper, range));
+        ctx.lineTo(plot.right, plotY(bounds.upper, range));
+        ctx.stroke();
+        ctx.restore();
+        EconDraw.drawText(ctx, 'Target band', plot.right - 112, plotY(bounds.upper, range) - 8, {
+          size: 12,
+          weight: '700',
+          color: palette.policy
+        });
+      }
+
+      function drawGapBand(ctx, point, range) {
+        if (Math.abs(point.outputGap) < 0.6) return;
+        const plot = EconDraw.getPlotArea();
+        const left = plotX(Math.min(point.y, point.yStar), range);
+        const right = plotX(Math.max(point.y, point.yStar), range);
+        EconDraw.fillPolygon(ctx, [
+          { x: left, y: plot.top },
+          { x: right, y: plot.top },
+          { x: right, y: plot.bottom },
+          { x: left, y: plot.bottom }
+        ], { fill: point.outputGap > 0 ? palette.positiveGapFill : palette.negativeGapFill });
+        EconDraw.drawText(ctx, point.outputGap > 0 ? 'Above potential' : 'Below potential', (left + right) / 2, plot.top + 14, {
+          size: 12,
+          weight: '700',
+          align: 'center',
+          color: palette.muted
+        });
+      }
+
+      function drawPathSeries(ctx, series, upto, range) {
+        if (!series || upto < 1) return;
+        const pts = series.slice(0, upto + 1).map((pt) => ({ x: plotX(pt.y, range), y: plotY(pt.inflation, range) }));
+        ctx.save();
+        ctx.strokeStyle = '#111827';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        pts.forEach((pt, i) => {
+          if (i === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+        pts.forEach((pt, i) => {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, i === upto ? 4.5 : 3.2, 0, Math.PI * 2);
+          ctx.fillStyle = i === upto ? '#111827' : '#ffffff';
+          ctx.fill();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#111827';
+          ctx.stroke();
+        });
+        ctx.restore();
+      }
+
+      function drawDynamicGraph(ctx, config) {
+        EconDraw.clearCanvas(ctx);
+        EconDraw.drawFrame(ctx);
+
+        EconDraw.drawAxes(ctx, {
+          xLabel: 'Real GDP (index)',
+          yLabel: 'Inflation rate (%)',
+          xTicks: linearTicks(config.range.yMin, config.range.yMax, 8, 'x', config.range),
+          yTicks: linearTicks(config.range.piMin, config.range.piMax, 8, 'y', config.range),
+          showGrid: true
+        });
+
+        if (config.showTargetBand) drawTargetBand(ctx, config.bounds, config.range);
+        if (config.showGapBand) drawGapBand(ctx, config.point, config.range);
+
+        if (config.showBenchmark) {
+          EconDraw.drawLine(ctx, curvePoints(config.range, (y) => dadInflation(y, config.point.yStar, config.targetMid, 0)), {
+            color: palette.baseline,
+            lineWidth: 2,
+            dash: theme.dash.baseline
+          });
+          EconDraw.drawLine(ctx, curvePoints(config.range, (y) => srasInflation(y, config.point.yStar, config.targetMid)), {
+            color: palette.baseline,
+            lineWidth: 2,
+            dash: theme.dash.baseline
+          });
+          drawCurveLabel(ctx, 'DAD*', config.point.yStar - 5, dadInflation(config.point.yStar - 5, config.point.yStar, config.targetMid, 0), config.range, palette.baseline, -18, -8);
+          drawCurveLabel(ctx, 'DSRAS*', config.point.yStar + 4, srasInflation(config.point.yStar + 4, config.point.yStar, config.targetMid), config.range, palette.baseline, 8, -8);
+        }
+
+        if (config.showPrevious && config.previousPoint) {
+          EconDraw.drawLine(ctx, curvePoints(config.range, (y) => dadInflation(y, config.previousPoint.yStar, config.targetMid, config.previousPoint.adShift)), {
+            color: palette.dad,
+            lineWidth: 2.1,
+            dash: theme.dash.policy
+          });
+          EconDraw.drawLine(ctx, curvePoints(config.range, (y) => srasInflation(y, config.previousPoint.yStar, config.previousPoint.srasAnchor)), {
+            color: palette.sras,
+            lineWidth: 2.1,
+            dash: theme.dash.policy
+          });
+        }
+
+        EconDraw.drawLine(ctx, curvePoints(config.range, (y) => dadInflation(y, config.point.yStar, config.targetMid, config.point.adShift)), {
+          color: palette.dad,
+          lineWidth: theme.line.main
+        });
+        EconDraw.drawLine(ctx, curvePoints(config.range, (y) => srasInflation(y, config.point.yStar, config.point.srasAnchor)), {
+          color: palette.sras,
+          lineWidth: theme.line.main
+        });
+        EconDraw.drawLine(ctx, verticalPoints(config.range, config.point.yStar), {
+          color: palette.lras,
+          lineWidth: theme.line.main
+        });
+
+        drawCurveLabel(ctx, config.dadLabel || 'DAD', config.point.yStar - 5, dadInflation(config.point.yStar - 5, config.point.yStar, config.targetMid, config.point.adShift), config.range, palette.dad, -18, -8);
+        drawCurveLabel(ctx, config.srasLabel || 'DSRAS', config.point.yStar + 4, srasInflation(config.point.yStar + 4, config.point.yStar, config.point.srasAnchor), config.range, palette.sras, 8, -8);
+        EconDraw.drawText(ctx, config.lrasLabel || 'LRAS', plotX(config.point.yStar, config.range) + 8, plotY(config.range.piMax, config.range) + 18, {
+          size: 12,
+          weight: '700',
+          color: palette.lras
+        });
+
+        if (config.showPath && config.series) {
+          drawPathSeries(ctx, config.series, config.point.t, config.range);
+        }
+
+        drawGuide(ctx, plotX(config.point.y, config.range), plotY(config.point.inflation, config.range), config.range, palette.muted);
+        if (!config.hideCurrentPoint) {
+          drawPoint(ctx, { y: config.point.y, pi: config.point.inflation }, config.currentLabel || 'E', config.range, {
+            fill: palette.point,
+            stroke: palette.point,
+            text: palette.point,
+            radius: 5
+          });
+        }
+        if (config.guessPoint) {
+          drawPoint(ctx, config.guessPoint, 'G', config.range, {
+            fill: 'white',
+            stroke: palette.guess,
+            text: palette.guess,
+            dash: theme.dash.guess,
+            radius: 8,
+            lineWidth: 2.3
+          });
+        }
+        if (config.revealPoint) {
+          drawPoint(ctx, config.revealPoint, 'E*', config.range, {
+            fill: 'white',
+            stroke: palette.policy,
+            text: palette.policy,
+            radius: 8,
+            lineWidth: 2.2
+          });
+        }
+        if (config.titleText) {
+          EconDraw.drawText(ctx, config.titleText, 100, 34, {
+            size: 13,
+            color: palette.muted
+          });
+        }
+        if (config.footText) {
+          EconDraw.drawText(ctx, config.footText, 100, 560, {
+            size: 12,
+            color: palette.muted
+          });
+        }
+      }
+
+      function getCanvasMouse(event, canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+          x: (event.clientX - rect.left) * scaleX,
+          y: (event.clientY - rect.top) * scaleY
+        };
+      }
+
+      function distanceCanvas(a, b) {
+        return Math.hypot(a.x - b.x, a.y - b.y);
+      }
+
+      function drawMiniLineChart(canvas, config) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = palette.frame;
+        ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+        const margin = { left: 52, right: 18, top: 18, bottom: 44 };
+        const plotW = w - margin.left - margin.right;
+        const plotH = h - margin.top - margin.bottom;
+
+        function xPos(i) {
+          if (config.groups.length === 1) return margin.left + plotW / 2;
+          return margin.left + (i / (config.groups.length - 1)) * plotW;
+        }
+        function yPos(v) {
+          return margin.top + plotH - ((v - config.minY) / (config.maxY - config.minY)) * plotH;
+        }
+
+        if (config.band) {
+          ctx.fillStyle = palette.targetFill;
+          const yUpper = yPos(config.band.upper);
+          const yLower = yPos(config.band.lower);
+          ctx.fillRect(margin.left, yUpper, plotW, yLower - yUpper);
+        }
+
+        ctx.strokeStyle = palette.grid;
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i += 1) {
+          const y = margin.top + (plotH * i) / 4;
+          ctx.beginPath();
+          ctx.moveTo(margin.left, y);
+          ctx.lineTo(w - margin.right, y);
+          ctx.stroke();
+          const value = config.maxY - (i / 4) * (config.maxY - config.minY);
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(config.tickFormat ? config.tickFormat(value) : fmt(value, 1), margin.left - 8, y);
+        }
+
+        ctx.strokeStyle = palette.text;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, margin.top);
+        ctx.lineTo(margin.left, h - margin.bottom);
+        ctx.lineTo(w - margin.right, h - margin.bottom);
+        ctx.stroke();
+
+        config.groups.forEach((group, i) => {
+          const x = xPos(i);
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(group, x, h - margin.bottom + 10);
+        });
+
+        if (Number.isInteger(config.highlightIndex)) {
+          const x = xPos(config.highlightIndex);
+          ctx.save();
+          ctx.strokeStyle = palette.baseline;
+          ctx.lineWidth = 1.2;
+          ctx.setLineDash(theme.dash.baseline);
+          ctx.beginPath();
+          ctx.moveTo(x, margin.top);
+          ctx.lineTo(x, h - margin.bottom);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        config.series.forEach((series) => {
+          ctx.save();
+          ctx.strokeStyle = series.color;
+          ctx.lineWidth = 2.5;
+          if (series.dash) ctx.setLineDash(series.dash);
+          ctx.beginPath();
+          series.values.forEach((value, i) => {
+            const x = xPos(i);
+            const y = yPos(value);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+          ctx.restore();
+
+          series.values.forEach((value, i) => {
+            const x = xPos(i);
+            const y = yPos(value);
+            ctx.beginPath();
+            ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = series.color;
+            ctx.stroke();
+
+            ctx.fillStyle = palette.text;
+            ctx.font = `600 11px ${theme.font.family}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = value >= (config.minY + config.maxY) / 2 ? 'bottom' : 'top';
+            ctx.fillText(series.valueFormat ? series.valueFormat(value) : fmt(value, 1), x, y + (value >= (config.minY + config.maxY) / 2 ? -6 : 7));
+          });
+        });
+
+        let lx = margin.left;
+        const ly = h - 24;
+        config.series.forEach((series) => {
+          ctx.save();
+          ctx.strokeStyle = series.color;
+          ctx.lineWidth = 2.5;
+          if (series.dash) ctx.setLineDash(series.dash);
+          ctx.beginPath();
+          ctx.moveTo(lx, ly + 6);
+          ctx.lineTo(lx + 16, ly + 6);
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillText(series.label, lx + 22, ly - 1);
+          lx += ctx.measureText(series.label).width + 54;
+        });
+      }
+
+      const defaultInputs = {
+        populationGrowth: 1.3,
+        productivityGrowth: 1.0,
+        demandGrowth: 4.8,
+        targetMid: 2.5,
+        initialSupplyShock: 0.0,
+        policyStance: 0.0,
+        anchorStrength: 0.65
+      };
+
+      const explore = {
+        canvas: document.getElementById('exploreCanvas'),
+        ctx: document.getElementById('exploreCanvas').getContext('2d'),
+        inflationCanvas: document.getElementById('exploreInflationCanvas'),
+        outputCanvas: document.getElementById('exploreOutputCanvas'),
+        controls: {
+          populationGrowth: document.getElementById('explorePopGrowth'),
+          productivityGrowth: document.getElementById('exploreProdGrowth'),
+          demandGrowth: document.getElementById('exploreDemandGrowth'),
+          targetMid: document.getElementById('exploreTargetMid'),
+          initialSupplyShock: document.getElementById('exploreSupplyShock'),
+          policyStance: document.getElementById('explorePolicy'),
+          anchorStrength: document.getElementById('exploreAnchor'),
+          year: document.getElementById('exploreYear')
+        },
+        labels: {
+          populationGrowth: document.getElementById('explorePopGrowthLabel'),
+          productivityGrowth: document.getElementById('exploreProdGrowthLabel'),
+          demandGrowth: document.getElementById('exploreDemandGrowthLabel'),
+          targetMid: document.getElementById('exploreTargetMidLabel'),
+          initialSupplyShock: document.getElementById('exploreSupplyShockLabel'),
+          policyStance: document.getElementById('explorePolicyLabel'),
+          anchorStrength: document.getElementById('exploreAnchorLabel'),
+          year: document.getElementById('exploreYearLabel')
+        },
+        metrics: {
+          year: document.getElementById('exploreMetricYear'),
+          regime: document.getElementById('exploreMetricRegime'),
+          inflation: document.getElementById('exploreMetricInflation'),
+          expected: document.getElementById('exploreMetricExpected'),
+          output: document.getElementById('exploreMetricOutput'),
+          potential: document.getElementById('exploreMetricPotential'),
+          gap: document.getElementById('exploreMetricGap'),
+          balanced: document.getElementById('exploreMetricBalanced'),
+          note: document.getElementById('exploreMetricNote')
+        },
+        status: document.querySelector('#exploreStatus .status-copy'),
+        state: {
+          ...defaultInputs,
+          year: 3,
+          showBenchmark: true,
+          showTargetBand: true,
+          showPrevious: true,
+          showPath: true,
+          timer: null
+        }
+      };
+
+      function syncExploreControls() {
+        Object.keys(defaultInputs).forEach((key) => {
+          if (explore.controls[key]) explore.controls[key].value = String(explore.state[key]);
+        });
+        explore.controls.year.value = String(explore.state.year);
+      }
+
+      function updateExploreLabels() {
+        explore.labels.populationGrowth.textContent = pct(explore.state.populationGrowth, 1);
+        explore.labels.productivityGrowth.textContent = pct(explore.state.productivityGrowth, 1);
+        explore.labels.demandGrowth.textContent = pct(explore.state.demandGrowth, 1);
+        explore.labels.targetMid.textContent = pct(explore.state.targetMid, 1);
+        explore.labels.initialSupplyShock.textContent = signed(explore.state.initialSupplyShock, 1);
+        explore.labels.policyStance.textContent = signed(explore.state.policyStance, 1);
+        explore.labels.anchorStrength.textContent = fmt(explore.state.anchorStrength, 2);
+        explore.labels.year.textContent = `Year ${explore.state.year}`;
+      }
+
+      function exploreSeries() {
+        return simulateDynamics(explore.state);
+      }
+
+      function renderExploreCharts(series, bounds) {
+        const groups = series.map((pt) => `Y${pt.t}`);
+        drawMiniLineChart(explore.inflationCanvas, {
+          groups,
+          minY: Math.min(bounds.lower - 1, ...series.map((pt) => pt.inflation)) - 0.3,
+          maxY: Math.max(bounds.upper + 1.5, ...series.map((pt) => pt.inflation)) + 0.3,
+          band: bounds,
+          highlightIndex: explore.state.year,
+          tickFormat: (v) => pct(v, 0),
+          series: [
+            {
+              label: 'Inflation',
+              color: palette.sras,
+              values: series.map((pt) => pt.inflation),
+              valueFormat: (v) => pct(v, 1)
+            },
+            {
+              label: 'Target midpoint',
+              color: palette.policy,
+              dash: theme.dash.policy,
+              values: series.map(() => explore.state.targetMid),
+              valueFormat: () => ''
+            }
+          ]
+        });
+
+        const outputMin = Math.min(...series.map((pt) => Math.min(pt.y, pt.yStar))) - 1.5;
+        const outputMax = Math.max(...series.map((pt) => Math.max(pt.y, pt.yStar))) + 1.5;
+        drawMiniLineChart(explore.outputCanvas, {
+          groups,
+          minY: outputMin,
+          maxY: outputMax,
+          highlightIndex: explore.state.year,
+          tickFormat: (v) => fmt(v, 0),
+          series: [
+            {
+              label: 'Actual output',
+              color: palette.dad,
+              values: series.map((pt) => pt.y),
+              valueFormat: (v) => fmt(v, 1)
+            },
+            {
+              label: 'Potential output',
+              color: palette.lras,
+              dash: theme.dash.policy,
+              values: series.map((pt) => pt.yStar),
+              valueFormat: (v) => fmt(v, 1)
+            }
+          ]
+        });
+      }
+
+      function renderExplore() {
+        updateExploreLabels();
+        const series = exploreSeries();
+        const point = series[explore.state.year];
+        const previousPoint = explore.state.year > 0 ? series[explore.state.year - 1] : null;
+        const bounds = targetBounds(explore.state.targetMid);
+        const range = computeRange(series, explore.state.targetMid);
+
+        drawDynamicGraph(explore.ctx, {
+          range,
+          bounds,
+          targetMid: explore.state.targetMid,
+          point,
+          previousPoint,
+          series,
+          showBenchmark: explore.state.showBenchmark,
+          showTargetBand: explore.state.showTargetBand,
+          showPrevious: explore.state.showPrevious,
+          showGapBand: true,
+          showPath: explore.state.showPath,
+          currentLabel: 'E',
+          titleText: 'DAD and DSRAS are centred on target inflation when nominal demand grows at the benchmark pace.',
+          footText: `Balanced nominal demand growth = ${pct(balancedDemandGrowth(explore.state), 1)}. Effective nominal demand growth = ${pct(effectiveDemandGrowth(explore.state), 1)}.`
+        });
+
+        renderExploreCharts(series, bounds);
+
+        const regime = regimeForPoint(point, previousPoint, bounds);
+        explore.metrics.year.textContent = `Year ${point.t}`;
+        explore.metrics.regime.textContent = regime;
+        explore.metrics.inflation.textContent = pct(point.inflation, 2);
+        explore.metrics.expected.textContent = pct(point.expectedInflation, 2);
+        explore.metrics.output.textContent = fmt(point.y, 1);
+        explore.metrics.potential.textContent = fmt(point.yStar, 1);
+        explore.metrics.gap.textContent = signed(point.outputGap, 2);
+        explore.metrics.balanced.textContent = pct(point.balancedGrowth, 1);
+
+        const demandDifference = point.effDemandGrowth - point.balancedGrowth;
+        if (Math.abs(demandDifference) < 0.15) {
+          explore.metrics.note.textContent = 'Effective nominal demand growth is almost exactly at the benchmark pace, so DAD does not drift systematically away from LRAS.';
+        } else if (demandDifference > 0) {
+          explore.metrics.note.textContent = `Effective nominal demand growth is ${fmt(demandDifference, 1)} percentage points above the benchmark pace, so DAD keeps leaning toward overheating unless policy or supply conditions offset it.`;
+        } else {
+          explore.metrics.note.textContent = `Effective nominal demand growth is ${fmt(Math.abs(demandDifference), 1)} percentage points below the benchmark pace, so inflation tends to cool and output can slip below potential.`;
+        }
+
+        const statusParts = [];
+        statusParts.push(`<p style="margin:0 0 8px 0;"><strong>${regime}.</strong> In year ${point.t}, inflation is ${pct(point.inflation, 1)} and output is ${fmt(Math.abs(point.outputGap), 1)} index points ${point.outputGap >= 0 ? 'above' : 'below'} potential.</p>`);
+        statusParts.push(`<p style="margin:0 0 8px 0;">Population growth plus productivity growth equals ${pct(explore.state.populationGrowth + explore.state.productivityGrowth, 1)}, so the model’s balanced nominal demand benchmark is ${pct(point.balancedGrowth, 1)}. Effective demand growth is ${pct(point.effDemandGrowth, 1)} after the policy stance adjustment.</p>`);
+        if (Math.abs(point.supplyShock) > 0.05) {
+          statusParts.push(`<p style="margin:0 0 8px 0;">The supply shock in the selected year adds ${signed(point.supplyShock, 2)} percentage points to DSRAS. Because supply pressure decays over time, it matters most in the earlier years of the sequence.</p>`);
+        }
+        if (previousPoint) {
+          const inflationChange = point.inflation - previousPoint.inflation;
+          statusParts.push(`<p style="margin:0;">Inflation changed by ${signed(inflationChange, 2)} percentage points from the previous year. That is why the dynamic model is useful: it shows not only where the economy is, but whether inflation pressure is building or fading.</p>`);
+        }
+        explore.status.innerHTML = statusParts.join('');
+      }
+
+      function applyExplorePreset(name) {
+        if (name === 'balanced') {
+          Object.assign(explore.state, {
+            populationGrowth: 1.3,
+            productivityGrowth: 1.0,
+            demandGrowth: 4.8,
+            targetMid: 2.5,
+            initialSupplyShock: 0.0,
+            policyStance: 0.0,
+            anchorStrength: 0.70,
+            year: 3
+          });
+        } else if (name === 'overheat') {
+          Object.assign(explore.state, {
+            populationGrowth: 1.3,
+            productivityGrowth: 1.0,
+            demandGrowth: 7.2,
+            targetMid: 2.5,
+            initialSupplyShock: 0.7,
+            policyStance: 0.0,
+            anchorStrength: 0.60,
+            year: 3
+          });
+        } else if (name === 'disinflation') {
+          Object.assign(explore.state, {
+            populationGrowth: 1.3,
+            productivityGrowth: 1.0,
+            demandGrowth: 4.9,
+            targetMid: 2.5,
+            initialSupplyShock: 2.8,
+            policyStance: 0.3,
+            anchorStrength: 0.70,
+            year: 4
+          });
+        }
+        syncExploreControls();
+        renderExplore();
+      }
+
+      Object.entries(explore.controls).forEach(([key, control]) => {
+        control.addEventListener('input', () => {
+          explore.state[key] = key === 'year' ? Number(control.value) : Number(control.value);
+          renderExplore();
+        });
+      });
+
+      document.getElementById('toggleBenchmark').addEventListener('click', (event) => {
+        explore.state.showBenchmark = !explore.state.showBenchmark;
+        event.currentTarget.classList.toggle('active', explore.state.showBenchmark);
+        renderExplore();
+      });
+      document.getElementById('toggleTargetBand').addEventListener('click', (event) => {
+        explore.state.showTargetBand = !explore.state.showTargetBand;
+        event.currentTarget.classList.toggle('active', explore.state.showTargetBand);
+        renderExplore();
+      });
+      document.getElementById('togglePrevious').addEventListener('click', (event) => {
+        explore.state.showPrevious = !explore.state.showPrevious;
+        event.currentTarget.classList.toggle('active', explore.state.showPrevious);
+        renderExplore();
+      });
+      document.getElementById('togglePath').addEventListener('click', (event) => {
+        explore.state.showPath = !explore.state.showPath;
+        event.currentTarget.classList.toggle('active', explore.state.showPath);
+        renderExplore();
+      });
+
+      document.getElementById('explorePresetBalanced').addEventListener('click', () => applyExplorePreset('balanced'));
+      document.getElementById('explorePresetOverheat').addEventListener('click', () => applyExplorePreset('overheat'));
+      document.getElementById('explorePresetDisinflation').addEventListener('click', () => applyExplorePreset('disinflation'));
+      document.getElementById('exploreRandom').addEventListener('click', () => {
+        Object.assign(explore.state, {
+          populationGrowth: Number((0.4 + Math.random() * 1.7).toFixed(1)),
+          productivityGrowth: Number((0.2 + Math.random() * 1.6).toFixed(1)),
+          demandGrowth: Number((2.5 + Math.random() * 5.0).toFixed(1)),
+          targetMid: Number((2.1 + Math.random() * 0.8).toFixed(1)),
+          initialSupplyShock: Number((-0.4 + Math.random() * 3.0).toFixed(1)),
+          policyStance: Number((-0.8 + Math.random() * 2.1).toFixed(1)),
+          anchorStrength: Number((0.35 + Math.random() * 0.45).toFixed(2)),
+          year: Math.floor(Math.random() * (MODEL.periods + 1))
+        });
+        syncExploreControls();
+        renderExplore();
+      });
+      document.getElementById('exploreReset').addEventListener('click', () => {
+        if (explore.state.timer) clearInterval(explore.state.timer);
+        Object.assign(explore.state, {
+          ...defaultInputs,
+          year: 3,
+          showBenchmark: true,
+          showTargetBand: true,
+          showPrevious: true,
+          showPath: true
+        });
+        document.getElementById('toggleBenchmark').classList.add('active');
+        document.getElementById('toggleTargetBand').classList.add('active');
+        document.getElementById('togglePrevious').classList.add('active');
+        document.getElementById('togglePath').classList.add('active');
+        syncExploreControls();
+        renderExplore();
+      });
+      document.getElementById('explorePlay').addEventListener('click', () => {
+        if (explore.state.timer) clearInterval(explore.state.timer);
+        explore.state.year = 0;
+        explore.controls.year.value = '0';
+        renderExplore();
+        explore.state.timer = setInterval(() => {
+          explore.state.year += 1;
+          if (explore.state.year > MODEL.periods) {
+            clearInterval(explore.state.timer);
+            explore.state.timer = null;
+            explore.state.year = MODEL.periods;
+          }
+          explore.controls.year.value = String(explore.state.year);
+          renderExplore();
+        }, 1000);
+      });
+
+      const practiceScenarios = [
+        {
+          id: 'p1',
+          title: 'Balanced benchmark',
+          horizon: 4,
+          inputs: { populationGrowth: 1.4, productivityGrowth: 1.1, demandGrowth: 5.0, targetMid: 2.5, initialSupplyShock: 0.0, policyStance: 0.0, anchorStrength: 0.70 },
+          regime: 'balanced',
+          policy: 'hold'
+        },
+        {
+          id: 'p2',
+          title: 'Demand-led overheating',
+          horizon: 3,
+          inputs: { populationGrowth: 1.3, productivityGrowth: 1.0, demandGrowth: 7.2, targetMid: 2.5, initialSupplyShock: 0.6, policyStance: 0.0, anchorStrength: 0.60 },
+          regime: 'overheating',
+          policy: 'tighten'
+        },
+        {
+          id: 'p3',
+          title: 'Below-target disinflation',
+          horizon: 3,
+          inputs: { populationGrowth: 1.3, productivityGrowth: 1.0, demandGrowth: 4.3, targetMid: 2.5, initialSupplyShock: 0.2, policyStance: 0.7, anchorStrength: 0.70 },
+          regime: 'disinflation',
+          policy: 'ease'
+        },
+        {
+          id: 'p4',
+          title: 'Soft-landing disinflation',
+          horizon: 4,
+          inputs: { populationGrowth: 1.3, productivityGrowth: 1.0, demandGrowth: 4.9, targetMid: 2.5, initialSupplyShock: 2.8, policyStance: 0.3, anchorStrength: 0.70 },
+          regime: 'disinflation',
+          policy: 'hold'
+        },
+        {
+          id: 'p5',
+          title: 'Fast trend growth, still balanced',
+          horizon: 4,
+          inputs: { populationGrowth: 1.8, productivityGrowth: 1.4, demandGrowth: 5.7, targetMid: 2.5, initialSupplyShock: 0.0, policyStance: 0.0, anchorStrength: 0.75 },
+          regime: 'balanced',
+          policy: 'hold'
+        }
+      ];
+
+      const practice = {
+        canvas: document.getElementById('practiceCanvas'),
+        ctx: document.getElementById('practiceCanvas').getContext('2d'),
+        status: document.querySelector('#practiceStatus .status-copy'),
+        scenarioBank: document.getElementById('practiceScenarioBank'),
+        feedback: document.querySelector('#practiceFeedback .feedback-copy'),
+        feedbackCard: document.getElementById('practiceFeedback'),
+        tableBody: document.getElementById('practiceTableBody'),
+        tableNote: document.getElementById('practiceTableNote'),
+        answerRegime: document.getElementById('practiceAnswerRegime'),
+        answerInflation: document.getElementById('practiceAnswerInflation'),
+        answerOutput: document.getElementById('practiceAnswerOutput'),
+        answerPolicy: document.getElementById('practiceAnswerPolicy'),
+        state: {
+          scenarioIndex: 0,
+          guess: { y: 100, pi: 2.5 },
+          revealed: false,
+          dragging: false
+        }
+      };
+
+      function practiceScenario() {
+        return practiceScenarios[practice.state.scenarioIndex];
+      }
+
+      function practiceScenarioData() {
+        const scenario = practiceScenario();
+        const series = simulateDynamics(scenario.inputs);
+        const point = series[scenario.horizon];
+        const previousPoint = scenario.horizon > 0 ? series[scenario.horizon - 1] : null;
+        const bounds = targetBounds(scenario.inputs.targetMid);
+        return { scenario, series, point, previousPoint, bounds };
+      }
+
+      function resetPracticeGuess() {
+        const { point } = practiceScenarioData();
+        practice.state.guess = { y: point.yStar, pi: practiceScenario().inputs.targetMid };
+        practice.state.revealed = false;
+        practice.answerRegime.value = '';
+        practice.answerInflation.value = '';
+        practice.answerOutput.value = '';
+        practice.answerPolicy.value = '';
+        practice.feedbackCard.className = 'feedback-card neutral';
+        practice.feedback.textContent = 'Choose a scenario, move the purple point to your equilibrium guess, and then check your answers.';
+        practice.tableNote.textContent = 'After checking, the revealed point E* and the correct answers will appear here.';
+      }
+
+      function renderPracticeScenarioBank() {
+        practice.scenarioBank.innerHTML = '';
+        practiceScenarios.forEach((scenario, index) => {
+          const button = document.createElement('button');
+          button.className = `scenario-chip${index === practice.state.scenarioIndex ? ' active' : ''}`;
+          button.textContent = scenario.title;
+          button.addEventListener('click', () => {
+            practice.state.scenarioIndex = index;
+            resetPracticeGuess();
+            renderPracticeScenarioBank();
+            renderPractice();
+          });
+          practice.scenarioBank.appendChild(button);
+        });
+      }
+
+      function renderPractice() {
+        const { scenario, series, point, previousPoint, bounds } = practiceScenarioData();
+        const range = computeRange(series, scenario.inputs.targetMid, {
+          guessPoint: practice.state.guess,
+          revealPoint: practice.state.revealed ? { y: point.y, pi: point.inflation } : null
+        });
+
+        drawDynamicGraph(practice.ctx, {
+          range,
+          bounds,
+          targetMid: scenario.inputs.targetMid,
+          point,
+          previousPoint,
+          series,
+          showBenchmark: true,
+          showTargetBand: true,
+          showPrevious: true,
+          showGapBand: true,
+          showPath: true,
+          hideCurrentPoint: true,
+          guessPoint: practice.state.guess,
+          revealPoint: practice.state.revealed ? { y: point.y, pi: point.inflation } : null,
+          titleText: 'Place G at the horizon-year equilibrium, then classify the regime and the policy stance.',
+          footText: `Horizon year = Year ${scenario.horizon}.`
+        });
+
+        const balancedGrowth = balancedDemandGrowth(scenario.inputs);
+        practice.status.innerHTML = `
+          <p style="margin:0 0 8px 0;"><strong>${scenario.title}.</strong> Population growth is ${pct(scenario.inputs.populationGrowth, 1)}, productivity growth is ${pct(scenario.inputs.productivityGrowth, 1)}, and the target midpoint is ${pct(scenario.inputs.targetMid, 1)}.</p>
+          <p style="margin:0 0 8px 0;">Nominal demand growth is ${pct(scenario.inputs.demandGrowth, 1)} and policy restraint is ${signed(scenario.inputs.policyStance, 1)}. So the benchmark pace that keeps inflation near target is ${pct(balancedGrowth, 1)}.</p>
+          <p style="margin:0;">Focus on the horizon year only. Move G to the equilibrium and then answer the four concept questions.</p>
+        `;
+
+        const correctRegime = scenario.regime;
+        const correctInflation = inflationBandAnswer(point.inflation, bounds);
+        const correctOutput = outputPositionAnswer(point.outputGap);
+        const correctPolicy = scenario.policy;
+
+        const rows = [
+          { label: 'Regime at the horizon', user: practice.answerRegime.value, actual: correctRegime },
+          { label: 'Inflation relative to target', user: practice.answerInflation.value, actual: correctInflation },
+          { label: 'Output relative to potential', user: practice.answerOutput.value, actual: correctOutput },
+          { label: 'Best policy stance now', user: practice.answerPolicy.value, actual: correctPolicy }
+        ];
+        practice.tableNote.textContent = practice.state.revealed
+          ? practice.tableNote.textContent
+          : 'After checking, the revealed point E* and the correct answers will appear here.';
+        practice.tableBody.innerHTML = rows.map((row) => `
+          <tr>
+            <td>${row.label}</td>
+            <td class="${!practice.state.revealed ? 'result-neutral' : (row.user === row.actual ? 'result-correct' : 'result-incorrect')}">${row.user ? row.user[0].toUpperCase() + row.user.slice(1) : '—'}</td>
+            <td class="${practice.state.revealed ? 'result-correct' : 'result-neutral'}">${practice.state.revealed ? row.actual[0].toUpperCase() + row.actual.slice(1) : 'Check answer'}</td>
+          </tr>
+        `).join('');
+      }
+
+      document.getElementById('practiceRandom').addEventListener('click', () => {
+        practice.state.scenarioIndex = Math.floor(Math.random() * practiceScenarios.length);
+        resetPracticeGuess();
+        renderPracticeScenarioBank();
+        renderPractice();
+      });
+      document.getElementById('practiceResetGuess').addEventListener('click', () => {
+        resetPracticeGuess();
+        renderPractice();
+        practice.feedbackCard.className = 'feedback-card neutral';
+        practice.feedback.textContent = 'Guess reset. Move the purple point again and then check your answers.';
+      });
+      document.getElementById('practiceCheck').addEventListener('click', () => {
+        const { scenario, point, previousPoint, bounds } = practiceScenarioData();
+        const guessDistance = Math.hypot(practice.state.guess.y - point.y, practice.state.guess.pi - point.inflation);
+        const correctRegime = scenario.regime;
+        const correctInflation = inflationBandAnswer(point.inflation, bounds);
+        const correctOutput = outputPositionAnswer(point.outputGap);
+        const correctPolicy = scenario.policy;
+
+        const regimeCorrect = practice.answerRegime.value === correctRegime;
+        const inflationCorrect = practice.answerInflation.value === correctInflation;
+        const outputCorrect = practice.answerOutput.value === correctOutput;
+        const policyCorrect = practice.answerPolicy.value === correctPolicy;
+        const pointCorrect = guessDistance < 1.5;
+
+        practice.state.revealed = true;
+        renderPractice();
+
+        const problems = [];
+        if (!pointCorrect) problems.push(`your equilibrium guess is ${fmt(guessDistance, 2)} graph-units from E*`);
+        if (!regimeCorrect) problems.push('the regime classification is not correct');
+        if (!inflationCorrect) problems.push('the inflation-band answer is not correct');
+        if (!outputCorrect) problems.push('the output-gap answer is not correct');
+        if (!policyCorrect) problems.push('the policy answer is not correct');
+
+        practice.tableNote.textContent = `Your point G is ${fmt(guessDistance, 2)} graph-units from the revealed equilibrium E*.`;
+
+        if (problems.length === 0) {
+          practice.feedbackCard.className = 'feedback-card success';
+          practice.feedback.textContent = 'Correct. In the dynamic AD–AS model, the regime is pinned down jointly by inflation relative to target and output relative to potential, not by inflation alone.';
+        } else {
+          practice.feedbackCard.className = 'feedback-card warning';
+          const regimeText = regimeForPoint(point, previousPoint, bounds);
+          practice.feedback.textContent = `Not quite. Review ${problems.join('; ')}. The revealed equilibrium is a ${regimeText.toLowerCase()} outcome.`;
+        }
+      });
+
+      practice.canvas.addEventListener('mousedown', (event) => {
+        const { scenario, series } = practiceScenarioData();
+        const range = computeRange(series, scenario.inputs.targetMid, { guessPoint: practice.state.guess });
+        const mouse = getCanvasMouse(event, practice.canvas);
+        const guessCanvas = pointToCanvas(practice.state.guess, range);
+        if (distanceCanvas(mouse, guessCanvas) < 13) practice.state.dragging = true;
+      });
+      window.addEventListener('mouseup', () => { practice.state.dragging = false; });
+      practice.canvas.addEventListener('mousemove', (event) => {
+        if (!practice.state.dragging || practice.state.revealed) return;
+        const { scenario, series } = practiceScenarioData();
+        const range = computeRange(series, scenario.inputs.targetMid, { guessPoint: practice.state.guess });
+        const mouse = getCanvasMouse(event, practice.canvas);
+        practice.state.guess = canvasToPoint(mouse, range);
+        renderPractice();
+      });
+
+      const caseSteps = [
+        {
+          title: 'Step 1 — Late 2019: modest growth, low inflation',
+          year: '2019',
+          targetMid: 2.5,
+          yStar: 100.0,
+          y: 100.0,
+          inflation: 1.8,
+          copy: 'Australia entered 2020 with inflation below the target midpoint and with the cash rate already low. In the dynamic AD–AS diagram, that looks like an economy near potential but with inflation still below the target band midpoint.',
+          observed: 'CPI 1.8%; GDP +2.2% y/y; unemployment 5.1%; cash rate 0.75%'
+        },
+        {
+          title: 'Step 2 — End 2021: reopening rebound',
+          year: '2021',
+          targetMid: 2.5,
+          yStar: 102.4,
+          y: 103.4,
+          inflation: 3.5,
+          copy: 'By the end of 2021, output had moved above its pre-pandemic level and inflation was back above 3 per cent. The case maps this into a right-shifted DAD curve and a DSRAS curve that had not fully settled back after the disruption phase.',
+          observed: 'GDP 3.4% above Dec 2019; CPI 3.5%; unemployment 4.2%; cash rate 0.10%'
+        },
+        {
+          title: 'Step 3 — End 2022: overheating and peak inflation',
+          year: '2022',
+          targetMid: 2.5,
+          yStar: 104.8,
+          y: 106.2,
+          inflation: 7.8,
+          copy: 'In late 2022 inflation peaked at 7.8 per cent while unemployment was only 3.5 per cent. The dynamic AD–AS translation is a hot economy with inflation well above target and output around or above potential.',
+          observed: 'GDP +2.7% y/y; CPI 7.8%; unemployment 3.5%; cash rate 3.10%'
+        },
+        {
+          title: 'Step 4 — End 2023: disinflation starts',
+          year: '2023',
+          targetMid: 2.5,
+          yStar: 107.2,
+          y: 107.8,
+          inflation: 4.1,
+          copy: 'By the end of 2023 the cash rate had reached 4.35 per cent and inflation had fallen to 4.1 per cent. The gap between demand and supply was narrowing, but inflation was still above target.',
+          observed: 'GDP +1.5% y/y; CPI 4.1%; cash rate 4.35%'
+        },
+        {
+          title: 'Step 5 — End 2024: inflation back inside target',
+          year: '2024',
+          targetMid: 2.5,
+          yStar: 109.5,
+          y: 109.2,
+          inflation: 2.4,
+          copy: 'By the end of 2024 annual CPI inflation had returned to 2.4 per cent while output growth had slowed sharply and unemployment was 4.0 per cent. The stylized graph places the equilibrium just inside target, with output slightly below potential.',
+          observed: 'GDP +1.3% y/y; CPI 2.4%; unemployment 4.0%; cash rate 4.35%'
+        }
+      ].map((step, index, arr) => {
+        const adShift = step.inflation - step.targetMid + MODEL.adSlope * (step.y - step.yStar);
+        const srasAnchor = step.inflation - MODEL.srasSlope * (step.y - step.yStar);
+        return { ...step, t: index, adShift, srasAnchor };
+      });
+
+      const caseSeries = caseSteps.map((step) => ({
+        t: step.t,
+        yearLabel: step.year,
+        yStar: step.yStar,
+        y: step.y,
+        inflation: step.inflation,
+        expectedInflation: step.targetMid,
+        outputGap: step.y - step.yStar,
+        adShift: step.adShift,
+        srasAnchor: step.srasAnchor
+      }));
+
+      const caseModule = {
+        canvas: document.getElementById('caseCanvas'),
+        ctx: document.getElementById('caseCanvas').getContext('2d'),
+        stepRow: document.getElementById('caseStepRow'),
+        status: document.querySelector('#caseStatus .status-copy'),
+        metricInflation: document.getElementById('caseMetricInflation'),
+        metricOutput: document.getElementById('caseMetricOutput'),
+        metricPotential: document.getElementById('caseMetricPotential'),
+        metricGap: document.getElementById('caseMetricGap'),
+        metricNote: document.getElementById('caseMetricNote'),
+        gdpCanvas: document.getElementById('caseGdpCanvas'),
+        inflationCanvas: document.getElementById('caseInflationCanvas'),
+        state: {
+          stepIndex: 0,
+          timer: null
+        }
+      };
+
+      function renderCaseStepButtons() {
+        caseModule.stepRow.innerHTML = '';
+        caseSteps.forEach((step, index) => {
+          const btn = document.createElement('button');
+          btn.className = `case-step-btn${index === caseModule.state.stepIndex ? ' active' : ''}`;
+          btn.textContent = `Step ${index + 1}`;
+          btn.addEventListener('click', () => {
+            if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+            caseModule.state.timer = null;
+            caseModule.state.stepIndex = index;
+            renderCaseStepButtons();
+            renderCase();
+          });
+          caseModule.stepRow.appendChild(btn);
+        });
+      }
+
+      function renderCaseCharts() {
+        drawMiniLineChart(caseModule.gdpCanvas, {
+          groups: ['2019', '2021', '2022', '2023', '2024'],
+          minY: 98,
+          maxY: 111,
+          highlightIndex: caseModule.state.stepIndex,
+          tickFormat: (v) => fmt(v, 0),
+          series: [
+            {
+              label: 'GDP index',
+              color: palette.dad,
+              values: [100.0, 103.4, 106.2, 107.8, 109.2],
+              valueFormat: (v) => fmt(v, 1)
+            }
+          ]
+        });
+
+        drawMiniLineChart(caseModule.inflationCanvas, {
+          groups: ['2019', '2021', '2022', '2023', '2024'],
+          minY: 0,
+          maxY: 8.5,
+          band: { lower: 2.0, upper: 3.0 },
+          highlightIndex: caseModule.state.stepIndex,
+          tickFormat: (v) => pct(v, 0),
+          series: [
+            {
+              label: 'CPI inflation',
+              color: palette.sras,
+              values: [1.8, 3.5, 7.8, 4.1, 2.4],
+              valueFormat: (v) => pct(v, 1)
+            },
+            {
+              label: 'Cash rate',
+              color: palette.policy,
+              values: [0.75, 0.10, 3.10, 4.35, 4.35],
+              valueFormat: (v) => pct(v, 2)
+            }
+          ]
+        });
+      }
+
+      function renderCase() {
+        const step = caseSteps[caseModule.state.stepIndex];
+        const point = caseSeries[caseModule.state.stepIndex];
+        const previousPoint = caseModule.state.stepIndex > 0 ? caseSeries[caseModule.state.stepIndex - 1] : null;
+        const bounds = { lower: 2.0, upper: 3.0 };
+        const range = computeRange(caseSeries, step.targetMid);
+
+        drawDynamicGraph(caseModule.ctx, {
+          range,
+          bounds,
+          targetMid: step.targetMid,
+          point,
+          previousPoint,
+          series: caseSeries,
+          showBenchmark: true,
+          showTargetBand: true,
+          showPrevious: false,
+          showGapBand: true,
+          showPath: true,
+          currentLabel: `E${caseModule.state.stepIndex + 1}`,
+          titleText: 'Australia’s 2019–2024 inflation cycle translated into a dynamic AD–AS sequence.',
+          footText: step.observed
+        });
+
+        caseModule.status.innerHTML = `
+          <p style="margin:0 0 8px 0;"><strong>${step.title}</strong></p>
+          <p style="margin:0 0 8px 0;">${step.copy}</p>
+          <p style="margin:0; color: var(--color-muted);"><strong>Observed anchor:</strong> ${step.observed}</p>
+        `;
+
+        caseModule.metricInflation.textContent = pct(step.inflation, 1);
+        caseModule.metricOutput.textContent = fmt(step.y, 1);
+        caseModule.metricPotential.textContent = fmt(step.yStar, 1);
+        caseModule.metricGap.textContent = signed(step.y - step.yStar, 1);
+        if (step.inflation > 3.0 && step.y >= step.yStar) {
+          caseModule.metricNote.textContent = 'This step is the overheating phase: inflation is above target and output is at or above potential.';
+        } else if (caseModule.state.stepIndex === caseSteps.length - 1) {
+          caseModule.metricNote.textContent = 'This step shows the return to target range: inflation is back inside the 2–3 per cent band and output growth is much slower.';
+        } else if (step.inflation < 2.0) {
+          caseModule.metricNote.textContent = 'Inflation is below the target band, so the benchmark path sits above the observed equilibrium.';
+        } else {
+          caseModule.metricNote.textContent = 'This is a transition step: inflation is coming down, but the economy has not yet fully settled into the balanced-growth benchmark.';
+        }
+
+        renderCaseCharts();
+      }
+
+      document.getElementById('casePlay').addEventListener('click', () => {
+        if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+        caseModule.state.stepIndex = 0;
+        renderCaseStepButtons();
+        renderCase();
+        caseModule.state.timer = setInterval(() => {
+          caseModule.state.stepIndex += 1;
+          if (caseModule.state.stepIndex >= caseSteps.length) {
+            clearInterval(caseModule.state.timer);
+            caseModule.state.timer = null;
+            caseModule.state.stepIndex = caseSteps.length - 1;
+          }
+          renderCaseStepButtons();
+          renderCase();
+        }, 1700);
+      });
+      document.getElementById('caseReset').addEventListener('click', () => {
+        if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+        caseModule.state.timer = null;
+        caseModule.state.stepIndex = 0;
+        renderCaseStepButtons();
+        renderCase();
+      });
+
+      const moduleTabs = Array.from(document.querySelectorAll('.module-tab'));
+      const moduleSections = Array.from(document.querySelectorAll('.module-section'));
+      moduleTabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          moduleTabs.forEach((item) => item.classList.toggle('active', item === tab));
+          moduleSections.forEach((section) => section.classList.toggle('active', section.id === tab.dataset.target));
+          if (tab.dataset.target === 'exploreSection') renderExplore();
+          if (tab.dataset.target === 'practiceSection') renderPractice();
+          if (tab.dataset.target === 'caseSection') renderCase();
+        });
+      });
+
+      syncExploreControls();
+      renderExplore();
+      renderPracticeScenarioBank();
+      resetPracticeGuess();
+      renderPractice();
+      renderCaseStepButtons();
+      renderCase();
+    })();
+  </script>
+</body>
+</html>

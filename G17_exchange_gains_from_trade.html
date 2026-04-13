@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G17_exchange_gains_from_trade</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs,
+    .summary-strip,
+    .legend-row,
+    .button-row,
+    .scenario-bank,
+    .case-step-row,
+    .chart-grid,
+    .mini-list,
+    .metric-grid,
+    .note-list,
+    .toggle-row,
+    .data-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .module-tabs,
+    .summary-strip,
+    .case-step-row,
+    .scenario-bank,
+    .chart-grid,
+    .toggle-row,
+    .data-pills {
+      margin-bottom: 16px;
+    }
+    .module-tab,
+    .case-step-btn,
+    .scenario-chip,
+    .toggle-chip,
+    .sequence-btn,
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+      text-align: center;
+      line-height: 1.25;
+    }
+    .module-tab:hover,
+    .case-step-btn:hover,
+    .scenario-chip:hover,
+    .toggle-chip:hover,
+    .sequence-btn:hover,
+    .ghost-btn:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active,
+    .case-step-btn.active,
+    .scenario-chip.active,
+    .toggle-chip.active,
+    .sequence-btn.active,
+    .ghost-btn.active {
+      background: #eef5ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+    .module-section {
+      display: none;
+    }
+    .module-section.active {
+      display: block;
+    }
+
+    .summary-chip,
+    .mini-badge,
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 16px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 160px;
+    }
+    .control-inline.wide {
+      min-width: 240px;
+    }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    input[type="range"] {
+      width: 210px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.52fr) minmax(320px, 0.98fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .graph-card,
+    .panel-card,
+    .status-card,
+    .metric-card,
+    .data-card,
+    .table-card,
+    .feedback-card,
+    .source-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .panel-stack,
+    .metric-stack {
+      display: grid;
+      gap: 16px;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .metric-item {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .metric-label,
+    .table-wrap th,
+    .answer-grid label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .metric-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.3;
+    }
+
+    .card-title,
+    .status-title,
+    .data-title,
+    .chart-title,
+    .table-title,
+    .feedback-title,
+    .answer-title,
+    .legend-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+    .small-muted,
+    .graph-note,
+    .status-copy,
+    .case-copy,
+    .source-copy,
+    .feedback-copy,
+    .table-note,
+    .answer-copy,
+    .metric-note,
+    .note-list li {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .small-muted strong,
+    .graph-note strong,
+    .status-copy strong,
+    .case-copy strong,
+    .source-copy strong,
+    .feedback-copy strong,
+    .answer-copy strong,
+    .metric-note strong {
+      color: var(--color-text);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.agent-a { border-color: var(--color-demand); }
+    .legend-line.agent-b { border-color: var(--color-supply); }
+    .legend-line.contract { border-color: var(--color-government); }
+    .legend-line.price { border-color: var(--color-long-run); border-top-style: dashed; }
+    .legend-line.guess { border-color: var(--color-guess); border-top-style: dashed; }
+    .legend-line.indiff-a { border-color: var(--color-demand); border-top-style: dashed; }
+    .legend-line.indiff-b { border-color: var(--color-supply); border-top-style: dashed; }
+    .legend-dot,
+    .legend-square {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 2px solid var(--color-text);
+      background: white;
+      flex: 0 0 auto;
+    }
+    .legend-dot.endowment { border-color: var(--color-baseline); background: white; }
+    .legend-dot.current { border-color: #111827; background: #111827; }
+    .legend-dot.ce { border-color: var(--color-government); background: white; }
+    .legend-dot.guess { border-color: var(--color-guess); background: white; }
+    .legend-square.gains { border-radius: 4px; border-color: var(--color-government); background: rgba(46,139,87,0.16); }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      padding: 8px 8px;
+      border-bottom: 1px solid #e6eaf0;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--color-muted);
+      font-weight: 700;
+      background: rgba(249, 251, 255, 0.85);
+    }
+    td strong {
+      color: var(--color-text);
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .answer-grid select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+    }
+    .feedback-card.success {
+      border-left: 4px solid var(--color-government);
+    }
+    .feedback-card.warning {
+      border-left: 4px solid var(--color-inflation);
+    }
+    .feedback-card.neutral {
+      border-left: 4px solid var(--color-baseline);
+    }
+    .result-correct { color: var(--color-government); font-weight: 700; }
+    .result-incorrect { color: var(--color-supply); font-weight: 700; }
+    .result-neutral { color: var(--color-muted); font-weight: 700; }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .chart-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .chart-card canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .note-list {
+      padding-left: 18px;
+      margin: 8px 0 0 0;
+    }
+    .note-list li + li {
+      margin-top: 6px;
+    }
+
+    @media (max-width: 1080px) {
+      .workspace,
+      .chart-grid,
+      .answer-grid {
+        grid-template-columns: 1fr;
+      }
+      .metric-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 760px) {
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Exchange, gains from trade, Pareto efficiency, and competitive equilibrium</h1>
+        <p class="diagram-subtitle">
+          Use an Edgeworth box to explore mutually beneficial trade, the contract curve, competitive equilibrium, and the welfare theorems. The Austrian case study translates Austria’s deeper EU trade integration into a stylized exchange path inside the box.
+        </p>
+      </div>
+
+      <div class="summary-strip">
+        <span class="summary-chip">Edgeworth box with contract curve</span>
+        <span class="summary-chip">Draggable allocation point</span>
+        <span class="summary-chip">Competitive equilibrium and price line</span>
+        <span class="summary-chip">Pareto-improvement and efficiency checks</span>
+        <span class="summary-chip">Practice and check-answer mode</span>
+        <span class="summary-chip">Austria + EU integration case study</span>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Austrian case study</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="exploreAlphaA">Agent A taste for good X <span id="exploreAlphaALabel" class="inline-value"></span></label>
+            <input id="exploreAlphaA" type="range" min="0.15" max="0.85" step="0.05" value="0.35" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreAlphaB">Agent B taste for good X <span id="exploreAlphaBLabel" class="inline-value"></span></label>
+            <input id="exploreAlphaB" type="range" min="0.15" max="0.85" step="0.05" value="0.65" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreEndowX">Agent A endowment of good X <span id="exploreEndowXLabel" class="inline-value"></span></label>
+            <input id="exploreEndowX" type="range" min="15" max="85" step="1" value="78" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreEndowY">Agent A endowment of good Y <span id="exploreEndowYLabel" class="inline-value"></span></label>
+            <input id="exploreEndowY" type="range" min="15" max="85" step="1" value="22" />
+          </div>
+          <div class="control-inline">
+            <label for="explorePriceRatio">Selected price ratio p<sub>X</sub>/p<sub>Y</sub> <span id="explorePriceRatioLabel" class="inline-value"></span></label>
+            <input id="explorePriceRatio" type="range" min="0.50" max="1.50" step="0.05" value="1.00" />
+          </div>
+          <div class="control-inline wide">
+            <label>View options</label>
+            <div class="toggle-row">
+              <button id="toggleContract" class="toggle-chip active">Contract curve</button>
+              <button id="togglePrice" class="toggle-chip active">Price line</button>
+              <button id="toggleIndifference" class="toggle-chip active">Indifference curves</button>
+            </div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="exploreToEndowment">Move to endowment</button>
+              <button class="btn-primary" id="exploreSolveCE">Solve competitive equilibrium</button>
+              <button class="btn-secondary" id="exploreRandom">Random scenario</button>
+              <button class="btn-secondary" id="exploreReset">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line indiff-a"></span>Agent A indifference curve</span>
+              <span class="legend-item"><span class="legend-line indiff-b"></span>Agent B indifference curve</span>
+              <span class="legend-item"><span class="legend-line contract"></span>Contract curve</span>
+              <span class="legend-item"><span class="legend-line price"></span>Selected price line</span>
+              <span class="legend-item"><span class="legend-dot endowment"></span>Initial endowment</span>
+              <span class="legend-item"><span class="legend-dot current"></span>Current allocation</span>
+              <span class="legend-item"><span class="legend-dot ce"></span>Competitive equilibrium</span>
+            </div>
+            <div class="graph-note">
+              <strong>How to use the graph:</strong> drag the current allocation point inside the box. The bottom-left origin belongs to Agent A and the top-right origin belongs to Agent B. If the current point lies above both traders’ endowment-indifference thresholds, trade creates gains for both sides. If it also lies on the contract curve, the allocation is Pareto efficient.
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="metric-card">
+              <div class="card-title">Live metrics</div>
+              <div class="metric-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Agent A utility index</div>
+                  <div id="exploreMetricUA" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Agent B utility index</div>
+                  <div id="exploreMetricUB" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Both gain from trade?</div>
+                  <div id="exploreMetricGain" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Pareto efficient?</div>
+                  <div id="exploreMetricEff" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Competitive equilibrium price ratio</div>
+                  <div id="exploreMetricCEPrice" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Excess demand for X at selected price</div>
+                  <div id="exploreMetricExcess" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="exploreMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+            <div id="exploreStatus" class="status-card">
+              <div class="status-title">Economic reading</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="data-card">
+              <div class="data-title">What the welfare theorems mean here</div>
+              <ul class="note-list">
+                <li><strong>Gains from trade:</strong> if both utility indices are above 100, the current allocation makes both traders better off than the initial endowment.</li>
+                <li><strong>Contract curve:</strong> points on the green curve satisfy equal marginal rates of substitution, so there is no further mutually beneficial trade left.</li>
+                <li><strong>First welfare theorem:</strong> in this competitive-exchange setup, the market-clearing allocation implied by the equilibrium price ratio lies on the contract curve.</li>
+                <li><strong>Second welfare theorem:</strong> changing the initial endowment changes the competitive equilibrium point, showing how redistribution can alter which efficient allocation the market supports.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Scenario bank</label>
+            <div id="practiceScenarioBank" class="scenario-bank"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="practiceRandom">Random scenario</button>
+              <button class="btn-secondary" id="practiceResetGuess">Reset guess</button>
+              <button class="btn-primary" id="practiceCheck">Check answer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line.price"></span>Given equilibrium price line</span>
+              <span class="legend-item"><span class="legend-dot endowment"></span>Initial endowment</span>
+              <span class="legend-item"><span class="legend-dot guess"></span>Your competitive-equilibrium guess</span>
+              <span class="legend-item"><span class="legend-dot ce"></span>Correct competitive equilibrium</span>
+              <span class="legend-item"><span class="legend-line.contract"></span>Contract curve (revealed after checking)</span>
+            </div>
+            <div class="graph-note">
+              <strong>Student task:</strong> drag the purple guess point to where you think the competitive equilibrium lies for the displayed endowment and price line. Then answer the conceptual questions before checking.
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div id="practiceStatus" class="status-card">
+              <div class="status-title">Practice prompt</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="panel-card">
+              <div class="answer-title">Your answers</div>
+              <div class="answer-copy" style="margin-bottom: 10px;">Answer the concept questions for the current scenario.</div>
+              <div class="answer-grid">
+                <div>
+                  <label for="practiceAnswerEndowment">Does the initial endowment lie on the contract curve?</label>
+                  <select id="practiceAnswerEndowment">
+                    <option value="">Choose</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerGain">Do both traders gain at the competitive equilibrium?</label>
+                  <select id="practiceAnswerGain">
+                    <option value="">Choose</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerCE">Is the competitive equilibrium Pareto efficient?</label>
+                  <select id="practiceAnswerCE">
+                    <option value="">Choose</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="practiceFeedback" class="feedback-card neutral">
+              <div class="feedback-title">Feedback</div>
+              <div class="feedback-copy">Select a scenario, make a guess, and then check your answer.</div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Answer check</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Your answer</th>
+                      <th>Correct answer</th>
+                    </tr>
+                  </thead>
+                  <tbody id="practiceTableBody"></tbody>
+                </table>
+              </div>
+              <div id="practiceTableNote" class="table-note" style="margin-top: 10px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Case-study sequence</label>
+            <div id="caseStepRow" class="case-step-row"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="casePlay">Play sequence</button>
+              <button class="btn-secondary" id="caseReset">Reset to step 1</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line.contract"></span>Contract curve</span>
+              <span class="legend-item"><span class="legend-line.price"></span>Integration price line</span>
+              <span class="legend-item"><span class="legend-dot endowment"></span>Stylized starting endowment</span>
+              <span class="legend-item"><span class="legend-dot current"></span>Case-study allocation</span>
+              <span class="legend-item"><span class="legend-dot ce"></span>Integrated competitive benchmark</span>
+            </div>
+            <div class="graph-note">
+              <strong>Case-study mapping:</strong> the box uses two composite goods — an Austria-origin bundle and an EU-partner-origin bundle. It is a stylized translation of deeper exchange possibilities after Austria’s EU accession and the 2004 eastern enlargement, not a literal estimate of Austrian utility functions.
+            </div>
+
+            <div class="chart-grid">
+              <div class="chart-card">
+                <div class="chart-title">Austria’s trade openness: 1995 vs 2024</div>
+                <canvas id="caseOpenCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">Export and import ratios from Statistics Austria key facts.</div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">Trade with the 2004 enlargement countries</div>
+                <canvas id="caseEastCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">May 2004 vs May 2024 shares and trade-value index.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div id="caseStatus" class="status-card">
+              <div class="status-title">Current step</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="card-title">Case-study metrics</div>
+              <div class="metric-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Austria utility index</div>
+                  <div id="caseMetricUA" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Partner utility index</div>
+                  <div id="caseMetricUB" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Both gain?</div>
+                  <div id="caseMetricGain" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Distance from contract curve</div>
+                  <div id="caseMetricEff" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="caseMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Observed Austrian data used in the case</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Observed series</th>
+                      <th>Data point</th>
+                      <th>How the graph uses it</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Export ratio</strong></td>
+                      <td>33.7% in 1995 → 59.5% in 2024</td>
+                      <td>Used as the long-run indicator that Austria became much more deeply integrated in exchange after joining the EU single market.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Import ratio</strong></td>
+                      <td>34.9% in 1995 → 53.6% in 2024</td>
+                      <td>Supports the same move toward a richer two-way exchange allocation.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Trade with the 2004 enlargement countries</strong></td>
+                      <td>Imports +185.1%; exports +168.4% from May 2004 to May 2024</td>
+                      <td>Motivates the step from partial integration toward a larger gains-from-trade allocation.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Trade shares with the 2004 enlargement countries</strong></td>
+                      <td>Imports 10.5% → 13.4%; exports 12.5% → 15.6%</td>
+                      <td>Shows that the eastern-enlargement bloc became more important inside Austria’s trade mix.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>EU share in 2024</strong></td>
+                      <td>67.0% of exports and 66.4% of imports</td>
+                      <td>Anchors the final “deep integration” step near the competitive benchmark.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="source-card">
+              <div class="card-title">Interpretation note</div>
+              <div class="source-copy">
+                This case is best read as a <strong>stylized exchange-theory translation</strong>. The Austrian data tell us that trade integration deepened substantially after EU accession and eastern enlargement. The Edgeworth box then turns that evidence into a clean teaching sequence about endowments, gains from trade, competitive equilibrium, and Pareto efficiency.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    (() => {
+      const theme = window.ECON_THEME;
+      const X_TOTAL = 100;
+      const Y_TOTAL = 100;
+      const BOX = { left: 150, top: 90, width: 560, height: 380 };
+      const DRAG_RADIUS = 11;
+      const EFF_TOLERANCE = 1.8;
+      const GUESS_TOLERANCE = 3.0;
+
+      const palette = {
+        a: theme.color.demand,
+        b: theme.color.supply,
+        contract: theme.color.government,
+        price: theme.color.longRun,
+        guess: theme.color.guess,
+        endowment: theme.color.baseline,
+        point: '#111827',
+        grid: theme.color.grid,
+        text: theme.color.text,
+        muted: theme.color.muted,
+        frame: theme.color.frame,
+        gainFill: 'rgba(46,139,87,0.14)'
+      };
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function fmt(value, digits = 2) {
+        return Number(value).toFixed(digits).replace(/\.00$/, '');
+      }
+
+      function yesNo(value) {
+        return value ? 'Yes' : 'No';
+      }
+
+      function utilityA(x, y, alpha) {
+        x = clamp(x, 0.001, X_TOTAL);
+        y = clamp(y, 0.001, Y_TOTAL);
+        return Math.pow(x, alpha) * Math.pow(y, 1 - alpha);
+      }
+
+      function utilityB(xA, yA, beta) {
+        const xB = clamp(X_TOTAL - xA, 0.001, X_TOTAL);
+        const yB = clamp(Y_TOTAL - yA, 0.001, Y_TOTAL);
+        return Math.pow(xB, beta) * Math.pow(yB, 1 - beta);
+      }
+
+      function contractY(x, alphaA, alphaB) {
+        const A = alphaA / (1 - alphaA);
+        const B = alphaB / (1 - alphaB);
+        const denom = A * X_TOTAL + x * (B - A);
+        if (Math.abs(denom) < 1e-9) return null;
+        const y = (B * x * Y_TOTAL) / denom;
+        if (!Number.isFinite(y)) return null;
+        return y;
+      }
+
+      function contractCurvePoints(alphaA, alphaB) {
+        const pts = [];
+        for (let x = 1; x <= X_TOTAL - 1; x += 0.5) {
+          const y = contractY(x, alphaA, alphaB);
+          if (y !== null && y > 0 && y < Y_TOTAL) {
+            pts.push({ x, y });
+          }
+        }
+        return pts;
+      }
+
+      function competitivePriceRatio(model) {
+        const { alphaA, alphaB, endowment } = model;
+        const wx = endowment.x;
+        const wy = endowment.y;
+        const numerator = alphaA * wy + alphaB * (Y_TOTAL - wy);
+        const denominator = X_TOTAL - alphaA * wx - alphaB * (X_TOTAL - wx);
+        if (Math.abs(denominator) < 1e-9) return 1;
+        return clamp(numerator / denominator, 0.25, 4);
+      }
+
+      function demandsAtPrice(model, priceRatio) {
+        const { alphaA, alphaB, endowment } = model;
+        const wx = endowment.x;
+        const wy = endowment.y;
+        const r = clamp(priceRatio, 0.25, 4);
+        const incomeA = r * wx + wy;
+        const incomeB = r * (X_TOTAL - wx) + (Y_TOTAL - wy);
+        const xA = alphaA * incomeA / r;
+        const yA = (1 - alphaA) * incomeA;
+        const xB = alphaB * incomeB / r;
+        const yB = (1 - alphaB) * incomeB;
+        return {
+          xA,
+          yA,
+          xB,
+          yB,
+          excessX: xA + xB - X_TOTAL,
+          excessY: yA + yB - Y_TOTAL
+        };
+      }
+
+      function competitiveAllocation(model) {
+        const r = competitivePriceRatio(model);
+        const demand = demandsAtPrice(model, r);
+        return {
+          x: clamp(demand.xA, 0.5, X_TOTAL - 0.5),
+          y: clamp(demand.yA, 0.5, Y_TOTAL - 0.5),
+          priceRatio: r
+        };
+      }
+
+      function pointToCanvas(x, y) {
+        return {
+          x: BOX.left + (x / X_TOTAL) * BOX.width,
+          y: BOX.top + BOX.height - (y / Y_TOTAL) * BOX.height
+        };
+      }
+
+      function canvasToPoint(px, py) {
+        return {
+          x: clamp(((px - BOX.left) / BOX.width) * X_TOTAL, 0.5, X_TOTAL - 0.5),
+          y: clamp(((BOX.top + BOX.height - py) / BOX.height) * Y_TOTAL, 0.5, Y_TOTAL - 0.5)
+        };
+      }
+
+      function distance(a, b) {
+        return Math.hypot(a.x - b.x, a.y - b.y);
+      }
+
+      function utilityIndices(model, allocation) {
+        const baseUA = utilityA(model.endowment.x, model.endowment.y, model.alphaA);
+        const baseUB = utilityB(model.endowment.x, model.endowment.y, model.alphaB);
+        const currentUA = utilityA(allocation.x, allocation.y, model.alphaA);
+        const currentUB = utilityB(allocation.x, allocation.y, model.alphaB);
+        return {
+          uaIndex: 100 * currentUA / baseUA,
+          ubIndex: 100 * currentUB / baseUB,
+          baseUA,
+          baseUB,
+          currentUA,
+          currentUB
+        };
+      }
+
+      function allocationStatus(model, allocation, selectedPrice) {
+        const ce = competitiveAllocation(model);
+        const utils = utilityIndices(model, allocation);
+        const yCC = contractY(allocation.x, model.alphaA, model.alphaB);
+        const efficientDistance = yCC === null ? null : Math.abs(allocation.y - yCC);
+        const paretoEfficient = efficientDistance !== null && efficientDistance < EFF_TOLERANCE;
+        const bothGain = utils.uaIndex > 100.2 && utils.ubIndex > 100.2;
+        const selected = demandsAtPrice(model, selectedPrice);
+        const endowmentOnCC = Math.abs(model.endowment.y - contractY(model.endowment.x, model.alphaA, model.alphaB)) < EFF_TOLERANCE;
+        const onCE = Math.hypot(allocation.x - ce.x, allocation.y - ce.y) < GUESS_TOLERANCE;
+        return {
+          ce,
+          utils,
+          paretoEfficient,
+          bothGain,
+          endowmentOnCC,
+          onCE,
+          efficientDistance,
+          excessX: selected.excessX,
+          excessY: selected.excessY
+        };
+      }
+
+      function indifferencePointsA(allocation, alphaA) {
+        const U = utilityA(allocation.x, allocation.y, alphaA);
+        const pts = [];
+        for (let x = 1; x <= X_TOTAL - 1; x += 0.5) {
+          const y = Math.pow(U / Math.pow(x, alphaA), 1 / (1 - alphaA));
+          if (Number.isFinite(y) && y > 0.5 && y < Y_TOTAL - 0.5) {
+            pts.push({ x, y });
+          }
+        }
+        return pts;
+      }
+
+      function indifferencePointsB(allocation, alphaB) {
+        const U = utilityB(allocation.x, allocation.y, alphaB);
+        const pts = [];
+        for (let xA = 1; xA <= X_TOTAL - 1; xA += 0.5) {
+          const xB = X_TOTAL - xA;
+          const yB = Math.pow(U / Math.pow(xB, alphaB), 1 / (1 - alphaB));
+          const yA = Y_TOTAL - yB;
+          if (Number.isFinite(yA) && yA > 0.5 && yA < Y_TOTAL - 0.5) {
+            pts.push({ x: xA, y: yA });
+          }
+        }
+        return pts;
+      }
+
+      function clippedBudgetLine(endowment, priceRatio) {
+        const wx = endowment.x;
+        const wy = endowment.y;
+        const r = clamp(priceRatio, 0.25, 4);
+        const pts = [];
+        function add(x, y) {
+          if (Number.isFinite(x) && Number.isFinite(y) && x >= -1e-6 && x <= X_TOTAL + 1e-6 && y >= -1e-6 && y <= Y_TOTAL + 1e-6) {
+            pts.push({ x: clamp(x, 0, X_TOTAL), y: clamp(y, 0, Y_TOTAL) });
+          }
+        }
+        add(0, wy + r * wx);
+        add(X_TOTAL, wy + r * (wx - X_TOTAL));
+        add(wx + wy / r, 0);
+        add(wx - (Y_TOTAL - wy) / r, Y_TOTAL);
+        const uniq = [];
+        pts.forEach((pt) => {
+          if (!uniq.some((u) => Math.abs(u.x - pt.x) < 0.05 && Math.abs(u.y - pt.y) < 0.05)) {
+            uniq.push(pt);
+          }
+        });
+        if (uniq.length < 2) return [];
+        let best = [uniq[0], uniq[1]];
+        let bestDist = distance(uniq[0], uniq[1]);
+        for (let i = 0; i < uniq.length; i += 1) {
+          for (let j = i + 1; j < uniq.length; j += 1) {
+            const d = distance(uniq[i], uniq[j]);
+            if (d > bestDist) {
+              bestDist = d;
+              best = [uniq[i], uniq[j]];
+            }
+          }
+        }
+        return best;
+      }
+
+      function drawBoxAxes(ctx, labels) {
+        ctx.save();
+        ctx.strokeStyle = palette.frame;
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(BOX.left, BOX.top, BOX.width, BOX.height);
+
+        ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+        ctx.fillStyle = palette.muted;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        for (let v = 0; v <= X_TOTAL; v += 20) {
+          const c = pointToCanvas(v, 0);
+          ctx.beginPath();
+          ctx.moveTo(c.x, BOX.top + BOX.height);
+          ctx.lineTo(c.x, BOX.top + BOX.height + 5);
+          ctx.stroke();
+          ctx.fillText(String(v), c.x, BOX.top + BOX.height + 8);
+
+          const cTop = pointToCanvas(v, Y_TOTAL);
+          ctx.beginPath();
+          ctx.moveTo(cTop.x, BOX.top - 5);
+          ctx.lineTo(cTop.x, BOX.top);
+          ctx.stroke();
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(String(X_TOTAL - v), cTop.x, BOX.top - 8);
+          ctx.textBaseline = 'top';
+        }
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        for (let v = 0; v <= Y_TOTAL; v += 20) {
+          const c = pointToCanvas(0, v);
+          ctx.beginPath();
+          ctx.moveTo(BOX.left - 5, c.y);
+          ctx.lineTo(BOX.left, c.y);
+          ctx.stroke();
+          ctx.fillText(String(v), BOX.left - 8, c.y);
+
+          const cRight = pointToCanvas(X_TOTAL, v);
+          ctx.beginPath();
+          ctx.moveTo(BOX.left + BOX.width, cRight.y);
+          ctx.lineTo(BOX.left + BOX.width + 5, cRight.y);
+          ctx.stroke();
+          ctx.textAlign = 'left';
+          ctx.fillText(String(Y_TOTAL - v), BOX.left + BOX.width + 8, cRight.y);
+          ctx.textAlign = 'right';
+        }
+
+        ctx.font = `600 ${theme.font.axisLabel}px ${theme.font.family}`;
+        ctx.fillStyle = palette.text;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(labels.bottom, BOX.left + BOX.width / 2, BOX.top + BOX.height + 34);
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(labels.top, BOX.left + BOX.width / 2, BOX.top - 32);
+
+        ctx.save();
+        ctx.translate(BOX.left - 56, BOX.top + BOX.height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(labels.left, 0, 0);
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(BOX.left + BOX.width + 56, BOX.top + BOX.height / 2);
+        ctx.rotate(Math.PI / 2);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(labels.right, 0, 0);
+        ctx.restore();
+
+        ctx.font = `700 14px ${theme.font.family}`;
+        ctx.fillStyle = palette.a;
+        ctx.fillText(labels.agentA, BOX.left + 54, BOX.top + BOX.height + 56);
+        ctx.fillStyle = palette.b;
+        ctx.fillText(labels.agentB, BOX.left + BOX.width - 54, BOX.top - 54);
+        ctx.restore();
+      }
+
+      function drawCurve(ctx, pts, color, dash = null, width = theme.line.main) {
+        if (!pts || pts.length < 2) return;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        if (dash) ctx.setLineDash(dash);
+        ctx.beginPath();
+        const first = pointToCanvas(pts[0].x, pts[0].y);
+        ctx.moveTo(first.x, first.y);
+        for (let i = 1; i < pts.length; i += 1) {
+          const c = pointToCanvas(pts[i].x, pts[i].y);
+          ctx.lineTo(c.x, c.y);
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawPoint(ctx, point, label, style) {
+        const c = pointToCanvas(point.x, point.y);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, style.radius || 6, 0, Math.PI * 2);
+        ctx.fillStyle = style.fill || 'white';
+        ctx.fill();
+        ctx.strokeStyle = style.stroke || palette.text;
+        ctx.lineWidth = style.lineWidth || 2;
+        if (style.dash) ctx.setLineDash(style.dash);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        if (label) {
+          ctx.font = `700 13px ${theme.font.family}`;
+          ctx.fillStyle = style.text || style.stroke || palette.text;
+          ctx.fillText(label, c.x + 10, c.y - 10);
+        }
+        ctx.restore();
+      }
+
+      function drawGuides(ctx, point, color) {
+        const c = pointToCanvas(point.x, point.y);
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash(theme.dash.guide);
+        ctx.beginPath();
+        ctx.moveTo(c.x, c.y);
+        ctx.lineTo(c.x, BOX.top + BOX.height);
+        ctx.moveTo(c.x, c.y);
+        ctx.lineTo(BOX.left, c.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawEdgeworth(ctx, config) {
+        EconDraw.clearCanvas(ctx);
+        EconDraw.drawFrame(ctx);
+
+        const model = config.model;
+        const allocation = config.allocation;
+        const ce = config.ce || competitiveAllocation(model);
+        const labels = config.labels || {
+          bottom: 'Agent A: good X',
+          left: 'Agent A: good Y',
+          top: 'Agent B: good X',
+          right: 'Agent B: good Y',
+          agentA: 'Agent A origin',
+          agentB: 'Agent B origin'
+        };
+
+        drawBoxAxes(ctx, labels);
+
+        if (config.showContract !== false) {
+          drawCurve(ctx, contractCurvePoints(model.alphaA, model.alphaB), palette.contract, null, 2.5);
+        }
+        if (config.showPriceLine) {
+          const linePts = clippedBudgetLine(model.endowment, config.priceRatio);
+          drawCurve(ctx, linePts, palette.price, theme.dash.policy, 2.2);
+        }
+        if (config.showIndifference) {
+          drawCurve(ctx, indifferencePointsA(allocation, model.alphaA), palette.a, theme.dash.guess, 1.8);
+          drawCurve(ctx, indifferencePointsB(allocation, model.alphaB), palette.b, theme.dash.guess, 1.8);
+        }
+        if (config.showEndowment !== false) {
+          drawGuides(ctx, model.endowment, palette.endowment);
+          drawPoint(ctx, model.endowment, 'W', { fill: 'white', stroke: palette.endowment, lineWidth: 2, text: palette.endowment, radius: 6 });
+        }
+        if (config.showCE) {
+          drawPoint(ctx, ce, 'E*', { fill: 'white', stroke: palette.contract, lineWidth: 2.2, text: palette.contract, radius: 8 });
+        }
+        if (config.guessPoint) {
+          drawPoint(ctx, config.guessPoint, 'G', { fill: 'white', stroke: palette.guess, lineWidth: 2.3, dash: theme.dash.guess, text: palette.guess, radius: 7 });
+        }
+        if (config.showCurrent !== false) {
+          drawPoint(ctx, allocation, config.currentLabel || 'Z', { fill: palette.point, stroke: palette.point, lineWidth: 2, text: palette.point, radius: 5 });
+        }
+
+        const titleText = config.titleText;
+        if (titleText) {
+          EconDraw.drawText(ctx, titleText, 104, 34, { size: 13, color: palette.muted });
+        }
+
+        const foot = config.footText;
+        if (foot) {
+          EconDraw.drawText(ctx, foot, 104, 560, { size: 12, color: palette.muted });
+        }
+      }
+
+      function drawSimpleBarChart(canvas, config) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = palette.frame;
+        ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+        const margin = { left: 52, right: 22, top: 18, bottom: 44 };
+        const plotW = w - margin.left - margin.right;
+        const plotH = h - margin.top - margin.bottom;
+        const maxY = config.maxY;
+
+        ctx.strokeStyle = palette.frame;
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i += 1) {
+          const y = margin.top + (plotH * i) / 4;
+          ctx.beginPath();
+          ctx.moveTo(margin.left, y);
+          ctx.lineTo(w - margin.right, y);
+          ctx.stroke();
+          const label = maxY - (maxY * i) / 4;
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(config.tickFormat ? config.tickFormat(label) : fmt(label, 0), margin.left - 8, y);
+        }
+        ctx.strokeStyle = palette.text;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, margin.top);
+        ctx.lineTo(margin.left, h - margin.bottom);
+        ctx.lineTo(w - margin.right, h - margin.bottom);
+        ctx.stroke();
+
+        const groups = config.groups.length;
+        const seriesCount = config.series.length;
+        const slot = plotW / groups;
+        const barWidth = Math.min(28, (slot * 0.68) / seriesCount);
+        const gap = 8;
+
+        config.groups.forEach((group, gi) => {
+          const groupLeft = margin.left + gi * slot + (slot - (seriesCount * barWidth + (seriesCount - 1) * gap)) / 2;
+          config.series.forEach((series, si) => {
+            const value = series.values[gi];
+            const barH = (value / maxY) * plotH;
+            const x = groupLeft + si * (barWidth + gap);
+            const y = margin.top + plotH - barH;
+            ctx.fillStyle = series.color;
+            ctx.fillRect(x, y, barWidth, barH);
+            ctx.fillStyle = palette.text;
+            ctx.font = `600 11px ${theme.font.family}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(series.valueFormat ? series.valueFormat(value) : fmt(value, 1), x + barWidth / 2, y - 4);
+          });
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(group, margin.left + gi * slot + slot / 2, h - margin.bottom + 10);
+        });
+
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        let lx = margin.left;
+        const ly = h - 22;
+        config.series.forEach((series) => {
+          ctx.fillStyle = series.color;
+          ctx.fillRect(lx, ly, 12, 12);
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.fillText(series.label, lx + 18, ly - 1);
+          lx += ctx.measureText(series.label).width + 42;
+        });
+      }
+
+      const explore = {
+        canvas: document.getElementById('exploreCanvas'),
+        ctx: document.getElementById('exploreCanvas').getContext('2d'),
+        alphaA: document.getElementById('exploreAlphaA'),
+        alphaB: document.getElementById('exploreAlphaB'),
+        endowX: document.getElementById('exploreEndowX'),
+        endowY: document.getElementById('exploreEndowY'),
+        priceRatio: document.getElementById('explorePriceRatio'),
+        labels: {
+          alphaA: document.getElementById('exploreAlphaALabel'),
+          alphaB: document.getElementById('exploreAlphaBLabel'),
+          endowX: document.getElementById('exploreEndowXLabel'),
+          endowY: document.getElementById('exploreEndowYLabel'),
+          priceRatio: document.getElementById('explorePriceRatioLabel')
+        },
+        metricUA: document.getElementById('exploreMetricUA'),
+        metricUB: document.getElementById('exploreMetricUB'),
+        metricGain: document.getElementById('exploreMetricGain'),
+        metricEff: document.getElementById('exploreMetricEff'),
+        metricCEPrice: document.getElementById('exploreMetricCEPrice'),
+        metricExcess: document.getElementById('exploreMetricExcess'),
+        metricNote: document.getElementById('exploreMetricNote'),
+        status: document.querySelector('#exploreStatus .status-copy'),
+        state: {
+          model: {
+            alphaA: 0.35,
+            alphaB: 0.65,
+            endowment: { x: 78, y: 22 }
+          },
+          allocation: { x: 78, y: 22 },
+          showContract: true,
+          showPrice: true,
+          showIndifference: true,
+          dragging: false
+        }
+      };
+
+      function syncExploreControls() {
+        const s = explore.state;
+        explore.alphaA.value = s.model.alphaA.toFixed(2);
+        explore.alphaB.value = s.model.alphaB.toFixed(2);
+        explore.endowX.value = String(Math.round(s.model.endowment.x));
+        explore.endowY.value = String(Math.round(s.model.endowment.y));
+        explore.priceRatio.value = clamp(Number(explore.priceRatio.value), 0.5, 1.5).toFixed(2);
+      }
+
+      function updateExploreLabels() {
+        explore.labels.alphaA.textContent = fmt(explore.state.model.alphaA, 2);
+        explore.labels.alphaB.textContent = fmt(explore.state.model.alphaB, 2);
+        explore.labels.endowX.textContent = fmt(explore.state.model.endowment.x, 0);
+        explore.labels.endowY.textContent = fmt(explore.state.model.endowment.y, 0);
+        explore.labels.priceRatio.textContent = fmt(Number(explore.priceRatio.value), 2);
+      }
+
+      function renderExplore() {
+        updateExploreLabels();
+        const model = explore.state.model;
+        const allocation = explore.state.allocation;
+        const selectedPrice = Number(explore.priceRatio.value);
+        const status = allocationStatus(model, allocation, selectedPrice);
+        const ce = status.ce;
+
+        drawEdgeworth(explore.ctx, {
+          model,
+          allocation,
+          ce,
+          priceRatio: selectedPrice,
+          showContract: explore.state.showContract,
+          showPriceLine: explore.state.showPrice,
+          showIndifference: explore.state.showIndifference,
+          showCE: true,
+          titleText: 'Drag Z to test whether a feasible trade is mutually beneficial, efficient, or the competitive equilibrium.',
+          footText: `Selected price ratio pX/pY = ${fmt(selectedPrice, 2)}. Competitive equilibrium price ratio = ${fmt(ce.priceRatio, 2)}.`
+        });
+
+        explore.metricUA.textContent = `${fmt(status.utils.uaIndex, 1)} (endowment = 100)`;
+        explore.metricUB.textContent = `${fmt(status.utils.ubIndex, 1)} (endowment = 100)`;
+        explore.metricGain.textContent = yesNo(status.bothGain);
+        explore.metricEff.textContent = yesNo(status.paretoEfficient);
+        explore.metricCEPrice.textContent = fmt(ce.priceRatio, 2);
+        explore.metricExcess.textContent = `${status.excessX > 0 ? '+' : ''}${fmt(status.excessX, 2)}`;
+        explore.metricNote.textContent = status.excessX > 0.05
+          ? 'At the selected price, total desired demand for good X exceeds total endowment, so the price ratio is too low to clear the market.'
+          : (status.excessX < -0.05
+            ? 'At the selected price, desired demand for good X is below total endowment, so the price ratio is too high to clear the market.'
+            : 'At the selected price, excess demand is essentially zero, so the price line supports the competitive equilibrium.');
+
+        const paragraphs = [];
+        paragraphs.push(`The current allocation gives Agent A utility index ${fmt(status.utils.uaIndex, 1)} and Agent B utility index ${fmt(status.utils.ubIndex, 1)}, relative to 100 at the endowment.`);
+        paragraphs.push(status.bothGain
+          ? 'Both traders are better off than at the endowment, so this point lies in the gains-from-trade region.'
+          : 'At least one trader is not better off than at the endowment, so this point is not a mutually beneficial trade.'
+        );
+        paragraphs.push(status.paretoEfficient
+          ? 'The point lies on or very near the contract curve, so there is no further mutually beneficial trade left.'
+          : `The point is about ${fmt(status.efficientDistance || 0, 2)} box-units away from the contract curve, so there are still unrealized gains from trade.`
+        );
+        paragraphs.push(status.onCE && Math.abs(selectedPrice - ce.priceRatio) < 0.06
+          ? 'The current point is also the competitive equilibrium supported by the selected price line, illustrating the first welfare theorem.'
+          : 'To reach the competitive equilibrium, either move Z to E* or change the selected price ratio until the market clears at the endowment-based budget line.'
+        );
+        explore.status.innerHTML = paragraphs.map((p) => `<p style="margin:0 0 8px 0;">${p}</p>`).join('');
+      }
+
+      function resetExplore() {
+        explore.state.model.alphaA = 0.35;
+        explore.state.model.alphaB = 0.65;
+        explore.state.model.endowment = { x: 78, y: 22 };
+        explore.state.allocation = { x: 78, y: 22 };
+        explore.priceRatio.value = '1.00';
+        explore.state.showContract = true;
+        explore.state.showPrice = true;
+        explore.state.showIndifference = true;
+        document.getElementById('toggleContract').classList.add('active');
+        document.getElementById('togglePrice').classList.add('active');
+        document.getElementById('toggleIndifference').classList.add('active');
+        syncExploreControls();
+        renderExplore();
+      }
+
+      explore.alphaA.addEventListener('input', () => {
+        explore.state.model.alphaA = Number(explore.alphaA.value);
+        renderExplore();
+      });
+      explore.alphaB.addEventListener('input', () => {
+        explore.state.model.alphaB = Number(explore.alphaB.value);
+        renderExplore();
+      });
+      explore.endowX.addEventListener('input', () => {
+        explore.state.model.endowment.x = Number(explore.endowX.value);
+        if (distance(explore.state.allocation, explore.state.model.endowment) < 0.01) {
+          explore.state.allocation.x = Number(explore.endowX.value);
+        }
+        renderExplore();
+      });
+      explore.endowY.addEventListener('input', () => {
+        explore.state.model.endowment.y = Number(explore.endowY.value);
+        if (distance(explore.state.allocation, explore.state.model.endowment) < 0.01) {
+          explore.state.allocation.y = Number(explore.endowY.value);
+        }
+        renderExplore();
+      });
+      explore.priceRatio.addEventListener('input', renderExplore);
+      document.getElementById('exploreToEndowment').addEventListener('click', () => {
+        explore.state.allocation = { ...explore.state.model.endowment };
+        renderExplore();
+      });
+      document.getElementById('exploreSolveCE').addEventListener('click', () => {
+        const ce = competitiveAllocation(explore.state.model);
+        explore.state.allocation = { x: ce.x, y: ce.y };
+        explore.priceRatio.value = ce.priceRatio.toFixed(2);
+        renderExplore();
+      });
+      document.getElementById('exploreRandom').addEventListener('click', () => {
+        explore.state.model.alphaA = clamp(Math.round((0.2 + Math.random() * 0.55) * 20) / 20, 0.15, 0.85);
+        explore.state.model.alphaB = clamp(Math.round((0.2 + Math.random() * 0.55) * 20) / 20, 0.15, 0.85);
+        explore.state.model.endowment.x = Math.round(20 + Math.random() * 60);
+        explore.state.model.endowment.y = Math.round(20 + Math.random() * 60);
+        explore.state.allocation = { ...explore.state.model.endowment };
+        explore.priceRatio.value = competitivePriceRatio(explore.state.model).toFixed(2);
+        syncExploreControls();
+        renderExplore();
+      });
+      document.getElementById('exploreReset').addEventListener('click', resetExplore);
+      document.getElementById('toggleContract').addEventListener('click', (e) => {
+        explore.state.showContract = !explore.state.showContract;
+        e.currentTarget.classList.toggle('active', explore.state.showContract);
+        renderExplore();
+      });
+      document.getElementById('togglePrice').addEventListener('click', (e) => {
+        explore.state.showPrice = !explore.state.showPrice;
+        e.currentTarget.classList.toggle('active', explore.state.showPrice);
+        renderExplore();
+      });
+      document.getElementById('toggleIndifference').addEventListener('click', (e) => {
+        explore.state.showIndifference = !explore.state.showIndifference;
+        e.currentTarget.classList.toggle('active', explore.state.showIndifference);
+        renderExplore();
+      });
+
+      explore.canvas.addEventListener('mousedown', (event) => {
+        const rect = explore.canvas.getBoundingClientRect();
+        const mouse = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+        const point = pointToCanvas(explore.state.allocation.x, explore.state.allocation.y);
+        if (distance(mouse, point) < DRAG_RADIUS + 4) {
+          explore.state.dragging = true;
+        }
+      });
+      window.addEventListener('mouseup', () => { explore.state.dragging = false; });
+      explore.canvas.addEventListener('mousemove', (event) => {
+        if (!explore.state.dragging) return;
+        const rect = explore.canvas.getBoundingClientRect();
+        const mouse = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+        explore.state.allocation = canvasToPoint(mouse.x, mouse.y);
+        renderExplore();
+      });
+
+      const practiceScenarios = [
+        {
+          id: 'p1',
+          title: 'Austria-like split endowment',
+          alphaA: 0.35,
+          alphaB: 0.65,
+          endowment: { x: 78, y: 22 }
+        },
+        {
+          id: 'p2',
+          title: 'Symmetric no-trade benchmark',
+          alphaA: 0.50,
+          alphaB: 0.50,
+          endowment: { x: 50, y: 50 }
+        },
+        {
+          id: 'p3',
+          title: 'Partial integration case',
+          alphaA: 0.45,
+          alphaB: 0.70,
+          endowment: { x: 70, y: 30 }
+        },
+        {
+          id: 'p4',
+          title: 'Strong gains from trade',
+          alphaA: 0.25,
+          alphaB: 0.60,
+          endowment: { x: 80, y: 20 }
+        },
+        {
+          id: 'p5',
+          title: 'Endowment already efficient',
+          alphaA: 0.60,
+          alphaB: 0.35,
+          endowment: { x: 65, y: 40 }
+        }
+      ];
+
+      const practice = {
+        canvas: document.getElementById('practiceCanvas'),
+        ctx: document.getElementById('practiceCanvas').getContext('2d'),
+        status: document.querySelector('#practiceStatus .status-copy'),
+        scenarioBank: document.getElementById('practiceScenarioBank'),
+        feedback: document.querySelector('#practiceFeedback .feedback-copy'),
+        feedbackCard: document.getElementById('practiceFeedback'),
+        tableBody: document.getElementById('practiceTableBody'),
+        tableNote: document.getElementById('practiceTableNote'),
+        answerEndowment: document.getElementById('practiceAnswerEndowment'),
+        answerGain: document.getElementById('practiceAnswerGain'),
+        answerCE: document.getElementById('practiceAnswerCE'),
+        state: {
+          scenarioIndex: 0,
+          guess: { x: 78, y: 22 },
+          revealed: false,
+          dragging: false
+        }
+      };
+
+      function practiceModel() {
+        const s = practiceScenarios[practice.state.scenarioIndex];
+        return {
+          alphaA: s.alphaA,
+          alphaB: s.alphaB,
+          endowment: { ...s.endowment }
+        };
+      }
+
+      function renderPracticeScenarioBank() {
+        practice.scenarioBank.innerHTML = '';
+        practiceScenarios.forEach((scenario, index) => {
+          const button = document.createElement('button');
+          button.className = `scenario-chip${index === practice.state.scenarioIndex ? ' active' : ''}`;
+          button.textContent = scenario.title;
+          button.addEventListener('click', () => {
+            practice.state.scenarioIndex = index;
+            resetPracticeGuess();
+            renderPracticeScenarioBank();
+            renderPractice();
+          });
+          practice.scenarioBank.appendChild(button);
+        });
+      }
+
+      function resetPracticeGuess() {
+        const model = practiceModel();
+        practice.state.guess = { ...model.endowment };
+        practice.state.revealed = false;
+        practice.answerEndowment.value = '';
+        practice.answerGain.value = '';
+        practice.answerCE.value = '';
+      }
+
+      function renderPractice() {
+        const model = practiceModel();
+        const ce = competitiveAllocation(model);
+        const eqStatus = allocationStatus(model, ce, ce.priceRatio);
+        const title = practiceScenarios[practice.state.scenarioIndex].title;
+
+        drawEdgeworth(practice.ctx, {
+          model,
+          allocation: practice.state.revealed ? ce : model.endowment,
+          ce,
+          priceRatio: ce.priceRatio,
+          showContract: practice.state.revealed,
+          showPriceLine: true,
+          showIndifference: false,
+          showCE: practice.state.revealed,
+          showCurrent: false,
+          guessPoint: practice.state.guess,
+          titleText: 'Guess the competitive equilibrium allocation implied by the given endowment and equilibrium price line.',
+          footText: `Given price ratio pX/pY = ${fmt(ce.priceRatio, 2)}.`
+        });
+
+        practice.status.innerHTML = `
+          <p style="margin:0 0 8px 0;"><strong>${title}.</strong> Agent A has Cobb–Douglas taste parameter ${fmt(model.alphaA, 2)} and Agent B has ${fmt(model.alphaB, 2)}.</p>
+          <p style="margin:0 0 8px 0;">The endowment is W = (${fmt(model.endowment.x, 0)}, ${fmt(model.endowment.y, 0)}) for Agent A and the displayed gray dashed price line uses the market-clearing ratio p<sub>X</sub>/p<sub>Y</sub> = ${fmt(ce.priceRatio, 2)}.</p>
+          <p style="margin:0;">Drag G to your competitive-equilibrium guess, then answer the concept questions.</p>
+        `;
+
+        const endowmentOnCC = eqStatus.endowmentOnCC;
+        const bothGain = eqStatus.bothGain;
+        const ceEfficient = eqStatus.paretoEfficient;
+        const guessDistance = Math.hypot(practice.state.guess.x - ce.x, practice.state.guess.y - ce.y);
+
+        const rows = [
+          { label: 'Endowment on contract curve?', user: practice.answerEndowment.value, actual: endowmentOnCC ? 'yes' : 'no' },
+          { label: 'Both gain at competitive equilibrium?', user: practice.answerGain.value, actual: bothGain ? 'yes' : 'no' },
+          { label: 'Competitive equilibrium Pareto efficient?', user: practice.answerCE.value, actual: ceEfficient ? 'yes' : 'no' }
+        ];
+        practice.tableBody.innerHTML = rows.map((row) => `
+          <tr>
+            <td>${row.label}</td>
+            <td class="${!practice.state.revealed ? 'result-neutral' : (row.user === row.actual ? 'result-correct' : 'result-incorrect')}">${row.user ? row.user[0].toUpperCase() + row.user.slice(1) : '—'}</td>
+            <td class="${practice.state.revealed ? 'result-correct' : 'result-neutral'}">${practice.state.revealed ? row.actual[0].toUpperCase() + row.actual.slice(1) : 'Check answer'}</td>
+          </tr>
+        `).join('');
+        practice.tableNote.textContent = practice.state.revealed
+          ? `Your point G is ${fmt(guessDistance, 2)} box-units away from the competitive equilibrium E*.`
+          : 'After checking, the correct answers and the contract curve are revealed.';
+      }
+
+      document.getElementById('practiceRandom').addEventListener('click', () => {
+        practice.state.scenarioIndex = Math.floor(Math.random() * practiceScenarios.length);
+        resetPracticeGuess();
+        renderPracticeScenarioBank();
+        renderPractice();
+      });
+      document.getElementById('practiceResetGuess').addEventListener('click', () => {
+        resetPracticeGuess();
+        renderPractice();
+        practice.feedbackCard.className = 'feedback-card neutral';
+        practice.feedback.textContent = 'Guess reset. Drag the purple point again and then check your answer.';
+      });
+      document.getElementById('practiceCheck').addEventListener('click', () => {
+        const model = practiceModel();
+        const ce = competitiveAllocation(model);
+        const eqStatus = allocationStatus(model, ce, ce.priceRatio);
+        const guessDistance = Math.hypot(practice.state.guess.x - ce.x, practice.state.guess.y - ce.y);
+        const endowmentCorrect = practice.answerEndowment.value === (eqStatus.endowmentOnCC ? 'yes' : 'no');
+        const gainCorrect = practice.answerGain.value === (eqStatus.bothGain ? 'yes' : 'no');
+        const ceCorrect = practice.answerCE.value === (eqStatus.paretoEfficient ? 'yes' : 'no');
+        const pointCorrect = guessDistance < GUESS_TOLERANCE;
+        practice.state.revealed = true;
+        renderPractice();
+
+        const errors = [];
+        if (!pointCorrect) errors.push(`your competitive-equilibrium guess is ${fmt(guessDistance, 2)} box-units away from E*`);
+        if (!endowmentCorrect) errors.push('the contract-curve status of the endowment is not correct');
+        if (!gainCorrect) errors.push('the gains-from-trade answer is not correct');
+        if (!ceCorrect) errors.push('the Pareto-efficiency answer for E* is not correct');
+
+        if (errors.length === 0) {
+          practice.feedbackCard.className = 'feedback-card success';
+          practice.feedback.textContent = 'Correct. The competitive equilibrium lies where the price line through the endowment is tangent to both traders’ indifference curves, and it is Pareto efficient.';
+        } else {
+          practice.feedbackCard.className = 'feedback-card warning';
+          practice.feedback.textContent = `Not quite. Review ${errors.join('; ')}. The revealed point E* shows the market-clearing allocation.`;
+        }
+      });
+
+      practice.canvas.addEventListener('mousedown', (event) => {
+        const rect = practice.canvas.getBoundingClientRect();
+        const mouse = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+        const guess = pointToCanvas(practice.state.guess.x, practice.state.guess.y);
+        if (distance(mouse, guess) < DRAG_RADIUS + 4) {
+          practice.state.dragging = true;
+        }
+      });
+      window.addEventListener('mouseup', () => { practice.state.dragging = false; });
+      practice.canvas.addEventListener('mousemove', (event) => {
+        if (!practice.state.dragging || practice.state.revealed) return;
+        const rect = practice.canvas.getBoundingClientRect();
+        const mouse = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+        practice.state.guess = canvasToPoint(mouse.x, mouse.y);
+        renderPractice();
+      });
+
+      const caseSteps = [
+        {
+          title: 'Step 1 — 1995 EU accession: trade opens up',
+          allocation: { x: 64, y: 36 },
+          priceRatio: 1.08,
+          copy: 'Statistics Austria notes that joining the EU single market removed intra-EU tariffs, customs controls, and waiting times. The case translates that into a first movement away from the autarky-like endowment toward a mutually beneficial exchange allocation.',
+          observed: '1995 anchors: export ratio 33.7% of GDP; import ratio 34.9% of GDP.'
+        },
+        {
+          title: 'Step 2 — 2004 eastern enlargement: more exchange partners',
+          allocation: { x: 54, y: 46 },
+          priceRatio: 1.00,
+          copy: 'The 2004 enlargement widened Austria’s effective exchange network toward eastern neighbors. In the diagram, the current allocation moves farther toward the contract curve as market access and matching possibilities expand.',
+          observed: 'May 2004 is the baseline for the enlargement-country trade comparison used below.'
+        },
+        {
+          title: 'Step 3 — 2004 to 2024: trade with the enlargement countries surges',
+          allocation: { x: 44, y: 56 },
+          priceRatio: 0.96,
+          copy: 'Statistics Austria reports that, between May 2004 and May 2024, Austrian imports from the ten 2004 enlargement countries rose by 185.1% and exports rose by 168.4%. Their trade shares also rose. The graph shows deeper exchange and larger gains from trade.',
+          observed: 'Import share 10.5% → 13.4%; export share 12.5% → 15.6%.'
+        },
+        {
+          title: 'Step 4 — 2024: a deeply integrated Austrian trade economy',
+          allocation: competitiveAllocation({ alphaA: 0.35, alphaB: 0.65, endowment: { x: 78, y: 22 } }),
+          priceRatio: competitiveAllocation({ alphaA: 0.35, alphaB: 0.65, endowment: { x: 78, y: 22 } }).priceRatio,
+          copy: 'By 2024, Austria’s export ratio had climbed to 59.5% and its import ratio to 53.6%, while 67.0% of exports and 66.4% of imports were with the EU. The final step places the allocation at the integrated competitive benchmark E* on the contract curve.',
+          observed: '2024 EU share: exports 67.0%, imports 66.4%; around 70% of total trade is with EU countries.'
+        }
+      ];
+
+      const caseModule = {
+        canvas: document.getElementById('caseCanvas'),
+        ctx: document.getElementById('caseCanvas').getContext('2d'),
+        stepRow: document.getElementById('caseStepRow'),
+        status: document.querySelector('#caseStatus .status-copy'),
+        metricUA: document.getElementById('caseMetricUA'),
+        metricUB: document.getElementById('caseMetricUB'),
+        metricGain: document.getElementById('caseMetricGain'),
+        metricEff: document.getElementById('caseMetricEff'),
+        metricNote: document.getElementById('caseMetricNote'),
+        openCanvas: document.getElementById('caseOpenCanvas'),
+        eastCanvas: document.getElementById('caseEastCanvas'),
+        state: {
+          model: {
+            alphaA: 0.35,
+            alphaB: 0.65,
+            endowment: { x: 78, y: 22 }
+          },
+          stepIndex: 0,
+          timer: null
+        }
+      };
+
+      function renderCaseStepButtons() {
+        caseModule.stepRow.innerHTML = '';
+        caseSteps.forEach((step, index) => {
+          const btn = document.createElement('button');
+          btn.className = `case-step-btn${index === caseModule.state.stepIndex ? ' active' : ''}`;
+          btn.textContent = `Step ${index + 1}`;
+          btn.addEventListener('click', () => {
+            caseModule.state.stepIndex = index;
+            if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+            renderCaseStepButtons();
+            renderCase();
+          });
+          caseModule.stepRow.appendChild(btn);
+        });
+      }
+
+      function renderCaseCharts() {
+        drawSimpleBarChart(caseModule.openCanvas, {
+          groups: ['1995', '2024'],
+          maxY: 70,
+          tickFormat: (v) => `${fmt(v, 0)}%`,
+          series: [
+            { label: 'Export ratio', color: palette.a, values: [33.7, 59.5], valueFormat: (v) => `${fmt(v, 1)}%` },
+            { label: 'Import ratio', color: palette.b, values: [34.9, 53.6], valueFormat: (v) => `${fmt(v, 1)}%` }
+          ]
+        });
+        drawSimpleBarChart(caseModule.eastCanvas, {
+          groups: ['Import share', 'Export share', 'Trade-value index'],
+          maxY: 300,
+          tickFormat: (v) => v >= 100 ? fmt(v, 0) : `${fmt(v, 0)}%`,
+          series: [
+            { label: 'May 2004', color: palette.endowment, values: [10.5, 12.5, 100], valueFormat: (v) => v === 100 ? '100' : `${fmt(v, 1)}%` },
+            { label: 'May 2024', color: palette.contract, values: [13.4, 15.6, 285], valueFormat: (v) => v === 285 ? '285' : `${fmt(v, 1)}%` }
+          ]
+        });
+      }
+
+      function renderCase() {
+        const step = caseSteps[caseModule.state.stepIndex];
+        const model = caseModule.state.model;
+        const ce = competitiveAllocation(model);
+        const status = allocationStatus(model, step.allocation, step.priceRatio);
+
+        drawEdgeworth(caseModule.ctx, {
+          model,
+          allocation: step.allocation,
+          ce,
+          priceRatio: step.priceRatio,
+          showContract: true,
+          showPriceLine: true,
+          showIndifference: false,
+          showCE: true,
+          currentLabel: `C${caseModule.state.stepIndex + 1}`,
+          titleText: 'Austria + EU integration case: the allocation moves from endowment toward the competitive benchmark as exchange possibilities deepen.',
+          footText: step.observed,
+          labels: {
+            bottom: 'Austria: Austria-origin bundle',
+            left: 'Austria: EU-partner bundle',
+            top: 'EU partners: Austria-origin bundle',
+            right: 'EU partners: EU-partner bundle',
+            agentA: 'Austria',
+            agentB: 'EU partners'
+          }
+        });
+
+        caseModule.status.innerHTML = `
+          <p style="margin:0 0 8px 0;"><strong>${step.title}</strong></p>
+          <p style="margin:0 0 8px 0;">${step.copy}</p>
+          <p style="margin:0; color: var(--color-muted);"><strong>Observed anchor:</strong> ${step.observed}</p>
+        `;
+
+        caseModule.metricUA.textContent = `${fmt(status.utils.uaIndex, 1)} (endowment = 100)`;
+        caseModule.metricUB.textContent = `${fmt(status.utils.ubIndex, 1)} (endowment = 100)`;
+        caseModule.metricGain.textContent = yesNo(status.bothGain);
+        caseModule.metricEff.textContent = status.paretoEfficient ? 'On contract curve' : `${fmt(status.efficientDistance || 0, 2)} away`;
+        caseModule.metricNote.textContent = caseModule.state.stepIndex === caseSteps.length - 1
+          ? 'The final step intentionally lands on the competitive equilibrium E*, which illustrates the first welfare theorem inside the box.'
+          : 'The earlier steps are stylized partial-integration allocations: both traders gain, but the point is still not fully on the contract curve.';
+
+        renderCaseCharts();
+      }
+
+      document.getElementById('casePlay').addEventListener('click', () => {
+        if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+        caseModule.state.stepIndex = 0;
+        renderCaseStepButtons();
+        renderCase();
+        caseModule.state.timer = setInterval(() => {
+          caseModule.state.stepIndex += 1;
+          if (caseModule.state.stepIndex >= caseSteps.length) {
+            clearInterval(caseModule.state.timer);
+            caseModule.state.timer = null;
+            caseModule.state.stepIndex = caseSteps.length - 1;
+          }
+          renderCaseStepButtons();
+          renderCase();
+        }, 1800);
+      });
+      document.getElementById('caseReset').addEventListener('click', () => {
+        if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+        caseModule.state.timer = null;
+        caseModule.state.stepIndex = 0;
+        renderCaseStepButtons();
+        renderCase();
+      });
+
+      const moduleTabs = Array.from(document.querySelectorAll('.module-tab'));
+      const moduleSections = Array.from(document.querySelectorAll('.module-section'));
+      moduleTabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          moduleTabs.forEach((t) => t.classList.toggle('active', t === tab));
+          moduleSections.forEach((section) => section.classList.toggle('active', section.id === tab.dataset.target));
+          if (tab.dataset.target === 'exploreSection') renderExplore();
+          if (tab.dataset.target === 'practiceSection') renderPractice();
+          if (tab.dataset.target === 'caseSection') renderCase();
+        });
+      });
+
+      renderPracticeScenarioBank();
+      resetExplore();
+      resetPracticeGuess();
+      renderPractice();
+      renderCaseStepButtons();
+      renderCase();
+    })();
+  </script>
+</body>
+</html>

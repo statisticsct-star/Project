@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G13_competitive_firm_short_run</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .module-tab {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+    .module-tab:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active {
+      background: #eef3ff;
+      border-color: var(--color-output);
+      color: var(--color-output);
+    }
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-strip,
+    .legend-row,
+    .case-step-row,
+    .hint-row,
+    .scenario-bank {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .summary-strip { margin: 10px 0 16px 0; }
+    .summary-chip,
+    .case-step-btn,
+    .mini-badge,
+    .scenario-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+    .case-step-btn,
+    .scenario-chip {
+      cursor: pointer;
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .case-step-btn.active,
+    .scenario-chip.active {
+      background: #eefaf4;
+      border-color: var(--color-government);
+      color: var(--color-government);
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 14px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 160px;
+    }
+    .control-inline.wide { min-width: 240px; }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.95fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .graph-stack,
+    .side-stack,
+    .answer-grid,
+    .metric-grid,
+    .formula-list,
+    .case-data-grid {
+      display: grid;
+      gap: 16px;
+    }
+    .graph-card,
+    .panel-card,
+    .answer-card,
+    .source-note,
+    .data-card {
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .card-title,
+    .status-title,
+    .data-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.mc { border-color: var(--color-supply); }
+    .legend-line.avc { border-color: var(--color-output); }
+    .legend-line.atc { border-color: var(--color-government); }
+    .legend-line.afc { border-color: var(--color-long-run); }
+    .legend-line.price {
+      border-color: var(--color-external);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.baseline {
+      border-color: var(--color-baseline);
+      border-top-style: dashed;
+      border-top-width: 2px;
+    }
+    .legend-line.supplycurve {
+      border-color: var(--color-supply);
+      border-top-width: 3px;
+    }
+    .legend-fill {
+      width: 22px;
+      height: 12px;
+      border: 1px solid rgba(31,41,55,0.12);
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .legend-fill.profit { background: rgba(46,139,87,0.20); }
+    .legend-fill.loss { background: rgba(216,74,58,0.18); }
+
+    .graph-note,
+    .small-muted,
+    .footer-note,
+    .formula-item,
+    .status-copy,
+    .data-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .graph-note strong,
+    .formula-item strong,
+    .small-muted strong,
+    .status-copy strong,
+    .data-note strong {
+      color: var(--color-text);
+    }
+
+    .metric-grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+    .metric-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+    .metric-item {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .metric-label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+    }
+    .metric-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text);
+      line-height: 1.35;
+    }
+    .metric-value.small { font-size: 14px; }
+
+    .answer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .answer-card { background: white; padding: 10px 12px; }
+    .answer-card label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 6px;
+    }
+    .answer-card select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      color: var(--color-text);
+      font-family: var(--font-family-base);
+      font-size: 13px;
+    }
+
+    .feedback-panel { margin-top: 0; }
+    .feedback-compact {
+      padding: 12px 14px;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      background: #fbfcfe;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--color-text);
+    }
+    .feedback-success { border-left: 4px solid var(--color-government); }
+    .feedback-warning { border-left: 4px solid var(--color-supply); }
+    .feedback-neutral { border-left: 4px solid var(--color-baseline); }
+
+    .case-data-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 12px;
+    }
+    .case-source-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .case-source-list li + li { margin-top: 6px; }
+    .case-emphasis {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(47,107,255,0.08);
+      border: 1px solid rgba(47,107,255,0.18);
+      font-size: 12px;
+      color: var(--color-text);
+      line-height: 1.55;
+    }
+
+    .table-like {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .table-like th,
+    .table-like td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      vertical-align: top;
+    }
+    .table-like th {
+      color: var(--color-muted);
+      font-weight: 600;
+      background: white;
+    }
+    .table-like tr:last-child td { border-bottom: none; }
+
+    @media (max-width: 1040px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 760px) {
+      .answer-grid,
+      .case-data-grid,
+      .metric-grid.two,
+      .metric-grid.three {
+        grid-template-columns: 1fr;
+      }
+      .control-inline,
+      .control-inline.wide {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Competitive firm in the short run: shutdown, break-even, profit, loss, and firm supply</h1>
+        <p class="diagram-subtitle">
+          Explore how a price-taking firm uses the market price line, MC, AVC, ATC, and AFC to choose output in the short run, and then connect the textbook logic to the recent Western Australian nickel downturn.
+        </p>
+      </div>
+
+      <div class="summary-strip">
+        <div class="summary-chip">Price-taking firm</div>
+        <div class="summary-chip">MC = MR = P on the upward MC branch</div>
+        <div class="summary-chip">Shutdown if price falls below min AVC</div>
+        <div class="summary-chip">Break-even where price = min ATC</div>
+        <div class="summary-chip">Supply = MC above AVC</div>
+        <div class="summary-chip">Real-world nickel case study</div>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Real-world case</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label for="priceSlider">Market price / MR / demand for the individual firm <span class="inline-value" id="priceValue"></span></label>
+            <input type="range" id="priceSlider" min="2" max="16" step="0.1" value="8" />
+          </div>
+          <div class="control-inline wide">
+            <label for="fixedCostSlider">Fixed cost <span class="inline-value" id="fixedCostValue"></span></label>
+            <input type="range" id="fixedCostSlider" min="6" max="26" step="1" value="16" />
+          </div>
+          <div class="control-inline wide">
+            <label for="variableShiftSlider">Variable-cost shift / technology shock <span class="inline-value" id="variableShiftValue"></span></label>
+            <input type="range" id="variableShiftSlider" min="-1.5" max="3" step="0.1" value="0" />
+          </div>
+          <div class="button-row">
+            <button class="btn-secondary" id="exploreResetButton">Reset</button>
+            <button class="btn-secondary" id="setShutdownButton">Set price to shutdown point</button>
+            <button class="btn-secondary" id="setBreakEvenButton">Set price to break-even point</button>
+            <button class="btn-secondary" id="setProfitButton">Set profitable price</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row">
+              <div class="legend-item"><span class="legend-line mc"></span><span>Marginal cost (MC)</span></div>
+              <div class="legend-item"><span class="legend-line avc"></span><span>Average variable cost (AVC)</span></div>
+              <div class="legend-item"><span class="legend-line atc"></span><span>Average total cost (ATC)</span></div>
+              <div class="legend-item"><span class="legend-line afc"></span><span>Average fixed cost (AFC)</span></div>
+              <div class="legend-item"><span class="legend-line price"></span><span>Market price = MR = demand facing the firm</span></div>
+              <div class="legend-item"><span class="legend-fill profit"></span><span>Profit rectangle</span></div>
+              <div class="legend-item"><span class="legend-fill loss"></span><span>Loss rectangle</span></div>
+            </div>
+            <div class="graph-note">
+              <strong>How to read the graph:</strong> the firm chooses output where the market price line intersects the <strong>upward-sloping</strong> part of MC, as long as price covers AVC. Fixed costs affect ATC and profit, but not the shutdown decision or the short-run supply curve.
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="panel-card">
+              <div class="status-title">Current interpretation</div>
+              <div class="status-copy" id="exploreStatus"></div>
+            </div>
+
+            <div class="panel-card">
+              <div class="card-title">Live metrics</div>
+              <div class="metric-grid three">
+                <div class="metric-item">
+                  <div class="metric-label">Output choice</div>
+                  <div class="metric-value" id="metricOutput">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Shutdown price</div>
+                  <div class="metric-value" id="metricShutdown">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Break-even price</div>
+                  <div class="metric-value" id="metricBreakEven">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">ATC at q*</div>
+                  <div class="metric-value" id="metricATC">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">AVC at q*</div>
+                  <div class="metric-value" id="metricAVC">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Profit / loss</div>
+                  <div class="metric-value" id="metricProfit">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-card">
+              <div class="card-title">Short-run firm supply</div>
+              <canvas id="supplyCanvas" width="360" height="240" style="width:100%;height:auto;border:1px solid var(--color-frame);border-radius:8px;background:white;"></canvas>
+              <div class="graph-note" id="supplyNote"></div>
+            </div>
+
+            <div class="panel-card">
+              <div class="card-title">Key rules</div>
+              <div class="formula-list">
+                <div class="formula-item"><strong>Profit-maximising output:</strong> if the firm produces, it chooses q* where <strong>P = MR = MC</strong> on the upward MC branch.</div>
+                <div class="formula-item"><strong>Shutdown rule:</strong> if <strong>P &lt; min AVC</strong>, the firm shuts down in the short run because it cannot cover variable cost.</div>
+                <div class="formula-item"><strong>Break-even rule:</strong> at <strong>P = min ATC</strong>, economic profit is zero.</div>
+                <div class="formula-item"><strong>Firm supply:</strong> the short-run supply curve is the MC curve <strong>above the shutdown point</strong>.</div>
+                <div class="formula-item"><strong>Fixed-cost insight:</strong> changing fixed cost shifts AFC and ATC, but <strong>not</strong> MC, AVC, or supply.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="control-row">
+          <div class="button-row">
+            <button class="btn-secondary" id="newScenarioButton">New scenario</button>
+            <button class="btn-secondary" id="resetPracticeButton">Reset answers</button>
+            <button class="btn-primary" id="checkPracticeButton">Check answer</button>
+          </div>
+          <div class="scenario-bank" id="scenarioBank"></div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row">
+              <div class="legend-item"><span class="legend-line baseline"></span><span>Baseline reference</span></div>
+              <div class="legend-item"><span class="legend-line mc"></span><span>Scenario MC</span></div>
+              <div class="legend-item"><span class="legend-line avc"></span><span>Scenario AVC</span></div>
+              <div class="legend-item"><span class="legend-line atc"></span><span>Scenario ATC</span></div>
+              <div class="legend-item"><span class="legend-line price"></span><span>Scenario market price</span></div>
+              <div class="legend-item"><span class="legend-fill profit"></span><span>Revealed profit rectangle</span></div>
+              <div class="legend-item"><span class="legend-fill loss"></span><span>Revealed loss rectangle</span></div>
+            </div>
+            <div class="graph-note">
+              Each scenario changes either the market price, fixed cost, variable cost, or technology. Decide whether the firm produces, whether it earns profit or loss, how output changes relative to the baseline, and whether the firm’s short-run supply curve shifts.
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="panel-card">
+              <div class="status-title">Scenario prompt</div>
+              <div class="status-copy" id="practicePrompt"></div>
+            </div>
+
+            <div class="panel-card">
+              <div class="card-title">Your answers</div>
+              <div class="answer-grid">
+                <div class="answer-card">
+                  <label for="answerDecision">Short-run decision</label>
+                  <select id="answerDecision">
+                    <option value="">Choose</option>
+                    <option value="produce">Produce</option>
+                    <option value="shutdown">Shut down</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="answerProfitStatus">Profit status</label>
+                  <select id="answerProfitStatus">
+                    <option value="">Choose</option>
+                    <option value="profit">Profit</option>
+                    <option value="loss">Loss</option>
+                    <option value="breakeven">Break-even</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="answerOutputChange">Output relative to baseline</label>
+                  <select id="answerOutputChange">
+                    <option value="">Choose</option>
+                    <option value="higher">Higher</option>
+                    <option value="lower">Lower</option>
+                    <option value="same">Same</option>
+                    <option value="zero">Falls to zero</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="answerSupplyShift">Firm supply curve</label>
+                  <select id="answerSupplyShift">
+                    <option value="">Choose</option>
+                    <option value="left">Shifts left / up</option>
+                    <option value="right">Shifts right / down</option>
+                    <option value="none">Does not shift</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="practiceFeedback" class="feedback-compact feedback-neutral">
+              Select a scenario, inspect the graph, answer all four questions, and then check your answer.
+            </div>
+
+            <div class="panel-card">
+              <div class="card-title">Baseline comparison</div>
+              <div class="metric-grid two">
+                <div class="metric-item">
+                  <div class="metric-label">Baseline price</div>
+                  <div class="metric-value" id="practiceBaselinePrice">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Baseline output</div>
+                  <div class="metric-value" id="practiceBaselineOutput">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Scenario output</div>
+                  <div class="metric-value" id="practiceScenarioOutput">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Scenario profit / loss</div>
+                  <div class="metric-value" id="practiceScenarioProfit">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="control-row">
+          <div class="button-row case-step-row" id="caseStepRow"></div>
+          <div class="button-row">
+            <button class="btn-secondary" id="playCaseButton">Play sequence</button>
+            <button class="btn-secondary" id="resetCaseButton">Reset case</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row">
+              <div class="legend-item"><span class="legend-line mc"></span><span>Stylised MC</span></div>
+              <div class="legend-item"><span class="legend-line avc"></span><span>Stylised AVC</span></div>
+              <div class="legend-item"><span class="legend-line atc"></span><span>Stylised ATC</span></div>
+              <div class="legend-item"><span class="legend-line price"></span><span>Observed realised price translated into A$ per lb</span></div>
+              <div class="legend-item"><span class="legend-fill profit"></span><span>Stylised operating profit</span></div>
+              <div class="legend-item"><span class="legend-fill loss"></span><span>Stylised operating loss</span></div>
+            </div>
+            <div class="graph-note">
+              The case graph is a <strong>stylised teaching translation</strong> of the data, not a literal mine-cost model. It uses the firm’s observed selling prices and cash-cost evidence to place the operation in the textbook zones: profit, produce-with-loss, and shutdown.
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="panel-card">
+              <div class="status-title">Case interpretation</div>
+              <div class="status-copy" id="caseNarrative"></div>
+            </div>
+
+            <div class="panel-card">
+              <div class="card-title">Observed operating data</div>
+              <div class="case-data-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Realised price</div>
+                  <div class="metric-value" id="casePriceMetric">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Cash cost / royalties</div>
+                  <div class="metric-value" id="caseCashCostMetric">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Accounting result</div>
+                  <div class="metric-value small" id="caseAccountingMetric">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Observed production / sales note</div>
+                  <div class="metric-value small" id="caseProductionMetric">—</div>
+                </div>
+              </div>
+              <div class="case-emphasis" id="caseTextbookImplication" style="margin-top:12px;"></div>
+            </div>
+
+            <div class="panel-card">
+              <div class="card-title">Firm data across the sequence</div>
+              <canvas id="caseBarsCanvas" width="360" height="240" style="width:100%;height:auto;border:1px solid var(--color-frame);border-radius:8px;background:white;"></canvas>
+              <div class="data-note" id="caseBarsNote"></div>
+            </div>
+
+            <div class="panel-card">
+              <div class="card-title">Market context and source notes</div>
+              <div class="data-note" id="globalNickelContext"></div>
+              <table class="table-like" style="margin-top:10px;">
+                <thead>
+                  <tr>
+                    <th>Step</th>
+                    <th>Price (A$/lb)</th>
+                    <th>Cash cost (A$/lb)</th>
+                    <th>Textbook zone</th>
+                  </tr>
+                </thead>
+                <tbody id="caseTableBody"></tbody>
+              </table>
+              <ul class="case-source-list" style="margin-top:10px;">
+                <li>IGO 2Q23 / 1H23 Results Presentation for the 2Q23 realised price, 2Q23 cash cost, and 2Q23 EBITDA.</li>
+                <li>IGO 1H24 and 1H25 half-year reports for 1H24 and 1H25 A$ nickel price per pound sold, cash costs, and operating losses.</li>
+                <li>IMF / FRED global nickel benchmark averages for 2022, 2023, and 2024 to show the broader world-price decline.</li>
+                <li>Reuters and BHP reporting on 2024 oversupply from Indonesia and broader Western Australian nickel suspensions.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const UTIL = {
+      fmt(value, digits = 2) {
+        if (!Number.isFinite(value)) return '—';
+        const rounded = Math.abs(value) < 1e-9 ? 0 : value;
+        return rounded.toFixed(digits).replace(/\.00$/, '');
+      },
+      fmtSigned(value, digits = 2) {
+        if (!Number.isFinite(value)) return '—';
+        const rounded = Math.abs(value) < 1e-9 ? 0 : value;
+        return `${rounded > 0 ? '+' : ''}${UTIL.fmt(rounded, digits)}`;
+      },
+      money(value, digits = 2) {
+        return `$${UTIL.fmt(value, digits)}`;
+      },
+      clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      },
+      nearest(value, step) {
+        return Math.round(value / step) * step;
+      },
+      linePoints(qMin, qMax, samples, xFn, yFn) {
+        const pts = [];
+        for (let i = 0; i <= samples; i += 1) {
+          const q = qMin + (i / samples) * (qMax - qMin);
+          const y = yFn(q);
+          pts.push({ x: xFn(q), y: y });
+        }
+        return pts;
+      }
+    };
+
+    function makeMainTheme(canvas, yMax) {
+      return {
+        canvas: {
+          width: canvas.width,
+          height: canvas.height,
+          margin: { top: 70, right: 42, bottom: 60, left: 80 }
+        },
+        font: ECON_THEME.font,
+        line: ECON_THEME.line,
+        radius: ECON_THEME.radius,
+        dash: ECON_THEME.dash,
+        color: ECON_THEME.color,
+        yMax
+      };
+    }
+
+    function buildCostModel(base, fixedCost, variableShift) {
+      return {
+        ...base,
+        fixedCost,
+        variableShift,
+        avc(q) {
+          return base.a + base.b * q + base.c * q * q + variableShift;
+        },
+        mc(q) {
+          return base.a + 2 * base.b * q + 3 * base.c * q * q + variableShift;
+        },
+        afc(q) {
+          return q <= 0 ? NaN : fixedCost / q;
+        },
+        atc(q) {
+          return q <= 0 ? NaN : this.avc(q) + this.afc(q);
+        }
+      };
+    }
+
+    function numericMinimum(fn, qStart, qEnd, step = 0.01) {
+      let bestQ = qStart;
+      let bestY = Infinity;
+      for (let q = qStart; q <= qEnd; q += step) {
+        const y = fn(q);
+        if (Number.isFinite(y) && y < bestY) {
+          bestY = y;
+          bestQ = q;
+        }
+      }
+      return { q: bestQ, y: bestY };
+    }
+
+    function solveOutput(price, model) {
+      const qMCMin = -model.b / (3 * model.c);
+      const mcMin = model.mc(qMCMin);
+      const shutdown = numericMinimum((q) => model.avc(q), 0.4, model.qMax, 0.01);
+      if (price < shutdown.y - 1e-7) {
+        return { q: 0, decision: 'shutdown', shutdown, qMCMin, mcMin };
+      }
+      let lo = Math.max(qMCMin, shutdown.q);
+      let hi = model.qMax;
+      if (model.mc(hi) < price) {
+        return { q: hi, decision: 'produce', shutdown, qMCMin, mcMin };
+      }
+      for (let i = 0; i < 80; i += 1) {
+        const mid = (lo + hi) / 2;
+        if (model.mc(mid) < price) lo = mid;
+        else hi = mid;
+      }
+      return { q: (lo + hi) / 2, decision: 'produce', shutdown, qMCMin, mcMin };
+    }
+
+    function evaluateScenario(base, price, fixedCost, variableShift) {
+      const model = buildCostModel(base, fixedCost, variableShift);
+      const shutdownPoint = numericMinimum((q) => model.avc(q), 0.4, base.qMax, 0.01);
+      const breakEvenPoint = numericMinimum((q) => model.atc(q), 0.4, base.qMax, 0.01);
+      const solve = solveOutput(price, model);
+      const q = solve.q;
+      const atcAtQ = q > 0 ? model.atc(q) : null;
+      const avcAtQ = q > 0 ? model.avc(q) : null;
+      const afcAtQ = q > 0 ? model.afc(q) : null;
+      const profit = q > 0 ? (price - atcAtQ) * q : -fixedCost;
+      let profitStatus = 'loss';
+      if (q === 0) profitStatus = 'loss';
+      else if (Math.abs(profit) < 0.2) profitStatus = 'breakeven';
+      else if (profit > 0) profitStatus = 'profit';
+      else profitStatus = 'loss';
+
+      return {
+        base,
+        model,
+        price,
+        fixedCost,
+        variableShift,
+        q,
+        atcAtQ,
+        avcAtQ,
+        afcAtQ,
+        profit,
+        profitStatus,
+        shutdownPoint,
+        breakEvenPoint,
+        decision: q === 0 ? 'shutdown' : 'produce',
+        supplyShift: variableShift > 0.05 ? 'left' : variableShift < -0.05 ? 'right' : 'none'
+      };
+    }
+
+    function makeTicks(min, max, step, axis, theme) {
+      const ticks = [];
+      for (let value = min; value <= max + 1e-9; value += step) {
+        ticks.push({
+          label: value.toFixed(0),
+          x: axis === 'x' ? EconDraw.valueToX(value, min, max, theme) : undefined,
+          y: axis === 'y' ? EconDraw.valueToY(value, min, max, theme) : undefined
+        });
+      }
+      return ticks;
+    }
+
+    function drawCostGraph(canvas, result, options = {}) {
+      const ctx = canvas.getContext('2d');
+      const yMax = options.yMax || result.base.yMax;
+      const theme = makeMainTheme(canvas, yMax);
+      const qMax = result.base.qMax;
+      const xFn = (q) => EconDraw.valueToX(q, 0, qMax, theme);
+      const yFn = (v) => EconDraw.valueToY(v, 0, yMax, theme);
+      const baseline = options.baseline || null;
+      const showBaseline = !!baseline;
+      const revealFill = options.revealFill !== false;
+      const axisYLabel = options.axisYLabel || 'Cost and revenue per unit';
+      const axisXLabel = options.axisXLabel || 'Output per period';
+
+      EconDraw.clearCanvas(ctx, theme);
+      EconDraw.drawFrame(ctx, theme);
+      EconDraw.drawAxes(ctx, {
+        theme,
+        xLabel: axisXLabel,
+        yLabel: axisYLabel,
+        xTicks: makeTicks(0, qMax, 2, 'x', theme),
+        yTicks: makeTicks(0, yMax, options.yTickStep || 2, 'y', theme)
+      });
+
+      if (showBaseline) {
+        const baseModel = baseline.model;
+        const dashed = theme.dash.baseline;
+        const baseCurves = [
+          { fn: (q) => baseModel.mc(q), label: 'MC₀' },
+          { fn: (q) => baseModel.avc(q), label: 'AVC₀' },
+          { fn: (q) => baseModel.atc(q), label: 'ATC₀' }
+        ];
+        baseCurves.forEach((curve) => {
+          const pts = [];
+          for (let q = 0.4; q <= qMax; q += 0.06) {
+            const y = curve.fn(q);
+            if (y <= yMax + 1) pts.push({ x: xFn(q), y: yFn(y) });
+          }
+          EconDraw.drawLine(ctx, pts, { theme, color: theme.color.baseline, dash: dashed, lineWidth: theme.line.baseline });
+        });
+        const yBasePrice = yFn(baseline.price);
+        EconDraw.drawLine(ctx, [{ x: xFn(0), y: yBasePrice }, { x: xFn(qMax), y: yBasePrice }], {
+          theme,
+          color: theme.color.baseline,
+          dash: theme.dash.baseline,
+          lineWidth: theme.line.baseline
+        });
+        EconDraw.drawText(ctx, `P₀ = ${UTIL.fmt(baseline.price, 1)}`, xFn(qMax) - 72, yBasePrice - 8, {
+          theme,
+          size: 12,
+          color: theme.color.baseline,
+          weight: '600'
+        });
+      }
+
+      if (revealFill && result.q > 0) {
+        const yPrice = yFn(result.price);
+        const yATC = yFn(result.atcAtQ);
+        const profitFill = result.profit >= 0 ? ECON_THEME.color.govtFill : ECON_THEME.color.psFill;
+        EconDraw.fillPolygon(ctx, [
+          { x: xFn(0), y: yPrice },
+          { x: xFn(result.q), y: yPrice },
+          { x: xFn(result.q), y: yATC },
+          { x: xFn(0), y: yATC }
+        ], { fill: profitFill });
+      }
+
+      const curveDefs = [
+        { key: 'mc', label: 'MC', color: ECON_THEME.color.supply, fn: (q) => result.model.mc(q), start: 0.2, labelQ: qMax - 2.2, offsetY: -8 },
+        { key: 'avc', label: 'AVC', color: ECON_THEME.color.output, fn: (q) => result.model.avc(q), start: 0.2, labelQ: qMax - 3.8, offsetY: -10 },
+        { key: 'atc', label: 'ATC', color: ECON_THEME.color.government, fn: (q) => result.model.atc(q), start: 0.8, labelQ: qMax - 4.8, offsetY: -12 },
+        { key: 'afc', label: 'AFC', color: ECON_THEME.color.longRun, fn: (q) => result.model.afc(q), start: 0.8, labelQ: 2.1, offsetY: -10 }
+      ];
+
+      curveDefs.forEach((curve) => {
+        const pts = [];
+        for (let q = curve.start; q <= qMax; q += 0.05) {
+          const y = curve.fn(q);
+          if (Number.isFinite(y) && y <= yMax + 1) pts.push({ x: xFn(q), y: yFn(y) });
+        }
+        EconDraw.drawLine(ctx, pts, { theme, color: curve.color, lineWidth: theme.line.main });
+        const labelY = curve.fn(curve.labelQ);
+        if (Number.isFinite(labelY) && labelY < yMax + 0.5) {
+          EconDraw.drawText(ctx, curve.label, xFn(curve.labelQ), yFn(labelY) + curve.offsetY, {
+            theme,
+            size: 13,
+            color: curve.color,
+            weight: '700'
+          });
+        }
+      });
+
+      const yPrice = yFn(result.price);
+      EconDraw.drawLine(ctx, [{ x: xFn(0), y: yPrice }, { x: xFn(qMax), y: yPrice }], {
+        theme,
+        color: ECON_THEME.color.external,
+        dash: theme.dash.policy,
+        lineWidth: theme.line.policy
+      });
+      EconDraw.drawText(ctx, `P = MR = ${UTIL.fmt(result.price, 2)}`, xFn(qMax) - 118, yPrice - 10, {
+        theme,
+        size: 13,
+        color: ECON_THEME.color.external,
+        weight: '700'
+      });
+
+      const drawGuidePoint = (q, p, label, color, hollow = false) => {
+        const x = xFn(q);
+        const y = yFn(p);
+        EconDraw.drawCircle(ctx, x, y, {
+          theme,
+          radius: theme.radius.marker,
+          fill: hollow ? '#ffffff' : color,
+          stroke: color,
+          lineWidth: 2
+        });
+        EconDraw.drawText(ctx, label, x + 8, y - 10, {
+          theme,
+          size: 12,
+          color,
+          weight: '700'
+        });
+      };
+
+      const drawVerticalGuide = (q, p, label) => {
+        const x = xFn(q);
+        EconDraw.drawLine(ctx, [{ x, y: yFn(0) }, { x, y: yFn(p) }], {
+          theme,
+          color: theme.color.baseline,
+          dash: theme.dash.guide,
+          lineWidth: 1.5
+        });
+        EconDraw.drawText(ctx, label, x - 10, yFn(0) + 20, { theme, size: 12, color: theme.color.baseline });
+      };
+
+      drawGuidePoint(result.shutdownPoint.q, result.shutdownPoint.y, 'Shutdown', ECON_THEME.color.output, true);
+      drawGuidePoint(result.breakEvenPoint.q, result.breakEvenPoint.y, 'Break-even', ECON_THEME.color.government, true);
+
+      if (result.q > 0) {
+        drawVerticalGuide(result.q, result.price, 'q*');
+        drawGuidePoint(result.q, result.price, 'q*', ECON_THEME.color.supply, false);
+        EconDraw.drawText(ctx, result.profit >= 0 ? 'Profit' : 'Loss', xFn(result.q / 2) - 8, yFn((result.price + result.atcAtQ) / 2) - 6, {
+          theme,
+          size: 13,
+          color: result.profit >= 0 ? ECON_THEME.color.government : ECON_THEME.color.supply,
+          weight: '700'
+        });
+      } else {
+        EconDraw.drawText(ctx, 'Shutdown: q = 0', xFn(6.8), yFn(result.shutdownPoint.y - 1.5), {
+          theme,
+          size: 13,
+          color: ECON_THEME.color.supply,
+          weight: '700'
+        });
+      }
+
+      const status = result.q === 0
+        ? 'Price below minimum AVC: the firm shuts down and loses only fixed cost.'
+        : result.profitStatus === 'profit'
+          ? 'Price above ATC: the firm produces and earns profit.'
+          : result.profitStatus === 'breakeven'
+            ? 'Price equals ATC: the firm produces and breaks even.'
+            : 'Price is above AVC but below ATC: the firm produces with a loss in the short run.';
+
+      EconDraw.drawText(ctx, status, theme.canvas.margin.left, 30, {
+        theme,
+        size: 13,
+        color: ECON_THEME.color.muted
+      });
+    }
+
+    function drawMiniSupply(canvas, result, noteTarget) {
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      const margin = { left: 42, right: 16, top: 18, bottom: 32 };
+      const qMax = result.base.qMax;
+      const yMax = result.base.yMax;
+      const x = (q) => margin.left + (q / qMax) * (width - margin.left - margin.right);
+      const y = (p) => height - margin.bottom - (p / yMax) * (height - margin.top - margin.bottom);
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.strokeStyle = ECON_THEME.color.frame;
+      ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
+
+      ctx.strokeStyle = ECON_THEME.color.grid;
+      ctx.lineWidth = 0.8;
+      for (let q = 0; q <= qMax; q += 2) {
+        ctx.beginPath();
+        ctx.moveTo(x(q), margin.top);
+        ctx.lineTo(x(q), height - margin.bottom);
+        ctx.stroke();
+      }
+      for (let p = 0; p <= yMax; p += 4) {
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y(p));
+        ctx.lineTo(width - margin.right, y(p));
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = ECON_THEME.color.axis;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, margin.top);
+      ctx.lineTo(margin.left, height - margin.bottom);
+      ctx.lineTo(width - margin.right, height - margin.bottom);
+      ctx.stroke();
+
+      ctx.fillStyle = ECON_THEME.color.text;
+      ctx.font = '11px Inter, Arial, sans-serif';
+      for (let q = 0; q <= qMax; q += 4) {
+        ctx.fillText(String(q), x(q) - 4, height - margin.bottom + 16);
+      }
+      for (let p = 0; p <= yMax; p += 4) {
+        ctx.fillText(String(p), 8, y(p) + 4);
+      }
+      ctx.fillText('q', width - 18, height - 8);
+      ctx.save();
+      ctx.translate(12, height / 2 + 8);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('P', 0, 0);
+      ctx.restore();
+
+      const supplyPts = [];
+      for (let q = result.shutdownPoint.q; q <= qMax; q += 0.05) {
+        supplyPts.push({ x: x(q), y: y(result.model.mc(q)) });
+      }
+      ctx.strokeStyle = ECON_THEME.color.supply;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      supplyPts.forEach((pt, index) => {
+        if (index === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.stroke();
+
+      ctx.setLineDash([10, 6]);
+      ctx.strokeStyle = ECON_THEME.color.external;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, y(result.price));
+      ctx.lineTo(width - margin.right, y(result.price));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (result.q > 0) {
+        ctx.fillStyle = ECON_THEME.color.supply;
+        ctx.beginPath();
+        ctx.arc(x(result.q), y(result.price), 4.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = ECON_THEME.color.supply;
+      ctx.font = '600 12px Inter, Arial, sans-serif';
+      ctx.fillText('Supply', x(result.shutdownPoint.q) + 10, y(result.model.mc(result.shutdownPoint.q + 1)) - 10);
+      ctx.fillStyle = ECON_THEME.color.muted;
+      ctx.font = '12px Inter, Arial, sans-serif';
+      ctx.fillText(`Shutdown price ≈ ${UTIL.fmt(result.shutdownPoint.y, 2)}`, margin.left + 4, margin.top + 12);
+
+      noteTarget.textContent = result.variableShift === 0
+        ? 'Try raising fixed cost: the mini supply graph does not move, because short-run supply depends on MC and AVC, not on AFC.'
+        : result.variableShift > 0
+          ? 'Higher variable cost shifts the firm’s short-run supply curve left / up because MC and AVC both move upward.'
+          : 'Lower variable cost shifts the firm’s short-run supply curve right / down because MC and AVC both move downward.';
+    }
+
+    function drawCaseBars(canvas, steps, activeIndex, noteTarget) {
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      const margin = { left: 42, right: 18, top: 20, bottom: 38 };
+      const yMax = 22;
+      const xStart = margin.left;
+      const plotWidth = width - margin.left - margin.right;
+      const plotHeight = height - margin.top - margin.bottom;
+      const xBand = plotWidth / steps.length;
+      const y = (v) => height - margin.bottom - (v / yMax) * plotHeight;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.strokeStyle = ECON_THEME.color.frame;
+      ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
+
+      ctx.strokeStyle = ECON_THEME.color.grid;
+      for (let p = 0; p <= yMax; p += 4) {
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y(p));
+        ctx.lineTo(width - margin.right, y(p));
+        ctx.stroke();
+      }
+      ctx.strokeStyle = ECON_THEME.color.axis;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, margin.top);
+      ctx.lineTo(margin.left, height - margin.bottom);
+      ctx.lineTo(width - margin.right, height - margin.bottom);
+      ctx.stroke();
+
+      ctx.fillStyle = ECON_THEME.color.muted;
+      ctx.font = '11px Inter, Arial, sans-serif';
+      for (let p = 0; p <= yMax; p += 4) {
+        ctx.fillText(String(p), 8, y(p) + 4);
+      }
+
+      steps.forEach((step, index) => {
+        const cx = xStart + index * xBand + xBand / 2;
+        const barW = xBand * 0.26;
+        const gap = xBand * 0.07;
+        const priceX = cx - gap / 2 - barW;
+        const costX = cx + gap / 2;
+        const priceY = y(step.pricePerLb);
+        const costY = y(step.cashCost);
+
+        ctx.fillStyle = index === activeIndex ? 'rgba(47,107,255,0.22)' : 'rgba(47,107,255,0.14)';
+        ctx.fillRect(priceX, priceY, barW, height - margin.bottom - priceY);
+        ctx.fillStyle = index === activeIndex ? 'rgba(216,74,58,0.24)' : 'rgba(216,74,58,0.16)';
+        ctx.fillRect(costX, costY, barW, height - margin.bottom - costY);
+
+        ctx.fillStyle = ECON_THEME.color.output;
+        ctx.font = '600 11px Inter, Arial, sans-serif';
+        ctx.fillText(UTIL.fmt(step.pricePerLb, 1), priceX - 1, priceY - 6);
+        ctx.fillStyle = ECON_THEME.color.supply;
+        ctx.fillText(UTIL.fmt(step.cashCost, 1), costX - 1, costY - 6);
+
+        ctx.fillStyle = ECON_THEME.color.text;
+        ctx.font = '11px Inter, Arial, sans-serif';
+        ctx.fillText(step.shortLabel, cx - 18, height - margin.bottom + 16);
+      });
+
+      ctx.fillStyle = ECON_THEME.color.output;
+      ctx.font = '600 11px Inter, Arial, sans-serif';
+      ctx.fillText('Realised price', margin.left + 8, margin.top + 12);
+      ctx.fillStyle = ECON_THEME.color.supply;
+      ctx.fillText('Cash cost / royalties', margin.left + 110, margin.top + 12);
+
+      noteTarget.textContent = 'Blue bars are realised prices converted to A$ per lb sold; red bars are cash costs / royalties. The crossing between Step 2 and Step 3 is the short-run shutdown lesson.';
+    }
+
+    const exploreBase = { a: 6, b: -0.6, c: 0.05, qMax: 14, yMax: 18 };
+    const caseBase = { a: 14, b: -1.4, c: 0.10, qMax: 14, yMax: 22 };
+
+    const exploreState = {
+      price: 8,
+      fixedCost: 16,
+      variableShift: 0
+    };
+
+    const practiceBaseline = evaluateScenario(exploreBase, 8, 16, 0);
+    const practiceScenarios = [
+      {
+        id: 'shutdown-price-crash',
+        title: 'Price crash below shutdown',
+        prompt: 'A market slump pushes the firm’s price down to 3.8 while costs stay at the baseline values.',
+        price: 3.8, fixedCost: 16, variableShift: 0,
+        explanation: 'Because price falls below minimum AVC, the firm shuts down in the short run and avoids additional variable losses.'
+      },
+      {
+        id: 'break-even-price',
+        title: 'Price at break-even',
+        prompt: 'Market price falls exactly to the break-even level while cost curves stay at their baseline positions.',
+        price: numericMinimum((q) => buildCostModel(exploreBase, 16, 0).atc(q), 0.4, exploreBase.qMax, 0.01).y,
+        fixedCost: 16, variableShift: 0,
+        explanation: 'At the minimum of ATC, price equals average total cost. The firm produces, but economic profit is zero.'
+      },
+      {
+        id: 'higher-fixed-cost',
+        title: 'Higher fixed cost only',
+        prompt: 'Rent and overheads rise, lifting fixed cost from 16 to 24 while the market price stays at 8.',
+        price: 8, fixedCost: 24, variableShift: 0,
+        explanation: 'Higher fixed cost raises AFC and ATC, but it does not change MC or AVC, so output and the short-run supply curve do not change.'
+      },
+      {
+        id: 'higher-variable-cost',
+        title: 'Higher variable cost',
+        prompt: 'An energy-cost shock raises variable cost by 2.0 while the market price stays at 8.',
+        price: 8, fixedCost: 16, variableShift: 2.0,
+        explanation: 'Higher variable cost shifts MC and AVC upward. The firm still produces because price remains above AVC, but output falls and the firm now incurs a loss.'
+      },
+      {
+        id: 'technology-improvement',
+        title: 'Technology improvement',
+        prompt: 'A process improvement lowers variable cost by 1.0 while the market price stays at 8.',
+        price: 8, fixedCost: 16, variableShift: -1.0,
+        explanation: 'Lower variable cost shifts MC and AVC downward. The firm expands output, profit rises, and the short-run supply curve shifts right.'
+      },
+      {
+        id: 'demand-boom',
+        title: 'Demand boom raises price',
+        prompt: 'Industry demand strengthens and the price received by the firm rises to 10.5 while costs stay at baseline.',
+        price: 10.5, fixedCost: 16, variableShift: 0,
+        explanation: 'For a price-taking firm, a higher market price is movement along the supply curve, not a shift of the firm’s supply curve.'
+      }
+    ].map((scenario) => {
+      const evaluation = evaluateScenario(exploreBase, scenario.price, scenario.fixedCost, scenario.variableShift);
+      let outputChange = 'same';
+      if (evaluation.q === 0) outputChange = 'zero';
+      else if (evaluation.q > practiceBaseline.q + 0.15) outputChange = 'higher';
+      else if (evaluation.q < practiceBaseline.q - 0.15) outputChange = 'lower';
+      const correct = {
+        decision: evaluation.decision,
+        profitStatus: evaluation.profitStatus,
+        outputChange,
+        supplyShift: evaluation.supplyShift
+      };
+      return { ...scenario, evaluation, correct };
+    });
+
+    const practiceState = {
+      scenarioIndex: 0,
+      revealed: false
+    };
+
+    const caseSteps = [
+      {
+        shortLabel: '2Q23',
+        label: '2Q23 high-price quarter',
+        pricePerLb: 18.67,
+        cashCost: 10.97,
+        fixedCost: 26,
+        variableShift: 0,
+        accounting: 'Underlying EBITDA A$45M in 2Q23.',
+        production: '2Q23 nickel in concentrate: 2,950t.',
+        narrative: 'In 2Q23, Forrestania sold nickel at about A$18.67 per lb while cash cost was A$10.97 per lb. That placed the operation comfortably above its stylised ATC curve, so the textbook reading is positive short-run profit.',
+        implication: 'Textbook translation: price exceeded ATC, so the firm produced and earned short-run profit.',
+        zone: 'Profit'
+      },
+      {
+        shortLabel: '1H24',
+        label: '1H24 produce-with-loss phase',
+        pricePerLb: 14.63,
+        cashCost: 11.83,
+        fixedCost: 24,
+        variableShift: 2.73,
+        accounting: '1H24 segment operating loss before impairment and tax: A$3.9M.',
+        production: '1H24 contained nickel: 4,374t; payable sales: 4,510t.',
+        narrative: 'By 1H24, Forrestania’s A$ nickel price per pound sold had fallen to 14.63 while cash costs rose to 11.83. The firm still covered variable cost, but it posted an operating loss before impairment and tax. That is the classic short-run “produce with a loss” zone.',
+        implication: 'Textbook translation: price remained above AVC but below ATC, so the firm kept producing in the short run even while losing money overall.',
+        zone: 'Produce with loss'
+      },
+      {
+        shortLabel: '1H25',
+        label: '1H25 shutdown zone and care-and-maintenance transition',
+        pricePerLb: 13.24,
+        cashCost: 16.23,
+        fixedCost: 24,
+        variableShift: 7.13,
+        accounting: '1H25 segment loss before tax: A$23.7M; operation safely transitioned into care and maintenance.',
+        production: '1H25 contained nickel: 802t; payable sales: 2,089t; mine closure during the period.',
+        narrative: 'By 1H25, Forrestania’s A$ nickel price per pound sold had fallen to 13.24 while cash costs and royalties reached 16.23 per lb. The short-run graph now moves into the shutdown zone: price no longer covers variable cost, so continued operation becomes uneconomic and the mine transitions to care and maintenance.',
+        implication: 'Textbook translation: price fell below AVC, so the short-run decision is shutdown.',
+        zone: 'Shutdown'
+      }
+    ].map((step) => ({ ...step, evaluation: evaluateScenario(caseBase, step.pricePerLb, step.fixedCost, step.variableShift) }));
+
+    const caseState = {
+      stepIndex: 0,
+      timer: null
+    };
+
+    function updateExplore() {
+      const priceSlider = document.getElementById('priceSlider');
+      const fixedCostSlider = document.getElementById('fixedCostSlider');
+      const variableShiftSlider = document.getElementById('variableShiftSlider');
+      exploreState.price = Number(priceSlider.value);
+      exploreState.fixedCost = Number(fixedCostSlider.value);
+      exploreState.variableShift = Number(variableShiftSlider.value);
+
+      document.getElementById('priceValue').textContent = UTIL.money(exploreState.price, 2);
+      document.getElementById('fixedCostValue').textContent = UTIL.money(exploreState.fixedCost, 0);
+      document.getElementById('variableShiftValue').textContent = `${exploreState.variableShift > 0 ? '+' : ''}${UTIL.fmt(exploreState.variableShift, 1)}`;
+
+      const result = evaluateScenario(exploreBase, exploreState.price, exploreState.fixedCost, exploreState.variableShift);
+      drawCostGraph(document.getElementById('exploreCanvas'), result, { yMax: 18, axisYLabel: 'Cost and revenue per unit', axisXLabel: 'Output per period' });
+      drawMiniSupply(document.getElementById('supplyCanvas'), result, document.getElementById('supplyNote'));
+
+      document.getElementById('metricOutput').textContent = result.q === 0 ? '0 (shutdown)' : UTIL.fmt(result.q, 2);
+      document.getElementById('metricShutdown').textContent = UTIL.money(result.shutdownPoint.y, 2);
+      document.getElementById('metricBreakEven').textContent = UTIL.money(result.breakEvenPoint.y, 2);
+      document.getElementById('metricATC').textContent = result.q === 0 ? '—' : UTIL.money(result.atcAtQ, 2);
+      document.getElementById('metricAVC').textContent = result.q === 0 ? '—' : UTIL.money(result.avcAtQ, 2);
+      document.getElementById('metricProfit').textContent = result.profitStatus === 'breakeven'
+        ? '≈ $0'
+        : result.q === 0
+          ? `-${UTIL.money(exploreState.fixedCost, 0)}`
+          : UTIL.fmtSigned(result.profit, 2).replace(/^\+/, '+$').replace(/^-/, '-$').replace(/\+/,'+$');
+      const metricProfitEl = document.getElementById('metricProfit');
+      if (result.q > 0) metricProfitEl.textContent = result.profit > 0 ? `+$${UTIL.fmt(result.profit, 2)}` : `-$${UTIL.fmt(Math.abs(result.profit), 2)}`;
+
+      let statusText = '';
+      if (result.q === 0) {
+        statusText = `Price is below the shutdown point (${UTIL.money(result.shutdownPoint.y, 2)}), so the firm shuts down in the short run and loses only its fixed cost of ${UTIL.money(result.fixedCost, 0)}.`;
+      } else if (result.profitStatus === 'profit') {
+        statusText = `Price exceeds ATC at q*, so the firm produces ${UTIL.fmt(result.q, 2)} units and earns short-run profit of ${UTIL.money(result.profit, 2)}.`;
+      } else if (result.profitStatus === 'breakeven') {
+        statusText = `Price equals ATC at q*, so the firm produces ${UTIL.fmt(result.q, 2)} units and breaks even.`;
+      } else {
+        statusText = `Price remains above AVC but below ATC, so the firm produces ${UTIL.fmt(result.q, 2)} units even though it makes a short-run loss of ${UTIL.money(Math.abs(result.profit), 2)}.`;
+      }
+      if (Math.abs(exploreState.variableShift) < 0.05 && exploreState.fixedCost !== 16) {
+        statusText += ' Notice that output and the supply graph do not move when only fixed cost changes.';
+      }
+      document.getElementById('exploreStatus').textContent = statusText;
+    }
+
+    function renderScenarioBank() {
+      const bank = document.getElementById('scenarioBank');
+      bank.innerHTML = '';
+      practiceScenarios.forEach((scenario, index) => {
+        const button = document.createElement('button');
+        button.className = `scenario-chip ${index === practiceState.scenarioIndex ? 'active' : ''}`;
+        button.textContent = scenario.title;
+        button.addEventListener('click', () => {
+          practiceState.scenarioIndex = index;
+          practiceState.revealed = false;
+          resetPracticeAnswers(false);
+          renderPractice();
+        });
+        bank.appendChild(button);
+      });
+    }
+
+    function resetPracticeAnswers(resetFeedback = true) {
+      document.getElementById('answerDecision').value = '';
+      document.getElementById('answerProfitStatus').value = '';
+      document.getElementById('answerOutputChange').value = '';
+      document.getElementById('answerSupplyShift').value = '';
+      if (resetFeedback) {
+        const feedback = document.getElementById('practiceFeedback');
+        feedback.className = 'feedback-compact feedback-neutral';
+        feedback.textContent = 'Select a scenario, inspect the graph, answer all four questions, and then check your answer.';
+      }
+    }
+
+    function renderPractice() {
+      renderScenarioBank();
+      const scenario = practiceScenarios[practiceState.scenarioIndex];
+      document.getElementById('practicePrompt').textContent = scenario.prompt;
+      document.getElementById('practiceBaselinePrice').textContent = UTIL.money(practiceBaseline.price, 2);
+      document.getElementById('practiceBaselineOutput').textContent = UTIL.fmt(practiceBaseline.q, 2);
+      document.getElementById('practiceScenarioOutput').textContent = scenario.evaluation.q === 0 ? '0' : UTIL.fmt(scenario.evaluation.q, 2);
+      document.getElementById('practiceScenarioProfit').textContent = scenario.evaluation.q === 0
+        ? `-$${UTIL.fmt(scenario.fixedCost, 0)}`
+        : scenario.evaluation.profit > 0
+          ? `+$${UTIL.fmt(scenario.evaluation.profit, 2)}`
+          : scenario.evaluation.profitStatus === 'breakeven'
+            ? '≈ $0'
+            : `-$${UTIL.fmt(Math.abs(scenario.evaluation.profit), 2)}`;
+      drawCostGraph(document.getElementById('practiceCanvas'), scenario.evaluation, {
+        yMax: 18,
+        axisYLabel: 'Cost and revenue per unit',
+        axisXLabel: 'Output per period',
+        baseline: practiceBaseline,
+        revealFill: practiceState.revealed
+      });
+    }
+
+    function checkPractice() {
+      const scenario = practiceScenarios[practiceState.scenarioIndex];
+      const answers = {
+        decision: document.getElementById('answerDecision').value,
+        profitStatus: document.getElementById('answerProfitStatus').value,
+        outputChange: document.getElementById('answerOutputChange').value,
+        supplyShift: document.getElementById('answerSupplyShift').value
+      };
+      const missing = Object.values(answers).some((value) => !value);
+      if (missing) {
+        const feedback = document.getElementById('practiceFeedback');
+        feedback.className = 'feedback-compact feedback-warning';
+        feedback.textContent = 'Complete all four answer boxes before checking.';
+        return;
+      }
+      practiceState.revealed = true;
+      renderPractice();
+
+      const labels = {
+        decision: 'short-run decision',
+        profitStatus: 'profit status',
+        outputChange: 'output change',
+        supplyShift: 'supply-curve answer'
+      };
+      const answerPhrases = {
+        decision: { produce: 'produce', shutdown: 'shut down' },
+        profitStatus: { profit: 'earn profit', loss: 'make a loss', breakeven: 'break even' },
+        outputChange: { higher: 'output is higher', lower: 'output is lower', same: 'output is unchanged', zero: 'output falls to zero' },
+        supplyShift: { left: 'supply shifts left / up', right: 'supply shifts right / down', none: 'supply does not shift' }
+      };
+      const wrong = Object.keys(answers).filter((key) => answers[key] !== scenario.correct[key]);
+      const feedback = document.getElementById('practiceFeedback');
+      if (wrong.length === 0) {
+        feedback.className = 'feedback-compact feedback-success';
+        feedback.textContent = `Correct. ${scenario.explanation}`;
+      } else {
+        const corrections = wrong.map((key) => `${labels[key]}: ${answerPhrases[key][scenario.correct[key]]}`).join('; ');
+        feedback.className = 'feedback-compact feedback-warning';
+        feedback.textContent = `Not quite. ${corrections}. ${scenario.explanation}`;
+      }
+    }
+
+    function renderCaseStepButtons() {
+      const row = document.getElementById('caseStepRow');
+      row.innerHTML = '';
+      caseSteps.forEach((step, index) => {
+        const button = document.createElement('button');
+        button.className = `case-step-btn ${index === caseState.stepIndex ? 'active' : ''}`;
+        button.textContent = step.label;
+        button.addEventListener('click', () => {
+          stopCasePlayback();
+          caseState.stepIndex = index;
+          renderCase();
+        });
+        row.appendChild(button);
+      });
+    }
+
+    function renderCase() {
+      renderCaseStepButtons();
+      const step = caseSteps[caseState.stepIndex];
+      drawCostGraph(document.getElementById('caseCanvas'), step.evaluation, {
+        yMax: 22,
+        axisYLabel: 'A$ per lb (stylised operating map)',
+        axisXLabel: 'Stylised output index'
+      });
+      drawCaseBars(document.getElementById('caseBarsCanvas'), caseSteps, caseState.stepIndex, document.getElementById('caseBarsNote'));
+
+      document.getElementById('caseNarrative').textContent = step.narrative;
+      document.getElementById('casePriceMetric').textContent = `${UTIL.money(step.pricePerLb, 2)} per lb`;
+      document.getElementById('caseCashCostMetric').textContent = `${UTIL.money(step.cashCost, 2)} per lb`;
+      document.getElementById('caseAccountingMetric').textContent = step.accounting;
+      document.getElementById('caseProductionMetric').textContent = step.production;
+      document.getElementById('caseTextbookImplication').textContent = step.implication;
+      document.getElementById('globalNickelContext').innerHTML = `
+        IMF / FRED global nickel benchmark averages fell from <strong>US$25,867/t in 2022</strong> to <strong>US$21,529/t in 2023</strong> and <strong>US$16,816/t in 2024</strong>. In mid-2024, Reuters and BHP described the Australian nickel downturn as a result of global oversupply, especially from Indonesia, with multiple Western Australian operations moving into suspension or care and maintenance.
+      `;
+      document.getElementById('caseTableBody').innerHTML = caseSteps.map((row) => `
+        <tr>
+          <td>${row.shortLabel}</td>
+          <td>${UTIL.fmt(row.pricePerLb, 2)}</td>
+          <td>${UTIL.fmt(row.cashCost, 2)}</td>
+          <td>${row.zone}</td>
+        </tr>
+      `).join('');
+    }
+
+    function stopCasePlayback() {
+      if (caseState.timer) {
+        clearInterval(caseState.timer);
+        caseState.timer = null;
+      }
+      document.getElementById('playCaseButton').textContent = 'Play sequence';
+    }
+
+    function toggleCasePlayback() {
+      if (caseState.timer) {
+        stopCasePlayback();
+        return;
+      }
+      document.getElementById('playCaseButton').textContent = 'Pause sequence';
+      caseState.timer = setInterval(() => {
+        caseState.stepIndex += 1;
+        if (caseState.stepIndex >= caseSteps.length) {
+          caseState.stepIndex = 0;
+          stopCasePlayback();
+        }
+        renderCase();
+      }, 1800);
+    }
+
+    function activateSection(targetId) {
+      document.querySelectorAll('.module-tab').forEach((tab) => {
+        tab.classList.toggle('active', tab.dataset.target === targetId);
+      });
+      document.querySelectorAll('.module-section').forEach((section) => {
+        section.classList.toggle('active', section.id === targetId);
+      });
+      if (targetId === 'exploreSection') updateExplore();
+      if (targetId === 'practiceSection') renderPractice();
+      if (targetId === 'caseSection') renderCase();
+    }
+
+    document.querySelectorAll('.module-tab').forEach((tab) => {
+      tab.addEventListener('click', () => activateSection(tab.dataset.target));
+    });
+
+    document.getElementById('priceSlider').addEventListener('input', updateExplore);
+    document.getElementById('fixedCostSlider').addEventListener('input', updateExplore);
+    document.getElementById('variableShiftSlider').addEventListener('input', updateExplore);
+    document.getElementById('exploreResetButton').addEventListener('click', () => {
+      document.getElementById('priceSlider').value = '8';
+      document.getElementById('fixedCostSlider').value = '16';
+      document.getElementById('variableShiftSlider').value = '0';
+      updateExplore();
+    });
+    document.getElementById('setShutdownButton').addEventListener('click', () => {
+      const result = evaluateScenario(exploreBase, exploreState.price, exploreState.fixedCost, exploreState.variableShift);
+      document.getElementById('priceSlider').value = result.shutdownPoint.y.toFixed(2);
+      updateExplore();
+    });
+    document.getElementById('setBreakEvenButton').addEventListener('click', () => {
+      const result = evaluateScenario(exploreBase, exploreState.price, exploreState.fixedCost, exploreState.variableShift);
+      document.getElementById('priceSlider').value = result.breakEvenPoint.y.toFixed(2);
+      updateExplore();
+    });
+    document.getElementById('setProfitButton').addEventListener('click', () => {
+      document.getElementById('priceSlider').value = '10.5';
+      updateExplore();
+    });
+
+    document.getElementById('newScenarioButton').addEventListener('click', () => {
+      stopCasePlayback();
+      let next = practiceState.scenarioIndex;
+      while (next === practiceState.scenarioIndex) {
+        next = Math.floor(Math.random() * practiceScenarios.length);
+      }
+      practiceState.scenarioIndex = next;
+      practiceState.revealed = false;
+      resetPracticeAnswers();
+      renderPractice();
+    });
+    document.getElementById('resetPracticeButton').addEventListener('click', () => {
+      practiceState.revealed = false;
+      resetPracticeAnswers();
+      renderPractice();
+    });
+    document.getElementById('checkPracticeButton').addEventListener('click', checkPractice);
+
+    document.getElementById('playCaseButton').addEventListener('click', toggleCasePlayback);
+    document.getElementById('resetCaseButton').addEventListener('click', () => {
+      stopCasePlayback();
+      caseState.stepIndex = 0;
+      renderCase();
+    });
+
+    updateExplore();
+    renderPractice();
+    renderCase();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G11_cost_minimization</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .module-tab {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+    .module-tab:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active {
+      background: #eef3ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-strip, .legend-row, .step-switch, .hint-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .summary-strip { margin: 10px 0 16px 0; }
+    .summary-chip, .step-button {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+    .step-button {
+      cursor: pointer;
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .step-button.active {
+      background: #eefaf4;
+      border-color: var(--color-government);
+      color: var(--color-government);
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 12px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 170px;
+    }
+    .control-inline.compact { min-width: 145px; }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(310px, 0.9fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .workspace.two-charts {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.95fr);
+    }
+    .graph-stack, .side-stack, .chart-grid, .answer-grid {
+      display: grid;
+      gap: 16px;
+    }
+    .chart-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .mini-card, .status-card, .source-note {
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .mini-card-title, .status-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.3;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.isoquant { border-color: var(--color-demand); }
+    .legend-line.isocost { border-color: var(--color-long-run); }
+    .legend-line.path { border-color: var(--color-government); }
+    .legend-line.baseline {
+      border-color: var(--color-baseline);
+      border-top-style: dashed;
+      border-top-width: 2px;
+    }
+    .legend-line.guess {
+      border-color: var(--color-guess);
+      border-top-style: dashed;
+      border-top-width: 2px;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      background: white;
+      border: 2px solid var(--color-text);
+    }
+    .legend-dot.current {
+      background: var(--color-output);
+      border-color: var(--color-output);
+    }
+    .legend-dot.baseline {
+      background: white;
+      border-color: var(--color-baseline);
+    }
+    .legend-dot.guess {
+      background: white;
+      border-color: var(--color-guess);
+    }
+    .graph-note, .small-muted, .footer-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.5;
+    }
+    .metric-grid.two {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+    .metric-grid.three {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+    .metric-grid.four {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+    .metric-item {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .metric-label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+    }
+    .metric-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text);
+      line-height: 1.35;
+    }
+    .metric-value.small {
+      font-size: 14px;
+    }
+
+    .answer-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .answer-card {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .answer-card label {
+      display: block;
+      font-size: 12px;
+      color: var(--color-text);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .feedback-box {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--color-frame);
+      background: #fbfcfe;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--color-text);
+    }
+    .feedback-box.success {
+      border-left: 4px solid var(--color-government);
+      background: #f3fbf6;
+    }
+    .feedback-box.warning {
+      border-left: 4px solid var(--color-inflation);
+      background: #fff9f1;
+    }
+    .feedback-box.neutral {
+      border-left: 4px solid var(--color-baseline);
+    }
+
+    .case-grid {
+      display: grid;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .stat-pill {
+      padding: 12px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      background: white;
+    }
+    .stat-pill strong {
+      display: block;
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+    }
+    .stat-pill span {
+      display: block;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text);
+      line-height: 1.35;
+    }
+
+    .source-note ul {
+      margin: 8px 0 0 18px;
+      padding: 0;
+    }
+    .source-note li {
+      margin: 0 0 6px 0;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.45;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 1020px) {
+      .workspace, .workspace.two-charts {
+        grid-template-columns: 1fr;
+      }
+      .chart-grid.three {
+        grid-template-columns: 1fr;
+      }
+      .metric-grid.four, .stat-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 720px) {
+      .answer-grid, .metric-grid.three, .metric-grid.two, .metric-grid.four, .stat-strip {
+        grid-template-columns: 1fr;
+      }
+      .control-inline, .control-inline.compact {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Cost minimisation, MRTS, input substitution, expansion path, and long-run production choice</h1>
+        <p class="diagram-subtitle">
+          Use isoquants and isocosts to see how a firm chooses the least-cost input mix for a target output. Then connect the same logic to a real-world case: the exit of large-scale automobile manufacturing from Australia.
+        </p>
+      </div>
+
+      <div class="summary-strip">
+        <div class="summary-chip">Isoquant–isocost tangency</div>
+        <div class="summary-chip">MRTS = w/r at the optimum</div>
+        <div class="summary-chip">Input substitution when factor prices change</div>
+        <div class="summary-chip">Expansion path across output targets</div>
+        <div class="summary-chip">Local production vs import option</div>
+        <div class="summary-chip">Australian auto-manufacturing case study</div>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Real-world case study</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="wageSlider">Wage rate (w)<span id="wageLabel" class="inline-value"></span></label>
+            <input type="range" id="wageSlider" min="0.75" max="1.80" step="0.05" value="1.20" />
+          </div>
+          <div class="control-inline">
+            <label for="rentSlider">Rental rate of capital (r)<span id="rentLabel" class="inline-value"></span></label>
+            <input type="range" id="rentSlider" min="0.75" max="1.60" step="0.05" value="1.00" />
+          </div>
+          <div class="control-inline">
+            <label for="outputSlider">Target output<span id="outputLabel" class="inline-value"></span></label>
+            <input type="range" id="outputSlider" min="50" max="110" step="5" value="70" />
+          </div>
+          <div class="control-inline">
+            <label for="techSlider">Technology / productivity (A)<span id="techLabel" class="inline-value"></span></label>
+            <input type="range" id="techSlider" min="0.90" max="1.15" step="0.01" value="1.00" />
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="explorePresetWage">Higher wages</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="explorePresetRobots">Cheaper robots</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="explorePresetScale">Bigger output</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="exploreReset">Reset</button>
+          </div>
+        </div>
+
+        <div class="hint-row" style="margin: 0 0 12px 0;">
+          <label class="summary-chip"><input type="checkbox" id="showExpansionPath" checked style="margin-right:8px;"> Show expansion path</label>
+          <label class="summary-chip"><input type="checkbox" id="showNeighbourIsoquants" checked style="margin-right:8px;"> Show nearby isoquants</label>
+          <label class="summary-chip"><input type="checkbox" id="showBaseline" checked style="margin-right:8px;"> Show baseline comparison</label>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="mini-card">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line isoquant"></span><span>Current target isoquant</span></div>
+                <div class="legend-item"><span class="legend-line isocost"></span><span>Current least-cost isocost</span></div>
+                <div class="legend-item"><span class="legend-line path"></span><span>Expansion path</span></div>
+                <div class="legend-item"><span class="legend-line baseline"></span><span>Baseline reference state</span></div>
+                <div class="legend-item"><span class="legend-dot current"></span><span>Current tangency</span></div>
+                <div class="legend-item"><span class="legend-dot baseline"></span><span>Baseline tangency</span></div>
+              </div>
+              <div class="graph-note">
+                The firm minimises cost by choosing the tangency point where the isoquant just touches the lowest attainable isocost line. At that point, <strong>MRTS = w/r</strong>. When labour becomes relatively more expensive, the isocost gets steeper and the least-cost bundle uses relatively more capital.
+              </div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="status-card">
+              <div class="status-title">Interpretation</div>
+              <div id="exploreInterpretation" class="graph-note"></div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="metric-grid two">
+                <div class="metric-item">
+                  <div class="metric-label">Cost-minimising labour</div>
+                  <div id="metricExploreL" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Cost-minimising capital</div>
+                  <div id="metricExploreK" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">MRTS at tangency</div>
+                  <div id="metricExploreMRTS" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Factor-price ratio (w/r)</div>
+                  <div id="metricExploreWR" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Minimum total cost</div>
+                  <div id="metricExploreCost" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Unit cost</div>
+                  <div id="metricExploreUnitCost" class="metric-value">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mini-card">
+              <div class="mini-card-title">What changes when you move the sliders?</div>
+              <div class="graph-note">
+                <strong>Higher wage:</strong> the isocost steepens and the optimal bundle uses less labour and more capital.<br>
+                <strong>Higher rental rate:</strong> the isocost flattens and the optimal bundle uses more labour and less capital.<br>
+                <strong>Higher target output:</strong> the firm moves outward along the expansion path.<br>
+                <strong>Better technology:</strong> the isoquant for a given output moves inward, so fewer inputs are needed.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline" style="min-width: 280px;">
+            <label for="practiceScenarioSelect">Scenario</label>
+            <select id="practiceScenarioSelect"></select>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceRandom">Random scenario</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceReset">Reset guess</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="practiceCheck">Check answer</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="mini-card">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line baseline"></span><span>Initial isoquant and isocost</span></div>
+                <div class="legend-item"><span class="legend-line guess"></span><span>Your guessed isocost</span></div>
+                <div class="legend-item"><span class="legend-dot guess"></span><span>Your guessed bundle</span></div>
+                <div class="legend-item"><span class="legend-line isoquant"></span><span>Revealed new isoquant</span></div>
+                <div class="legend-item"><span class="legend-line isocost"></span><span>Revealed least-cost isocost</span></div>
+                <div class="legend-item"><span class="legend-dot current"></span><span>Correct new tangency</span></div>
+              </div>
+              <div class="graph-note">
+                Drag the purple point to where you think the new least-cost bundle will be. Then answer the direction questions. After checking, the correct isoquant, isocost, and tangency point are revealed.
+              </div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="status-card">
+              <div class="status-title">Practice prompt</div>
+              <div id="practicePrompt" class="graph-note"></div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="answer-grid">
+                <div class="answer-card">
+                  <label for="ansLabour">Labour use</label>
+                  <select id="ansLabour">
+                    <option value="">Choose</option>
+                    <option value="increase">Increase</option>
+                    <option value="decrease">Decrease</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="ansCapital">Capital use</label>
+                  <select id="ansCapital">
+                    <option value="">Choose</option>
+                    <option value="increase">Increase</option>
+                    <option value="decrease">Decrease</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="ansCost">Minimum total cost</label>
+                  <select id="ansCost">
+                    <option value="">Choose</option>
+                    <option value="increase">Increase</option>
+                    <option value="decrease">Decrease</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="ansSlope">Isocost slope</label>
+                  <select id="ansSlope">
+                    <option value="">Choose</option>
+                    <option value="steeper">Steeper</option>
+                    <option value="flatter">Flatter</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="ansPath">Expansion path</label>
+                  <select id="ansPath">
+                    <option value="">Choose</option>
+                    <option value="pivot_capital">Pivots toward capital</option>
+                    <option value="pivot_labour">Pivots toward labour</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="practiceFeedback" class="feedback-box neutral">
+              Choose a scenario, drag a guess point, complete the answers, and then check your work.
+            </div>
+
+            <div class="mini-card">
+              <div class="mini-card-title">Check-answer logic</div>
+              <div class="graph-note">
+                Your guess is evaluated against the model-implied least-cost bundle. The direction answers are checked relative to the baseline tangency. For neutral technology or pure scale changes, the expansion path does not pivot. For factor-price changes, it pivots toward the relatively cheaper factor.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline" style="min-width: 340px;">
+            <label>Case-study sequence</label>
+            <div class="step-switch" id="caseStepButtons"></div>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="casePrev">Previous step</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="caseNext">Next step</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="caseReset">Reset case</button>
+          </div>
+        </div>
+
+        <div class="workspace two-charts">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="mini-card">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line baseline"></span><span>2004 reference state</span></div>
+                <div class="legend-item"><span class="legend-line isoquant"></span><span>Current stylised local-production isoquant</span></div>
+                <div class="legend-item"><span class="legend-line isocost"></span><span>Current least-cost isocost</span></div>
+                <div class="legend-item"><span class="legend-line path"></span><span>Current expansion path</span></div>
+                <div class="legend-item"><span class="legend-dot current"></span><span>Current tangency</span></div>
+              </div>
+              <div class="graph-note">
+                The case translates real-world evidence about scale, costs, demand composition, and import competition into a stylised isoquant–isocost sequence. The labour and capital units here are indices, not literal worker counts or robot counts.
+              </div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="status-card">
+              <div class="status-title">Case narration</div>
+              <div id="caseNarrative" class="graph-note"></div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="metric-grid two">
+                <div class="metric-item">
+                  <div class="metric-label">Local minimum unit-cost index</div>
+                  <div id="caseLocalUnit" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Import option index</div>
+                  <div id="caseImportUnit" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Model decision</div>
+                  <div id="caseDecision" class="metric-value small">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Economic reading</div>
+                  <div id="caseReading" class="metric-value small">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="case-grid">
+              <div class="stat-strip">
+                <div class="stat-pill">
+                  <strong>Production</strong>
+                  <span id="statProduction">—</span>
+                </div>
+                <div class="stat-pill">
+                  <strong>New vehicle sales</strong>
+                  <span id="statSales">—</span>
+                </div>
+                <div class="stat-pill">
+                  <strong>Import / local context</strong>
+                  <span id="statImports">—</span>
+                </div>
+                <div class="stat-pill">
+                  <strong>Jobs / transition</strong>
+                  <span id="statJobs">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="source-note">
+              <div class="mini-card-title">Source anchors used in the case</div>
+              <ul>
+                <li>FCAI sales releases and annual reports for Australian new-vehicle sales, including the 2004, 2013, and 2017 benchmarks.</li>
+                <li>Productivity Commission 2014 automotive inquiry for efficient plant scale, import share, per-plant output, labour-cost pressures, and closure-related job estimates.</li>
+                <li>Industry transition report for the 2013–2014 closure announcements and the post-2017 shift to importing and R&amp;D.</li>
+                <li>OICA-based production series for annual vehicle production in 2004, 2012, 2013, and 2017.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-grid three" style="margin-top: 16px;">
+          <div class="mini-card">
+            <div class="mini-card-title">Production versus domestic sales</div>
+            <canvas id="caseChartProduction" class="graph-canvas" width="960" height="420"></canvas>
+            <div class="small-muted">Production fell sharply while Australian vehicle sales stayed high, so domestic demand was increasingly met by imports.</div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title">2012 output per major producer versus efficient scale</div>
+            <canvas id="caseChartScale" class="graph-canvas" width="960" height="420"></canvas>
+            <div class="small-muted">The Productivity Commission reported that cost-competitive scale for most assembly plants was about 200,000–300,000 vehicles a year, but individual Australian plants were well below that range.</div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title">Holden’s reported cost gap versus Asian plants</div>
+            <canvas id="caseChartGap" class="graph-canvas" width="960" height="420"></canvas>
+            <div class="small-muted">Holden reported an average cost gap of $3,750 per car relative to some GM plants in Asia: $2,000 from Australian input costs, $1,500 from local-supplier components, and $250 from imported-component logistics.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const BASELINE = Object.freeze({ w: 1.2, r: 1.0, q: 70, A: 1.0, alpha: 0.55 });
+    const AXES = Object.freeze({ L_MIN: 0, L_MAX: 200, K_MIN: 0, K_MAX: 200 });
+    const OUTPUT_GRID = [40, 60, 80, 100, 120, 140];
+    const TANGENCY_TOLERANCE = 10;
+
+    const productionSalesData = {
+      years: [2004, 2012, 2013, 2017],
+      production: [411406, 226502, 215926, 98632],
+      sales: [955259, 1112032, 1136227, 1189116]
+    };
+
+    const caseSteps = [
+      {
+        id: "demandShift",
+        short: "1. Demand mix shifts",
+        title: "2004–05: strong sales, but demand begins to move away from the locally built large-car mix",
+        narrative: "Australia still produced 411,406 vehicles in 2004 while domestic sales reached 955,259. Yet the composition of demand was changing: FCAI reported that in 2005 small-car sales rose 18.6% to 215,324 while demand for large cars fell 15.7% to 153,244. In isoquant language, the output target relevant for local large-car assembly begins to move inward even before full exit becomes likely.",
+        model: { w: 1.15, r: 1.0, q: 115, A: 1.0, alpha: 0.55 },
+        importIndex: 1.08,
+        stats: {
+          production: "411,406 vehicles (2004)",
+          sales: "955,259 in 2004; 988,269 in 2005",
+          imports: "Domestic demand shifted toward smaller cars and SUVs",
+          jobs: "Industry still large; local assembly ongoing"
+        },
+        reading: "Output target for local assembly begins to shrink."
+      },
+      {
+        id: "scaleSqueeze",
+        short: "2. Cost and scale squeeze",
+        title: "2012–13: production shrinks, imports dominate, and plant scale is too small",
+        narrative: "By 2012 production had fallen to 226,502 vehicles, and by 2013 to 215,926, while Australian new-vehicle sales remained above 1.1 million. FCAI evidence indicated 87% of new vehicles sold in 2012 were imported; the Productivity Commission said nearly 90% were imported in 2013. The same inquiry put cost-competitive scale for most assembly plants at roughly 200,000–300,000 vehicles a year per plant, but in 2012 Toyota made just over 100,000 vehicles, Holden just over 80,000, and Ford less than 40,000. The local plant now faces both a steeper labour-cost problem and an output target that is too small to spread fixed cost well.",
+        model: { w: 1.6, r: 1.0, q: 72, A: 0.98, alpha: 0.55 },
+        importIndex: 0.96,
+        stats: {
+          production: "226,502 (2012); 215,926 (2013)",
+          sales: "1,112,032 (2012); 1,136,227 (2013)",
+          imports: "87% imported in 2012; nearly 90% in 2013",
+          jobs: "44,201 automotive-manufacturing jobs in 2013"
+        },
+        reading: "Capital substitution helps, but scale remains far below efficient range."
+      },
+      {
+        id: "closureDecisions",
+        short: "3. Closure decisions",
+        title: "2013–14: firms try cost-cutting and automation, but the global cost gap remains",
+        narrative: "The Productivity Commission recorded how each major producer tried to improve efficiency. Toyota’s 2012–18 transformation aimed to cut $3,800 from the cost of building a car in Australia and was based on breakeven at about 80,000 vehicles a year. Ford said Australian manufacturing costs were about twice Europe and nearly four times Asia. Holden reported an average cost gap of $3,750 a car relative to some Asian GM plants, with $2,000 due to Australian input costs and around 80% of that attributable to labour. In the diagram, the plant substitutes somewhat toward capital and improves productivity, but the long-run local unit cost still struggles against the import alternative.",
+        model: { w: 1.55, r: 0.92, q: 62, A: 1.05, alpha: 0.55 },
+        importIndex: 0.93,
+        stats: {
+          production: "Production still falling after the 2013 announcements",
+          sales: "Domestic sales still above 1.1 million",
+          imports: "Global affiliates and importers keep pressure on local prices",
+          jobs: "Ford, Holden, and Toyota announce closure paths"
+        },
+        reading: "Local optimisation is not enough when world alternatives are cheaper."
+      },
+      {
+        id: "exit",
+        short: "4. Import-only market",
+        title: "2017: local assembly ceases and importing becomes the long-run supply choice",
+        narrative: "Australia produced 98,632 vehicles in 2017 before local assembly ceased. FCAI states that local vehicle production ceased in 2017 and that all vehicles sold in Australia are now imported. The Productivity Commission estimated 6,600 direct OEM employees would be affected and that economy-wide job losses could reach up to 40,000 once supply-chain effects were included. In long-run production-choice terms, the issue is no longer the exact local tangency point: the relevant decision becomes whether to produce locally at all. Once the import option is cheaper than the local minimum unit-cost line, the firm exits local mass assembly.",
+        model: { w: 1.6, r: 0.95, q: 38, A: 1.03, alpha: 0.55 },
+        importIndex: 0.88,
+        stats: {
+          production: "98,632 vehicles (2017)",
+          sales: "1,189,116 new vehicles sold (2017)",
+          imports: "All vehicles sold are now imported",
+          jobs: "6,600 direct OEM jobs affected; up to 40,000 across the economy"
+        },
+        reading: "The long-run choice flips from local assembly to import-and-distribute."
+      }
+    ];
+
+    const practiceScenarios = [
+      {
+        id: "wageUp",
+        title: "Wage rate rises while output target stays fixed",
+        prompt: "Suppose wage costs rise from 1.20 to 1.80 while the rental rate, technology, and output target stay unchanged. Where is the new least-cost bundle, and what happens to labour, capital, the minimum total cost, the isocost slope, and the expansion path?",
+        params: { w: 1.80, r: 1.00, q: 70, A: 1.00, alpha: 0.55 }
+      },
+      {
+        id: "rentUp",
+        title: "Rental rate of capital rises while output target stays fixed",
+        prompt: "Suppose the rental rate of capital rises from 1.00 to 1.45 while the wage, technology, and output target stay unchanged. Find the new least-cost bundle and answer the direction questions.",
+        params: { w: 1.20, r: 1.45, q: 70, A: 1.00, alpha: 0.55 }
+      },
+      {
+        id: "outputUp",
+        title: "Output target rises with factor prices unchanged",
+        prompt: "Suppose the firm now wants a higher output target of 100 while wages, rental rates, and technology stay at baseline values. The optimum moves outward along the expansion path. Drag the new least-cost bundle and answer the direction questions.",
+        params: { w: 1.20, r: 1.00, q: 100, A: 1.00, alpha: 0.55 }
+      },
+      {
+        id: "outputDown",
+        title: "Output target falls with factor prices unchanged",
+        prompt: "Suppose the relevant output target falls to 50 because the firm is serving a smaller market segment. Where is the new least-cost bundle, and how do the directional answers change?",
+        params: { w: 1.20, r: 1.00, q: 50, A: 1.00, alpha: 0.55 }
+      },
+      {
+        id: "techUp",
+        title: "Hicks-neutral technology improves",
+        prompt: "Suppose technology improves from A = 1.00 to A = 1.12 while the output target and factor prices stay unchanged. The isoquant for the same output moves inward. Drag the new least-cost bundle and answer the direction questions.",
+        params: { w: 1.20, r: 1.00, q: 70, A: 1.12, alpha: 0.55 }
+      },
+      {
+        id: "robotsCheaper",
+        title: "Robots become cheaper",
+        prompt: "Suppose the rental rate of capital falls from 1.00 to 0.75 while wage costs and output stay unchanged. The firm should substitute toward capital. Show the new tangency and answer the direction questions.",
+        params: { w: 1.20, r: 0.75, q: 70, A: 1.00, alpha: 0.55 }
+      }
+    ];
+
+    const exploreState = {
+      w: BASELINE.w,
+      r: BASELINE.r,
+      q: BASELINE.q,
+      A: BASELINE.A,
+      alpha: BASELINE.alpha,
+      showExpansionPath: true,
+      showNeighbourIsoquants: true,
+      showBaseline: true
+    };
+
+    const practiceState = {
+      scenarioIndex: 0,
+      guess: null,
+      revealed: false
+    };
+
+    const caseState = {
+      stepIndex: 0
+    };
+
+    function cloneParams(params) {
+      return { w: params.w, r: params.r, q: params.q, A: params.A, alpha: params.alpha };
+    }
+
+    function formatNumber(value, digits = 2) {
+      return Number(value).toFixed(digits).replace(/\.00$/, "");
+    }
+
+    function formatInteger(value) {
+      return Number(value).toLocaleString("en-AU");
+    }
+
+    function slopeLabel(current, base) {
+      const tolerance = 0.01;
+      if (current > base + tolerance) return "steeper";
+      if (current < base - tolerance) return "flatter";
+      return "unchanged";
+    }
+
+    function changeDirection(current, base, tolerance = 0.75) {
+      if (current > base + tolerance) return "increase";
+      if (current < base - tolerance) return "decrease";
+      return "unchanged";
+    }
+
+    function optimalBundle(params) {
+      const ratioKL = ((1 - params.alpha) / params.alpha) * (params.w / params.r);
+      const labour = params.q / (params.A * Math.pow(ratioKL, 1 - params.alpha));
+      const capital = ratioKL * labour;
+      const cost = params.w * labour + params.r * capital;
+      const mrts = (params.alpha / (1 - params.alpha)) * (capital / labour);
+      return {
+        labour,
+        capital,
+        cost,
+        unitCost: cost / params.q,
+        ratioKL,
+        mrts
+      };
+    }
+
+    function pointToCanvasLabour(value) {
+      return EconDraw.valueToX(value, AXES.L_MIN, AXES.L_MAX);
+    }
+
+    function pointToCanvasCapital(value) {
+      return EconDraw.valueToY(value, AXES.K_MIN, AXES.K_MAX);
+    }
+
+    function canvasToLabour(x) {
+      return EconDraw.xToValue(x, AXES.L_MIN, AXES.L_MAX);
+    }
+
+    function canvasToCapital(y) {
+      return EconDraw.yToValue(y, AXES.K_MIN, AXES.K_MAX);
+    }
+
+    function makeTicks(min, max, step, axis) {
+      const ticks = [];
+      for (let value = min; value <= max + 0.0001; value += step) {
+        ticks.push({
+          label: value,
+          x: axis === "x" ? EconDraw.valueToX(value, min, max) : undefined,
+          y: axis === "y" ? EconDraw.valueToY(value, min, max) : undefined
+        });
+      }
+      return ticks;
+    }
+
+    function isoquantPoints(params, qTarget) {
+      const points = [];
+      const target = qTarget ?? params.q;
+      for (let L = 1; L <= AXES.L_MAX; L += 1) {
+        const denominator = params.A * Math.pow(L, params.alpha);
+        if (denominator <= 0) continue;
+        const K = Math.pow(target / denominator, 1 / (1 - params.alpha));
+        if (Number.isFinite(K) && K >= AXES.K_MIN && K <= AXES.K_MAX) {
+          points.push({ x: pointToCanvasLabour(L), y: pointToCanvasCapital(K), L, K });
+        }
+      }
+      return points;
+    }
+
+    function isocostPoints(params, cost) {
+      const points = [];
+      for (let L = 0; L <= AXES.L_MAX; L += 1) {
+        const K = (cost / params.r) - (params.w / params.r) * L;
+        if (Number.isFinite(K) && K >= AXES.K_MIN && K <= AXES.K_MAX) {
+          points.push({ x: pointToCanvasLabour(L), y: pointToCanvasCapital(K), L, K });
+        }
+      }
+      return points;
+    }
+
+    function drawPoint(ctx, labour, capital, options = {}) {
+      EconDraw.drawCircle(ctx, pointToCanvasLabour(labour), pointToCanvasCapital(capital), {
+        radius: options.radius || ECON_THEME.radius.marker,
+        fill: options.fill || "#ffffff",
+        stroke: options.stroke || ECON_THEME.color.text,
+        lineWidth: options.lineWidth || ECON_THEME.line.handleStroke
+      });
+      if (options.label) {
+        EconDraw.drawText(ctx, options.label, pointToCanvasLabour(labour) + 8, pointToCanvasCapital(capital) - 10, {
+          size: 13,
+          weight: 600,
+          color: options.labelColor || options.stroke || ECON_THEME.color.text
+        });
+      }
+    }
+
+    function drawPolyline(ctx, points, options = {}) {
+      if (!points || points.length < 2) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.strokeStyle = options.color || ECON_THEME.color.text;
+      ctx.lineWidth = options.lineWidth || ECON_THEME.line.main;
+      if (options.dash) ctx.setLineDash(options.dash);
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i += 1) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawNeighbourIsoquants(ctx, params) {
+      OUTPUT_GRID.forEach((target) => {
+        const points = isoquantPoints(params, target);
+        if (points.length < 2) return;
+        drawPolyline(ctx, points, {
+          color: "rgba(47,107,255,0.16)",
+          lineWidth: 1.5
+        });
+      });
+    }
+
+    function drawExpansionPath(ctx, params) {
+      const points = OUTPUT_GRID.map((target) => {
+        const opt = optimalBundle({ ...params, q: target });
+        return { x: pointToCanvasLabour(opt.labour), y: pointToCanvasCapital(opt.capital), labour: opt.labour, capital: opt.capital };
+      }).filter((point) => point.labour <= AXES.L_MAX && point.capital <= AXES.K_MAX);
+
+      if (points.length > 1) {
+        drawPolyline(ctx, points, { color: ECON_THEME.color.government, lineWidth: 2 });
+        points.forEach((point) => {
+          EconDraw.drawCircle(ctx, point.x, point.y, {
+            radius: 3.5,
+            fill: "#ffffff",
+            stroke: ECON_THEME.color.government,
+            lineWidth: 1.5
+          });
+        });
+        EconDraw.drawText(ctx, "Expansion path", points[Math.max(0, points.length - 2)].x + 10, points[Math.max(0, points.length - 2)].y - 10, {
+          size: 12,
+          weight: 600,
+          color: ECON_THEME.color.government
+        });
+      }
+    }
+
+    function drawAxesBase(ctx, canvasId, xLabel, yLabel) {
+      const xTicks = makeTicks(0, AXES.L_MAX, 25, "x");
+      const yTicks = makeTicks(0, AXES.K_MAX, 25, "y");
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+      EconDraw.drawAxes(ctx, {
+        xLabel,
+        yLabel,
+        xTicks,
+        yTicks,
+        theme: ECON_THEME
+      });
+      EconDraw.drawText(ctx, "Labour (L)", 720, 575, { size: 14, weight: 500, color: ECON_THEME.color.text });
+      EconDraw.drawText(ctx, "Capital (K)", 24, 74, { size: 14, weight: 500, color: ECON_THEME.color.text });
+    }
+
+    function drawInputGraph(canvas, currentParams, options = {}) {
+      const ctx = canvas.getContext("2d");
+      drawAxesBase(ctx, canvas.id, "Labour input", "Capital input");
+
+      const currentOpt = optimalBundle(currentParams);
+      const baselineParams = options.baselineParams ? cloneParams(options.baselineParams) : cloneParams(BASELINE);
+      const baselineOpt = optimalBundle(baselineParams);
+
+      if (options.showNeighbourIsoquants) {
+        drawNeighbourIsoquants(ctx, currentParams);
+      }
+
+      if (options.showBaseline) {
+        drawPolyline(ctx, isoquantPoints(baselineParams, baselineParams.q), {
+          color: ECON_THEME.color.baseline,
+          lineWidth: ECON_THEME.line.baseline,
+          dash: ECON_THEME.dash.baseline
+        });
+        drawPolyline(ctx, isocostPoints(baselineParams, baselineOpt.cost), {
+          color: ECON_THEME.color.baseline,
+          lineWidth: ECON_THEME.line.baseline,
+          dash: ECON_THEME.dash.baseline
+        });
+        drawPoint(ctx, baselineOpt.labour, baselineOpt.capital, {
+          fill: "#ffffff",
+          stroke: ECON_THEME.color.baseline,
+          label: "T₀",
+          labelColor: ECON_THEME.color.baseline
+        });
+      }
+
+      if (options.showExpansionPath) {
+        drawExpansionPath(ctx, currentParams);
+      }
+
+      drawPolyline(ctx, isoquantPoints(currentParams, currentParams.q), {
+        color: ECON_THEME.color.demand,
+        lineWidth: ECON_THEME.line.main
+      });
+      drawPolyline(ctx, isocostPoints(currentParams, currentOpt.cost), {
+        color: ECON_THEME.color.longRun,
+        lineWidth: ECON_THEME.line.main
+      });
+
+      drawPoint(ctx, currentOpt.labour, currentOpt.capital, {
+        fill: ECON_THEME.color.output,
+        stroke: ECON_THEME.color.output,
+        label: "T*",
+        labelColor: ECON_THEME.color.output
+      });
+
+      EconDraw.drawText(ctx, "Isoquant", pointToCanvasLabour(Math.min(currentOpt.labour + 26, AXES.L_MAX - 18)), pointToCanvasCapital(Math.min(currentOpt.capital + 24, AXES.K_MAX - 10)), {
+        size: 12,
+        weight: 600,
+        color: ECON_THEME.color.demand
+      });
+
+      const isoLabelX = Math.max(12, Math.min(AXES.L_MAX - 35, currentOpt.labour * 0.55));
+      const isoCostLabelX = Math.min(AXES.L_MAX - 40, currentOpt.labour + 18);
+
+      EconDraw.drawText(ctx, "Isocost", pointToCanvasLabour(isoCostLabelX), pointToCanvasCapital(Math.max(5, currentOpt.capital - 22)), {
+        size: 12,
+        weight: 600,
+        color: ECON_THEME.color.longRun
+      });
+
+      if (options.guess) {
+        const guessCost = currentParams.w * options.guess.labour + currentParams.r * options.guess.capital;
+        drawPolyline(ctx, isocostPoints(currentParams, guessCost), {
+          color: ECON_THEME.color.guess,
+          lineWidth: 2,
+          dash: ECON_THEME.dash.guess
+        });
+        drawPoint(ctx, options.guess.labour, options.guess.capital, {
+          fill: "#ffffff",
+          stroke: ECON_THEME.color.guess,
+          label: "Your guess",
+          labelColor: ECON_THEME.color.guess
+        });
+      }
+
+      if (options.reveal && options.extraNote) {
+        EconDraw.drawText(ctx, options.extraNote, 110, 36, {
+          size: 13,
+          weight: 500,
+          color: ECON_THEME.color.muted
+        });
+      }
+
+      return { currentOpt, baselineOpt };
+    }
+
+    function updateExploreLabels() {
+      document.getElementById("wageLabel").textContent = ` ${formatNumber(exploreState.w, 2)}`;
+      document.getElementById("rentLabel").textContent = ` ${formatNumber(exploreState.r, 2)}`;
+      document.getElementById("outputLabel").textContent = ` Q = ${formatInteger(exploreState.q)}`;
+      document.getElementById("techLabel").textContent = ` ${formatNumber(exploreState.A, 2)}`;
+    }
+
+    function renderExplore() {
+      updateExploreLabels();
+      exploreState.showExpansionPath = document.getElementById("showExpansionPath").checked;
+      exploreState.showNeighbourIsoquants = document.getElementById("showNeighbourIsoquants").checked;
+      exploreState.showBaseline = document.getElementById("showBaseline").checked;
+
+      const canvas = document.getElementById("exploreCanvas");
+      const { currentOpt, baselineOpt } = drawInputGraph(canvas, exploreState, {
+        showExpansionPath: exploreState.showExpansionPath,
+        showNeighbourIsoquants: exploreState.showNeighbourIsoquants,
+        showBaseline: exploreState.showBaseline
+      });
+
+      document.getElementById("metricExploreL").textContent = formatNumber(currentOpt.labour, 1);
+      document.getElementById("metricExploreK").textContent = formatNumber(currentOpt.capital, 1);
+      document.getElementById("metricExploreMRTS").textContent = formatNumber(currentOpt.mrts, 2);
+      document.getElementById("metricExploreWR").textContent = formatNumber(exploreState.w / exploreState.r, 2);
+      document.getElementById("metricExploreCost").textContent = formatNumber(currentOpt.cost, 1);
+      document.getElementById("metricExploreUnitCost").textContent = formatNumber(currentOpt.unitCost, 2);
+
+      const labourChange = changeDirection(currentOpt.labour, baselineOpt.labour);
+      const capitalChange = changeDirection(currentOpt.capital, baselineOpt.capital);
+      const costChange = changeDirection(currentOpt.cost, baselineOpt.cost, 1.25);
+      const slopeChange = slopeLabel(exploreState.w / exploreState.r, BASELINE.w / BASELINE.r);
+      const ratioChange = currentOpt.ratioKL > baselineOpt.ratioKL + 0.02 ? "higher capital-labour ratio" :
+        currentOpt.ratioKL < baselineOpt.ratioKL - 0.02 ? "lower capital-labour ratio" : "similar capital-labour ratio";
+
+      document.getElementById("exploreInterpretation").innerHTML =
+        `The current tangency uses <strong>${labourChange}</strong> labour and <strong>${capitalChange}</strong> capital than the baseline. ` +
+        `The minimum total cost is <strong>${costChange}</strong>, the isocost is <strong>${slopeChange}</strong>, ` +
+        `and the firm ends up with a <strong>${ratioChange}</strong>. At the optimum, MRTS = ${formatNumber(currentOpt.mrts, 2)} and w/r = ${formatNumber(exploreState.w / exploreState.r, 2)}.`;
+    }
+
+    function resetExplore() {
+      Object.assign(exploreState, cloneParams(BASELINE), {
+        showExpansionPath: true,
+        showNeighbourIsoquants: true,
+        showBaseline: true
+      });
+      document.getElementById("wageSlider").value = BASELINE.w.toFixed(2);
+      document.getElementById("rentSlider").value = BASELINE.r.toFixed(2);
+      document.getElementById("outputSlider").value = String(BASELINE.q);
+      document.getElementById("techSlider").value = BASELINE.A.toFixed(2);
+      document.getElementById("showExpansionPath").checked = true;
+      document.getElementById("showNeighbourIsoquants").checked = true;
+      document.getElementById("showBaseline").checked = true;
+      renderExplore();
+    }
+
+    function populatePracticeScenarios() {
+      const select = document.getElementById("practiceScenarioSelect");
+      select.innerHTML = "";
+      practiceScenarios.forEach((scenario, index) => {
+        const option = document.createElement("option");
+        option.value = String(index);
+        option.textContent = scenario.title;
+        select.appendChild(option);
+      });
+    }
+
+    function currentPracticeScenario() {
+      return practiceScenarios[practiceState.scenarioIndex];
+    }
+
+    function practiceParams() {
+      return currentPracticeScenario().params;
+    }
+
+    function computePracticeAnswers() {
+      const baselineOpt = optimalBundle(BASELINE);
+      const scenarioOpt = optimalBundle(practiceParams());
+      const currentSlope = practiceParams().w / practiceParams().r;
+      const baseSlope = BASELINE.w / BASELINE.r;
+
+      let pathAnswer = "unchanged";
+      if (scenarioOpt.ratioKL > baselineOpt.ratioKL + 0.02) pathAnswer = "pivot_capital";
+      else if (scenarioOpt.ratioKL < baselineOpt.ratioKL - 0.02) pathAnswer = "pivot_labour";
+
+      return {
+        labour: changeDirection(scenarioOpt.labour, baselineOpt.labour),
+        capital: changeDirection(scenarioOpt.capital, baselineOpt.capital),
+        cost: changeDirection(scenarioOpt.cost, baselineOpt.cost, 1.25),
+        slope: slopeLabel(currentSlope, baseSlope),
+        path: pathAnswer,
+        optimum: scenarioOpt
+      };
+    }
+
+    function renderPractice() {
+      const canvas = document.getElementById("practiceCanvas");
+      const scenario = currentPracticeScenario();
+      document.getElementById("practicePrompt").textContent = scenario.prompt;
+
+      if (!practiceState.guess) {
+        const baseOpt = optimalBundle(BASELINE);
+        practiceState.guess = { labour: baseOpt.labour, capital: baseOpt.capital };
+      }
+
+      drawInputGraph(canvas, practiceParams(), {
+        showExpansionPath: false,
+        showNeighbourIsoquants: false,
+        showBaseline: true,
+        guess: practiceState.guess,
+        reveal: practiceState.revealed,
+        baselineParams: BASELINE,
+        extraNote: practiceState.revealed ? "Correct isoquant and least-cost bundle revealed." : ""
+      });
+
+      if (practiceState.revealed) {
+        const answers = computePracticeAnswers();
+        document.getElementById("practiceFeedback").className = "feedback-box neutral";
+        document.getElementById("practiceFeedback").innerHTML += "";
+      }
+    }
+
+    function practiceResetAll() {
+      practiceState.guess = null;
+      practiceState.revealed = false;
+      ["ansLabour", "ansCapital", "ansCost", "ansSlope", "ansPath"].forEach((id) => {
+        document.getElementById(id).value = "";
+      });
+      document.getElementById("practiceFeedback").className = "feedback-box neutral";
+      document.getElementById("practiceFeedback").textContent = "Choose a scenario, drag a guess point, complete the answers, and then check your work.";
+      renderPractice();
+    }
+
+    function randomPracticeScenario() {
+      practiceState.scenarioIndex = Math.floor(Math.random() * practiceScenarios.length);
+      document.getElementById("practiceScenarioSelect").value = String(practiceState.scenarioIndex);
+      practiceResetAll();
+    }
+
+    function checkPractice() {
+      const answers = computePracticeAnswers();
+      const selects = {
+        labour: document.getElementById("ansLabour").value,
+        capital: document.getElementById("ansCapital").value,
+        cost: document.getElementById("ansCost").value,
+        slope: document.getElementById("ansSlope").value,
+        path: document.getElementById("ansPath").value
+      };
+      const missing = Object.values(selects).some((value) => value === "");
+      if (missing) {
+        document.getElementById("practiceFeedback").className = "feedback-box warning";
+        document.getElementById("practiceFeedback").textContent = "Complete all five direction answers before checking.";
+        return;
+      }
+
+      const distance = Math.hypot(practiceState.guess.labour - answers.optimum.labour, practiceState.guess.capital - answers.optimum.capital);
+      const pointCorrect = distance <= TANGENCY_TOLERANCE;
+      const directionCorrect =
+        selects.labour === answers.labour &&
+        selects.capital === answers.capital &&
+        selects.cost === answers.cost &&
+        selects.slope === answers.slope &&
+        selects.path === answers.path;
+
+      practiceState.revealed = true;
+      renderPractice();
+
+      const feedback = document.getElementById("practiceFeedback");
+      if (pointCorrect && directionCorrect) {
+        feedback.className = "feedback-box success";
+        feedback.innerHTML = `Correct. The new tangency uses ${answers.labour} labour, ${answers.capital} capital, the minimum total cost ${answers.cost}, the isocost becomes ${answers.slope}, and the expansion path is ${answers.path === "unchanged" ? "unchanged" : answers.path === "pivot_capital" ? "pivoted toward capital" : "pivoted toward labour"}.`;
+      } else {
+        const pointText = pointCorrect ? "Your tangency guess is close to the correct bundle." : `Your guessed bundle is off by about ${formatNumber(distance, 1)} index units.`;
+        const answerText = [];
+        if (selects.labour !== answers.labour) answerText.push(`labour should ${answers.labour}`);
+        if (selects.capital !== answers.capital) answerText.push(`capital should ${answers.capital}`);
+        if (selects.cost !== answers.cost) answerText.push(`minimum total cost should ${answers.cost}`);
+        if (selects.slope !== answers.slope) answerText.push(`the isocost should become ${answers.slope}`);
+        if (selects.path !== answers.path) {
+          answerText.push(`the expansion path should ${answers.path === "unchanged" ? "stay unchanged" : answers.path === "pivot_capital" ? "pivot toward capital" : "pivot toward labour"}`);
+        }
+        feedback.className = "feedback-box warning";
+        feedback.innerHTML = `Not quite. ${pointText} ${answerText.join("; ")}. The revealed blue–grey tangency shows the least-cost bundle implied by the scenario.`;
+      }
+    }
+
+    function drawSmallChartAxes(ctx, width, height, maxY, yLabel, categories) {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      const margin = { left: 72, right: 24, top: 30, bottom: 44 };
+      const plotW = width - margin.left - margin.right;
+      const plotH = height - margin.top - margin.bottom;
+
+      ctx.strokeStyle = ECON_THEME.color.axis;
+      ctx.lineWidth = 1.25;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, margin.top);
+      ctx.lineTo(margin.left, height - margin.bottom);
+      ctx.lineTo(width - margin.right, height - margin.bottom);
+      ctx.stroke();
+
+      ctx.font = `12px ${ECON_THEME.font.family}`;
+      ctx.fillStyle = ECON_THEME.color.muted;
+
+      for (let i = 0; i <= 5; i += 1) {
+        const value = maxY * (i / 5);
+        const y = height - margin.bottom - (plotH * (i / 5));
+        ctx.strokeStyle = ECON_THEME.color.grid;
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y);
+        ctx.lineTo(width - margin.right, y);
+        ctx.stroke();
+        ctx.fillText(value >= 1000 ? (value / 1000).toFixed(0) + "k" : value.toFixed(0), 14, y + 4);
+      }
+
+      categories.forEach((cat, index) => {
+        const x = margin.left + (plotW * index) / Math.max(1, categories.length - 1);
+        ctx.fillStyle = ECON_THEME.color.muted;
+        ctx.fillText(String(cat), x - 10, height - margin.bottom + 20);
+      });
+
+      ctx.save();
+      ctx.translate(18, height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.font = `12px ${ECON_THEME.font.family}`;
+      ctx.fillStyle = ECON_THEME.color.muted;
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+
+      return { margin, plotW, plotH };
+    }
+
+    function drawProductionSalesChart() {
+      const canvas = document.getElementById("caseChartProduction");
+      const ctx = canvas.getContext("2d");
+      const width = canvas.width;
+      const height = canvas.height;
+      const years = productionSalesData.years;
+      const maxY = 1250000;
+      const { margin, plotW, plotH } = drawSmallChartAxes(ctx, width, height, maxY, "Vehicles", years);
+
+      function toXY(index, value) {
+        return {
+          x: margin.left + (plotW * index) / Math.max(1, years.length - 1),
+          y: height - margin.bottom - (value / maxY) * plotH
+        };
+      }
+
+      const productionPoints = productionSalesData.production.map((value, index) => toXY(index, value));
+      const salesPoints = productionSalesData.sales.map((value, index) => toXY(index, value));
+
+      drawPolyline(ctx, productionPoints, { color: ECON_THEME.color.demand, lineWidth: 3 });
+      drawPolyline(ctx, salesPoints, { color: ECON_THEME.color.supply, lineWidth: 3 });
+
+      productionPoints.forEach((point, index) => {
+        EconDraw.drawCircle(ctx, point.x, point.y, { radius: 4, fill: "#ffffff", stroke: ECON_THEME.color.demand, lineWidth: 2 });
+      });
+      salesPoints.forEach((point, index) => {
+        EconDraw.drawCircle(ctx, point.x, point.y, { radius: 4, fill: "#ffffff", stroke: ECON_THEME.color.supply, lineWidth: 2 });
+      });
+
+      EconDraw.drawText(ctx, "Production", productionPoints[0].x + 8, productionPoints[0].y - 10, { size: 12, weight: 600, color: ECON_THEME.color.demand });
+      EconDraw.drawText(ctx, "Domestic sales", salesPoints[salesPoints.length - 1].x - 86, salesPoints[salesPoints.length - 1].y - 12, { size: 12, weight: 600, color: ECON_THEME.color.supply });
+    }
+
+    function drawScaleChart() {
+      const canvas = document.getElementById("caseChartScale");
+      const ctx = canvas.getContext("2d");
+      const width = canvas.width;
+      const height = canvas.height;
+      const labels = ["Toyota", "Holden", "Ford"];
+      const values = [100000, 80000, 40000];
+      const maxY = 320000;
+      const { margin, plotW, plotH } = drawSmallChartAxes(ctx, width, height, maxY, "Vehicles", labels);
+
+      const bandTop = height - margin.bottom - (300000 / maxY) * plotH;
+      const bandBottom = height - margin.bottom - (200000 / maxY) * plotH;
+      ctx.fillStyle = "rgba(46,139,87,0.14)";
+      ctx.fillRect(margin.left, bandTop, plotW, bandBottom - bandTop);
+      EconDraw.drawText(ctx, "Efficient-scale band: 200k–300k", margin.left + 10, bandTop - 8, { size: 12, weight: 600, color: ECON_THEME.color.government });
+
+      labels.forEach((label, index) => {
+        const barWidth = 90;
+        const x = margin.left + 80 + index * 220;
+        const barHeight = (values[index] / maxY) * plotH;
+        const y = height - margin.bottom - barHeight;
+        ctx.fillStyle = ECON_THEME.color.output;
+        ctx.fillRect(x, y, barWidth, barHeight);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `600 12px ${ECON_THEME.font.family}`;
+        ctx.fillText((values[index] / 1000).toFixed(0) + "k", x + 26, y + 18);
+      });
+    }
+
+    function drawGapChart() {
+      const canvas = document.getElementById("caseChartGap");
+      const ctx = canvas.getContext("2d");
+      const width = canvas.width;
+      const height = canvas.height;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+      const margin = { left: 60, right: 24, top: 40, bottom: 54 };
+      const plotW = width - margin.left - margin.right;
+      const barY = 175;
+      const scale = plotW / 4200;
+
+      ctx.strokeStyle = ECON_THEME.color.axis;
+      ctx.lineWidth = 1.25;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, barY + 70);
+      ctx.lineTo(width - margin.right, barY + 70);
+      ctx.stroke();
+
+      const segments = [
+        { label: "Australian input costs", value: 2000, color: ECON_THEME.color.supply },
+        { label: "Local suppliers", value: 1500, color: ECON_THEME.color.output },
+        { label: "Imported-component logistics", value: 250, color: ECON_THEME.color.external }
+      ];
+
+      let cursor = margin.left + 10;
+      segments.forEach((segment) => {
+        const segmentWidth = segment.value * scale;
+        ctx.fillStyle = segment.color;
+        ctx.fillRect(cursor, barY, segmentWidth, 54);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `600 12px ${ECON_THEME.font.family}`;
+        ctx.fillText("$" + formatInteger(segment.value), cursor + Math.max(8, segmentWidth / 2 - 16), barY + 20);
+        ctx.fillText(segment.label, cursor + 8, barY + 39);
+        cursor += segmentWidth;
+      });
+
+      EconDraw.drawText(ctx, "Total Holden cost gap versus some GM plants in Asia: $3,750 per car", margin.left, 56, { size: 13, weight: 600, color: ECON_THEME.color.text });
+      EconDraw.drawText(ctx, "Of the $2,000 Australian input-cost component, Holden said about 80% was labour-related.", margin.left, 78, { size: 12, weight: 400, color: ECON_THEME.color.muted });
+
+      for (let marker = 0; marker <= 4000; marker += 1000) {
+        const x = margin.left + 10 + marker * scale;
+        ctx.strokeStyle = ECON_THEME.color.grid;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(x, barY - 18);
+        ctx.lineTo(x, barY + 72);
+        ctx.stroke();
+        EconDraw.drawText(ctx, "$" + formatInteger(marker), x - 10, barY + 92, { size: 11, color: ECON_THEME.color.muted });
+      }
+    }
+
+    function baseCaseUnitCost() {
+      const stepZero = caseSteps[0].model;
+      return optimalBundle(stepZero).unitCost;
+    }
+
+    function renderCase() {
+      const step = caseSteps[caseState.stepIndex];
+      const baseUnit = baseCaseUnitCost();
+      const canvas = document.getElementById("caseCanvas");
+      const currentParams = step.model;
+      const currentOpt = optimalBundle(currentParams);
+
+      drawInputGraph(canvas, currentParams, {
+        showExpansionPath: true,
+        showNeighbourIsoquants: false,
+        showBaseline: true,
+        baselineParams: caseSteps[0].model
+      });
+
+      const localIndex = currentOpt.unitCost / baseUnit;
+      const decision = localIndex <= step.importIndex ? "Local assembly remains viable" : "Importing dominates local assembly";
+      const reading = step.reading;
+
+      document.getElementById("caseNarrative").innerHTML =
+        `<strong>${step.title}</strong><br>${step.narrative}`;
+      document.getElementById("caseLocalUnit").textContent = formatNumber(localIndex, 2);
+      document.getElementById("caseImportUnit").textContent = formatNumber(step.importIndex, 2);
+      document.getElementById("caseDecision").textContent = decision;
+      document.getElementById("caseReading").textContent = reading;
+      document.getElementById("statProduction").textContent = step.stats.production;
+      document.getElementById("statSales").textContent = step.stats.sales;
+      document.getElementById("statImports").textContent = step.stats.imports;
+      document.getElementById("statJobs").textContent = step.stats.jobs;
+
+      const buttons = Array.from(document.querySelectorAll(".step-button"));
+      buttons.forEach((button, index) => {
+        button.classList.toggle("active", index === caseState.stepIndex);
+      });
+
+      drawProductionSalesChart();
+      drawScaleChart();
+      drawGapChart();
+    }
+
+    function buildCaseButtons() {
+      const container = document.getElementById("caseStepButtons");
+      container.innerHTML = "";
+      caseSteps.forEach((step, index) => {
+        const button = document.createElement("button");
+        button.className = "step-button";
+        button.textContent = step.short;
+        button.addEventListener("click", () => {
+          caseState.stepIndex = index;
+          renderCase();
+        });
+        container.appendChild(button);
+      });
+    }
+
+    function activateSection(targetId) {
+      document.querySelectorAll(".module-tab").forEach((tab) => {
+        tab.classList.toggle("active", tab.dataset.target === targetId);
+      });
+      document.querySelectorAll(".module-section").forEach((section) => {
+        section.classList.toggle("active", section.id === targetId);
+      });
+
+      if (targetId === "exploreSection") renderExplore();
+      if (targetId === "practiceSection") renderPractice();
+      if (targetId === "caseSection") renderCase();
+    }
+
+    function nearestPointOnCanvas(canvas, event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX || event.touches?.[0]?.clientX) - rect.left;
+      const y = (event.clientY || event.touches?.[0]?.clientY) - rect.top;
+      return {
+        labour: Math.max(AXES.L_MIN, Math.min(AXES.L_MAX, canvasToLabour(x))),
+        capital: Math.max(AXES.K_MIN, Math.min(AXES.K_MAX, canvasToCapital(y)))
+      };
+    }
+
+    function setGuessFromEvent(event) {
+      practiceState.guess = nearestPointOnCanvas(document.getElementById("practiceCanvas"), event);
+      practiceState.revealed = false;
+      renderPractice();
+    }
+
+    let draggingGuess = false;
+
+    document.getElementById("practiceCanvas").addEventListener("mousedown", (event) => {
+      draggingGuess = true;
+      setGuessFromEvent(event);
+    });
+    document.getElementById("practiceCanvas").addEventListener("mousemove", (event) => {
+      if (!draggingGuess) return;
+      setGuessFromEvent(event);
+    });
+    document.getElementById("practiceCanvas").addEventListener("mouseup", () => { draggingGuess = false; });
+    document.getElementById("practiceCanvas").addEventListener("mouseleave", () => { draggingGuess = false; });
+    document.getElementById("practiceCanvas").addEventListener("touchstart", (event) => {
+      draggingGuess = true;
+      setGuessFromEvent(event);
+      event.preventDefault();
+    }, { passive: false });
+    document.getElementById("practiceCanvas").addEventListener("touchmove", (event) => {
+      if (!draggingGuess) return;
+      setGuessFromEvent(event);
+      event.preventDefault();
+    }, { passive: false });
+    document.getElementById("practiceCanvas").addEventListener("touchend", () => { draggingGuess = false; });
+
+    document.querySelectorAll(".module-tab").forEach((tab) => {
+      tab.addEventListener("click", () => activateSection(tab.dataset.target));
+    });
+
+    document.getElementById("wageSlider").addEventListener("input", (event) => {
+      exploreState.w = Number(event.target.value);
+      renderExplore();
+    });
+    document.getElementById("rentSlider").addEventListener("input", (event) => {
+      exploreState.r = Number(event.target.value);
+      renderExplore();
+    });
+    document.getElementById("outputSlider").addEventListener("input", (event) => {
+      exploreState.q = Number(event.target.value);
+      renderExplore();
+    });
+    document.getElementById("techSlider").addEventListener("input", (event) => {
+      exploreState.A = Number(event.target.value);
+      renderExplore();
+    });
+
+    ["showExpansionPath", "showNeighbourIsoquants", "showBaseline"].forEach((id) => {
+      document.getElementById(id).addEventListener("change", renderExplore);
+    });
+
+    document.getElementById("explorePresetWage").addEventListener("click", () => {
+      exploreState.w = 1.70;
+      exploreState.r = 1.00;
+      document.getElementById("wageSlider").value = exploreState.w.toFixed(2);
+      document.getElementById("rentSlider").value = exploreState.r.toFixed(2);
+      renderExplore();
+    });
+    document.getElementById("explorePresetRobots").addEventListener("click", () => {
+      exploreState.r = 0.80;
+      exploreState.w = 1.20;
+      document.getElementById("wageSlider").value = exploreState.w.toFixed(2);
+      document.getElementById("rentSlider").value = exploreState.r.toFixed(2);
+      renderExplore();
+    });
+    document.getElementById("explorePresetScale").addEventListener("click", () => {
+      exploreState.q = 100;
+      document.getElementById("outputSlider").value = String(exploreState.q);
+      renderExplore();
+    });
+    document.getElementById("exploreReset").addEventListener("click", resetExplore);
+
+    document.getElementById("practiceScenarioSelect").addEventListener("change", (event) => {
+      practiceState.scenarioIndex = Number(event.target.value);
+      practiceResetAll();
+    });
+    document.getElementById("practiceRandom").addEventListener("click", randomPracticeScenario);
+    document.getElementById("practiceReset").addEventListener("click", practiceResetAll);
+    document.getElementById("practiceCheck").addEventListener("click", checkPractice);
+
+    document.getElementById("casePrev").addEventListener("click", () => {
+      caseState.stepIndex = Math.max(0, caseState.stepIndex - 1);
+      renderCase();
+    });
+    document.getElementById("caseNext").addEventListener("click", () => {
+      caseState.stepIndex = Math.min(caseSteps.length - 1, caseState.stepIndex + 1);
+      renderCase();
+    });
+    document.getElementById("caseReset").addEventListener("click", () => {
+      caseState.stepIndex = 0;
+      renderCase();
+    });
+
+    populatePracticeScenarios();
+    buildCaseButtons();
+    resetExplore();
+    practiceResetAll();
+    renderCase();
+    activateSection("exploreSection");
+  </script>
+</body>
+</html>

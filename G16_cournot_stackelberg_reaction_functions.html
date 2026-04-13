@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G16_cournot_stackelberg_reaction_functions</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs,
+    .summary-strip,
+    .legend-row,
+    .button-row,
+    .scenario-bank,
+    .case-step-row,
+    .note-row,
+    .mini-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .module-tabs,
+    .summary-strip,
+    .case-step-row,
+    .mini-tabs {
+      margin-bottom: 16px;
+    }
+    .module-tab,
+    .case-step-btn,
+    .scenario-chip,
+    .mini-tab,
+    .preset-btn,
+    .sequence-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+      text-align: center;
+      line-height: 1.25;
+    }
+    .module-tab:hover,
+    .case-step-btn:hover,
+    .scenario-chip:hover,
+    .mini-tab:hover,
+    .preset-btn:hover,
+    .sequence-btn:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active,
+    .case-step-btn.active,
+    .scenario-chip.active,
+    .mini-tab.active,
+    .preset-btn.active,
+    .sequence-btn.active {
+      background: #eef5ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+    .module-section,
+    .mini-section {
+      display: none;
+    }
+    .module-section.active,
+    .mini-section.active {
+      display: block;
+    }
+
+    .summary-chip,
+    .mini-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-muted);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 16px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 160px;
+    }
+    .control-inline.wide {
+      min-width: 240px;
+    }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    input[type="range"] {
+      width: 210px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.52fr) minmax(320px, 0.98fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .graph-card,
+    .panel-card,
+    .answer-card,
+    .data-card,
+    .source-note,
+    .chart-card,
+    .status-card,
+    .formula-card,
+    .table-card,
+    .feedback-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .panel-stack,
+    .answer-grid,
+    .data-grid,
+    .chart-grid,
+    .metric-grid,
+    .two-col-grid {
+      display: grid;
+      gap: 16px;
+    }
+    .answer-grid.two,
+    .data-grid.two,
+    .chart-grid.two,
+    .metric-grid.two,
+    .two-col-grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .metric-grid.four {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .chart-grid.two.tight {
+      gap: 12px;
+    }
+
+    .card-title,
+    .status-title,
+    .data-title,
+    .chart-title,
+    .table-title,
+    .answer-title,
+    .feedback-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+    .small-muted,
+    .graph-note,
+    .source-note,
+    .status-copy,
+    .data-note,
+    .table-note,
+    .formula-copy,
+    .feedback-copy,
+    .case-copy,
+    .metric-note,
+    .case-table-wrap td,
+    .case-table-wrap th {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .small-muted strong,
+    .graph-note strong,
+    .status-copy strong,
+    .data-note strong,
+    .feedback-copy strong,
+    .case-copy strong,
+    .metric-note strong,
+    .source-note strong {
+      color: var(--color-text);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.firm1 { border-color: var(--color-demand); }
+    .legend-line.firm2 { border-color: var(--color-supply); }
+    .legend-line.baseline {
+      border-color: var(--color-baseline);
+      border-top-style: dashed;
+      border-top-width: 2px;
+    }
+    .legend-line.guess {
+      border-color: var(--color-guess);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.stack {
+      border-color: var(--color-government);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.arrow {
+      border-color: var(--color-long-run);
+      border-top-style: dotted;
+      border-top-width: 2px;
+    }
+    .legend-point,
+    .legend-fill {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      display: inline-block;
+      border: 2px solid var(--color-text);
+      background: white;
+    }
+    .legend-point.nash {
+      background: var(--color-text);
+      border-color: var(--color-text);
+    }
+    .legend-point.stack {
+      background: var(--color-government);
+      border-color: var(--color-government);
+    }
+    .legend-point.guess {
+      background: white;
+      border-color: var(--color-guess);
+    }
+    .legend-point.previous {
+      background: white;
+      border-color: var(--color-baseline);
+    }
+
+    .graph-frame.custom-canvas {
+      padding: 12px;
+    }
+    .graph-frame.custom-canvas canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: white;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+    }
+
+    .metric-card {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .metric-label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+    }
+    .metric-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .feedback-card.good {
+      border-left: 4px solid var(--color-government);
+    }
+    .feedback-card.warn {
+      border-left: 4px solid var(--color-inflation);
+    }
+    .feedback-card.neutral {
+      border-left: 4px solid var(--color-baseline);
+    }
+
+    .answer-card select,
+    .answer-card input[type="number"],
+    .answer-card input[type="range"],
+    .control-inline select,
+    .control-inline input[type="number"] {
+      width: 100%;
+    }
+
+    .table-wrap,
+    .case-table-wrap {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th,
+    td {
+      border-bottom: 1px solid var(--color-frame);
+      padding: 8px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr.active-row td {
+      background: #eef5ff;
+      color: var(--color-text);
+    }
+    .pill-note {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      font-size: 11px;
+      color: var(--color-muted);
+      background: white;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1040px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+      .metric-grid.four,
+      .answer-grid.two,
+      .chart-grid.two,
+      .data-grid.two,
+      .two-col-grid.two {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Cournot, Stackelberg and best-response rivalry</h1>
+        <p class="diagram-subtitle">
+          Use reaction functions to compare Cournot and Stackelberg outcomes, identify Nash equilibrium, and contrast strategic substitutes with strategic complements. The case study translates the post-pandemic capacity contest between Austrian Airlines and Ryanair/Lauda at Vienna Airport into a stylised quantity-competition diagram.
+        </p>
+      </div>
+
+      <div class="summary-strip">
+        <div class="summary-chip">Reaction functions in quantity space</div>
+        <div class="summary-chip">Cournot and Stackelberg comparison</div>
+        <div class="summary-chip">Strategic substitutes vs complements</div>
+        <div class="summary-chip">Draggable output-choice point</div>
+        <div class="summary-chip">Practice and check mode</div>
+        <div class="summary-chip">Austria case study: Vienna Airport rivalry</div>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreModule">Explore and compare</button>
+        <button class="module-tab" data-target="practiceModule">Practice and check</button>
+        <button class="module-tab" data-target="caseModule">Vienna Airport case study</button>
+      </div>
+
+      <section id="exploreModule" class="module-section active">
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="familySelect">Game family</label>
+            <select id="familySelect">
+              <option value="cournot">Cournot quantity game</option>
+              <option value="substitutes">Generic strategic substitutes</option>
+              <option value="complements">Generic strategic complements</option>
+            </select>
+          </div>
+          <div class="control-inline">
+            <label for="leaderSelect">Leader / follower comparison</label>
+            <select id="leaderSelect">
+              <option value="none">Cournot only</option>
+              <option value="firm1">Firm 1 leads (Stackelberg)</option>
+              <option value="firm2">Firm 2 leads (Stackelberg)</option>
+            </select>
+          </div>
+          <div class="control-inline" id="aControl">
+            <label for="aSlider">Demand intercept A <span class="inline-value" id="aValue"></span></label>
+            <input type="range" id="aSlider" min="30" max="90" step="1" value="54" />
+          </div>
+          <div class="control-inline" id="bControl">
+            <label for="bSlider">Demand slope B <span class="inline-value" id="bValue"></span></label>
+            <input type="range" id="bSlider" min="0.5" max="2.0" step="0.1" value="1.0" />
+          </div>
+          <div class="control-inline" id="c1Control">
+            <label for="c1Slider">Firm 1 marginal cost c₁ <span class="inline-value" id="c1Value"></span></label>
+            <input type="range" id="c1Slider" min="2" max="34" step="1" value="8" />
+          </div>
+          <div class="control-inline" id="c2Control">
+            <label for="c2Slider">Firm 2 marginal cost c₂ <span class="inline-value" id="c2Value"></span></label>
+            <input type="range" id="c2Slider" min="2" max="34" step="1" value="10" />
+          </div>
+          <div class="control-inline hidden" id="alpha1Control">
+            <label for="alpha1Slider">Firm 1 BR intercept <span class="inline-value" id="alpha1Value"></span></label>
+            <input type="range" id="alpha1Slider" min="2" max="12" step="0.5" value="8" />
+          </div>
+          <div class="control-inline hidden" id="alpha2Control">
+            <label for="alpha2Slider">Firm 2 BR intercept <span class="inline-value" id="alpha2Value"></span></label>
+            <input type="range" id="alpha2Slider" min="2" max="12" step="0.5" value="6" />
+          </div>
+          <div class="control-inline hidden" id="slopeControl">
+            <label for="slopeSlider">Reaction slope magnitude <span class="inline-value" id="slopeValue"></span></label>
+            <input type="range" id="slopeSlider" min="0.15" max="0.8" step="0.05" value="0.45" />
+          </div>
+          <div class="control-inline">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="resetExploreBtn">Reset</button>
+              <button class="btn-secondary" id="randomExploreBtn">Random scenario</button>
+              <button class="btn-secondary" id="stepExploreBtn">Best-response step</button>
+              <button class="btn-primary" id="nashExploreBtn">Move guess to Nash</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame custom-canvas">
+              <canvas id="exploreCanvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top:12px;">
+              <div class="legend-item"><span class="legend-line firm1"></span><span>Firm 1 best response</span></div>
+              <div class="legend-item"><span class="legend-line firm2"></span><span>Firm 2 best response</span></div>
+              <div class="legend-item"><span class="legend-point guess"></span><span>Your current point</span></div>
+              <div class="legend-item"><span class="legend-line arrow"></span><span>Best-response adjustment</span></div>
+              <div class="legend-item"><span class="legend-point nash"></span><span>Nash equilibrium</span></div>
+              <div class="legend-item"><span class="legend-point stack"></span><span>Stackelberg outcome</span></div>
+            </div>
+            <div class="graph-note" id="exploreGraphNote"></div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="status-card">
+              <div class="status-title">How to read the diagram</div>
+              <div class="status-copy" id="exploreStatus"></div>
+            </div>
+            <div class="panel-card">
+              <div class="card-title">Live metrics</div>
+              <div class="metric-grid four">
+                <div class="metric-card">
+                  <div class="metric-label">Nash equilibrium</div>
+                  <div class="metric-value" id="metricNash">—</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Relation type</div>
+                  <div class="metric-value" id="metricRelation">—</div>
+                </div>
+                <div class="metric-card" id="metricPriceCard">
+                  <div class="metric-label">Market price</div>
+                  <div class="metric-value" id="metricPrice">—</div>
+                </div>
+                <div class="metric-card" id="metricQCard">
+                  <div class="metric-label">Total output</div>
+                  <div class="metric-value" id="metricTotalQ">—</div>
+                </div>
+                <div class="metric-card" id="metricProfit1Card">
+                  <div class="metric-label">Firm 1 profit</div>
+                  <div class="metric-value" id="metricProfit1">—</div>
+                </div>
+                <div class="metric-card" id="metricProfit2Card">
+                  <div class="metric-label">Firm 2 profit</div>
+                  <div class="metric-value" id="metricProfit2">—</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Current guess</div>
+                  <div class="metric-value" id="metricGuess">—</div>
+                </div>
+                <div class="metric-card" id="metricLeaderCard">
+                  <div class="metric-label">Stackelberg comparison</div>
+                  <div class="metric-value" id="metricLeader">—</div>
+                </div>
+              </div>
+            </div>
+            <div class="formula-card">
+              <div class="card-title">Economic logic</div>
+              <div class="formula-copy" id="exploreFormula"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceModule" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Scenario bank</label>
+            <div class="scenario-bank" id="practiceScenarioBank"></div>
+          </div>
+          <div class="control-inline">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="randomPracticeBtn">Random practice</button>
+              <button class="btn-secondary" id="resetPracticeBtn">Reset guess</button>
+              <button class="btn-primary" id="checkPracticeBtn">Check answer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame custom-canvas">
+              <canvas id="practiceCanvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top:12px;">
+              <div class="legend-item"><span class="legend-line firm1"></span><span>Firm 1 best response</span></div>
+              <div class="legend-item"><span class="legend-line firm2"></span><span>Firm 2 best response</span></div>
+              <div class="legend-item"><span class="legend-point guess"></span><span>Your Nash guess</span></div>
+              <div class="legend-item"><span class="legend-point nash"></span><span>Correct Nash point</span></div>
+              <div class="legend-item"><span class="legend-point stack"></span><span>Stackelberg point when relevant</span></div>
+            </div>
+            <div class="graph-note" id="practiceGraphNote"></div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="status-card">
+              <div class="status-title">Current practice case</div>
+              <div class="status-copy" id="practiceStatus"></div>
+            </div>
+            <div class="answer-card">
+              <div class="answer-title">Your answers</div>
+              <div class="answer-grid two">
+                <div class="control-inline">
+                  <label for="practiceRelationSelect">Strategic relation</label>
+                  <select id="practiceRelationSelect">
+                    <option value="">Choose</option>
+                    <option value="substitutes">Strategic substitutes</option>
+                    <option value="complements">Strategic complements</option>
+                  </select>
+                </div>
+                <div class="control-inline">
+                  <label for="practiceLargerSelect">Larger Nash output</label>
+                  <select id="practiceLargerSelect">
+                    <option value="">Choose</option>
+                    <option value="firm1">Firm 1</option>
+                    <option value="firm2">Firm 2</option>
+                    <option value="same">About equal</option>
+                  </select>
+                </div>
+                <div class="control-inline" id="practiceStackField">
+                  <label for="practiceStackSelect">Compared with Cournot, Stackelberg total output</label>
+                  <select id="practiceStackSelect">
+                    <option value="">Choose</option>
+                    <option value="higher">Higher</option>
+                    <option value="lower">Lower</option>
+                    <option value="same">About the same</option>
+                  </select>
+                </div>
+                <div class="control-inline">
+                  <label>Hint</label>
+                  <div class="small-muted" id="practiceHint">Drag the purple point to the mutual best-response location, then complete the short answers.</div>
+                </div>
+              </div>
+            </div>
+            <div class="feedback-card neutral" id="practiceFeedbackCard">
+              <div class="feedback-title">Feedback</div>
+              <div class="feedback-copy" id="practiceFeedback">Choose a scenario, move the purple point to where you think the Nash equilibrium lies, and then check your answer.</div>
+            </div>
+            <div class="table-card">
+              <div class="table-title">Correct benchmark after checking</div>
+              <div class="table-wrap">
+                <table>
+                  <tbody id="practiceTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseModule" class="module-section">
+        <div class="summary-strip" id="caseSummaryStrip"></div>
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Case-study sequence</label>
+            <div class="case-step-row" id="caseStepButtons"></div>
+          </div>
+          <div class="control-inline">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="playCaseBtn">Play sequence</button>
+              <button class="btn-secondary" id="resetCaseBtn">Reset to 2021</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame custom-canvas">
+              <canvas id="caseCanvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top:12px;">
+              <div class="legend-item"><span class="legend-line firm1"></span><span>Austrian Airlines reaction curve</span></div>
+              <div class="legend-item"><span class="legend-line firm2"></span><span>Ryanair/Lauda reaction curve</span></div>
+              <div class="legend-item"><span class="legend-line baseline"></span><span>Previous step reaction curves</span></div>
+              <div class="legend-item"><span class="legend-point previous"></span><span>Previous observed point</span></div>
+              <div class="legend-item"><span class="legend-point nash"></span><span>Current observed point</span></div>
+            </div>
+            <div class="graph-note" id="caseGraphNote"></div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="status-card">
+              <div class="status-title">Case interpretation</div>
+              <div class="status-copy" id="caseStatus"></div>
+            </div>
+            <div class="panel-card">
+              <div class="card-title">Observed market data</div>
+              <div class="metric-grid four">
+                <div class="metric-card">
+                  <div class="metric-label">Austrian Airlines passengers</div>
+                  <div class="metric-value" id="caseMetricAustrian">—</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Ryanair/Lauda passengers</div>
+                  <div class="metric-value" id="caseMetricRyanair">—</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Austrian market share</div>
+                  <div class="metric-value" id="caseMetricShareA">—</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Ryanair market share</div>
+                  <div class="metric-value" id="caseMetricShareR">—</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Vienna Airport total passengers</div>
+                  <div class="metric-value" id="caseMetricTotal">—</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Route / aircraft context</div>
+                  <div class="metric-value" id="caseMetricContext">—</div>
+                </div>
+              </div>
+            </div>
+            <div class="table-card">
+              <div class="table-title">Observed annual series</div>
+              <div class="case-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Year</th>
+                      <th>Austrian</th>
+                      <th>Ryanair/Lauda</th>
+                      <th>Vienna total</th>
+                      <th>Austrian share</th>
+                      <th>Ryanair share</th>
+                    </tr>
+                  </thead>
+                  <tbody id="caseTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-grid two tight" style="margin-top:16px;">
+          <div class="chart-card">
+            <div class="chart-title">Observed passenger volumes</div>
+            <canvas id="casePassengerCanvas" width="450" height="260"></canvas>
+            <div class="data-note">Passenger counts are annual Vienna Airport passenger numbers handled for each airline, shown in millions.</div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Observed market shares</div>
+            <canvas id="caseShareCanvas" width="450" height="260"></canvas>
+            <div class="data-note">Shares are percentage shares of Vienna Airport total passenger volume in the relevant year.</div>
+          </div>
+        </div>
+
+        <div class="source-note" style="margin-top:16px;">
+          <strong>Source note.</strong> The case-study charts use Vienna Airport annual-report data for 2021–2024 passenger counts and shares for Austrian Airlines and Ryanair/Lauda. The reaction curves in the main diagram are a stylised teaching calibration built to pass through those observed quantity points; they are not econometrically estimated best-response functions.
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    function formatNumber(value, digits = 2) {
+      if (value === null || value === undefined || Number.isNaN(value)) return '—';
+      const rounded = Math.abs(value) < 1e-9 ? 0 : value;
+      return rounded.toFixed(digits).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
+    }
+
+    function formatMillions(value) {
+      return `${formatNumber(value, 2)}m`;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function niceUpper(value) {
+      if (!isFinite(value) || value <= 0) return 10;
+      const base = Math.pow(10, Math.floor(Math.log10(value)));
+      const scaled = value / base;
+      let nice = 1;
+      if (scaled <= 1) nice = 1;
+      else if (scaled <= 1.5) nice = 1.5;
+      else if (scaled <= 2) nice = 2;
+      else if (scaled <= 3) nice = 3;
+      else if (scaled <= 4) nice = 4;
+      else if (scaled <= 5) nice = 5;
+      else if (scaled <= 6) nice = 6;
+      else if (scaled <= 8) nice = 8;
+      else nice = 10;
+      return nice * base;
+    }
+
+    function makeTicks(min, max, count, axis) {
+      const ticks = [];
+      for (let i = 0; i <= count; i += 1) {
+        const value = min + (i / count) * (max - min);
+        ticks.push({
+          label: formatNumber(value, max <= 12 ? 1 : 0),
+          x: axis === 'x' ? EconDraw.valueToX(value, min, max) : undefined,
+          y: axis === 'y' ? EconDraw.valueToY(value, min, max) : undefined
+        });
+      }
+      return ticks;
+    }
+
+    function drawMarker(ctx, x, y, color, label, options = {}) {
+      EconDraw.drawCircle(ctx, x, y, {
+        radius: options.radius || ECON_THEME.radius.marker,
+        fill: options.fill || color,
+        stroke: options.stroke || color,
+        lineWidth: options.lineWidth || 2
+      });
+      if (label) {
+        EconDraw.drawText(ctx, label, x + 8, y - 10, {
+          size: 13,
+          weight: '600',
+          color
+        });
+      }
+    }
+
+    function lineDistance(px, py, x1, y1, x2, y2) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      if (dx === 0 && dy === 0) return Math.hypot(px - x1, py - y1);
+      const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)));
+      const projX = x1 + t * dx;
+      const projY = y1 + t * dy;
+      return Math.hypot(px - projX, py - projY);
+    }
+
+    function pointerOnCanvas(canvas, event) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+      const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+      return {
+        x: ((clientX - rect.left) / rect.width) * canvas.width,
+        y: ((clientY - rect.top) / rect.height) * canvas.height
+      };
+    }
+
+    function createCournotModel(params) {
+      const a = Number(params.a);
+      const b = Number(params.b);
+      const c1 = Number(params.c1);
+      const c2 = Number(params.c2);
+      const br1 = (q2) => Math.max((a - c1 - b * q2) / (2 * b), 0);
+      const br2 = (q1) => Math.max((a - c2 - b * q1) / (2 * b), 0);
+      let q1 = Math.max((a - c1) / (3 * b), 0);
+      let q2 = Math.max((a - c2) / (3 * b), 0);
+      for (let i = 0; i < 80; i += 1) {
+        q1 = br1(q2);
+        q2 = br2(q1);
+      }
+      const price = Math.max(a - b * (q1 + q2), 0);
+      const profit1 = Math.max((price - c1) * q1, 0);
+      const profit2 = Math.max((price - c2) * q2, 0);
+      const q1L1 = Math.max((a - 2 * c1 + c2) / (2 * b), 0);
+      const q2F1 = br2(q1L1);
+      const pF1 = Math.max(a - b * (q1L1 + q2F1), 0);
+      const q2L2 = Math.max((a - 2 * c2 + c1) / (2 * b), 0);
+      const q1F2 = br1(q2L2);
+      const pF2 = Math.max(a - b * (q1F2 + q2L2), 0);
+      return {
+        family: 'cournot',
+        relation: 'substitutes',
+        params: { a, b, c1, c2 },
+        br1,
+        br2,
+        nash: { q1, q2 },
+        price,
+        profits: { firm1: profit1, firm2: profit2 },
+        stackelberg: {
+          firm1: {
+            q1: q1L1,
+            q2: q2F1,
+            price: pF1,
+            profit1: Math.max((pF1 - c1) * q1L1, 0),
+            profit2: Math.max((pF1 - c2) * q2F1, 0)
+          },
+          firm2: {
+            q1: q1F2,
+            q2: q2L2,
+            price: pF2,
+            profit1: Math.max((pF2 - c1) * q1F2, 0),
+            profit2: Math.max((pF2 - c2) * q2L2, 0)
+          }
+        },
+        axisMax: niceUpper(Math.max((a - c1) / (2 * b), (a - c2) / (2 * b), q1, q2, q1L1, q2F1, q1F2, q2L2) * 1.35)
+      };
+    }
+
+    function createGenericModel(family, params) {
+      const alpha1 = Number(params.alpha1);
+      const alpha2 = Number(params.alpha2);
+      const slope = Number(params.slope);
+      const sign = family === 'complements' ? 1 : -1;
+      const axisMaxSeed = niceUpper((Math.max(alpha1, alpha2) / Math.max(0.1, 1 - Math.abs(sign * slope))) * 1.4);
+      const cap = axisMaxSeed * 1.2;
+      const br1 = (q2) => clamp(alpha1 + sign * slope * q2, 0, cap);
+      const br2 = (q1) => clamp(alpha2 + sign * slope * q1, 0, cap);
+      let q1 = alpha1;
+      let q2 = alpha2;
+      for (let i = 0; i < 120; i += 1) {
+        q1 = br1(q2);
+        q2 = br2(q1);
+      }
+      const axisMax = niceUpper(Math.max(axisMaxSeed, q1, q2, alpha1, alpha2) * 1.15);
+      return {
+        family,
+        relation: family === 'complements' ? 'complements' : 'substitutes',
+        params: { alpha1, alpha2, slope },
+        br1,
+        br2,
+        nash: { q1, q2 },
+        axisMax
+      };
+    }
+
+    const exploreState = {
+      family: 'cournot',
+      leader: 'none',
+      a: 54,
+      b: 1,
+      c1: 8,
+      c2: 10,
+      alpha1: 8,
+      alpha2: 6,
+      slope: 0.45,
+      guess: { q1: 10, q2: 10 },
+      dragActive: false,
+      playTimer: null
+    };
+
+    const practiceScenarios = [
+      {
+        id: 'p1',
+        title: 'Symmetric Cournot with a firm 1 leadership comparison',
+        family: 'cournot',
+        leader: 'firm1',
+        a: 48,
+        b: 1,
+        c1: 8,
+        c2: 8,
+        prompt: 'Two similar firms choose quantities in a standard Cournot market. Then compare the result with a Stackelberg version in which firm 1 moves first.'
+      },
+      {
+        id: 'p2',
+        title: 'Asymmetric Cournot: firm 1 has lower cost',
+        family: 'cournot',
+        leader: 'none',
+        a: 56,
+        b: 1,
+        c1: 6,
+        c2: 11,
+        prompt: 'Use the reaction functions to find the Nash point. Which firm ends up producing more in equilibrium?'
+      },
+      {
+        id: 'p3',
+        title: 'Asymmetric Cournot with firm 2 leading',
+        family: 'cournot',
+        leader: 'firm2',
+        a: 60,
+        b: 1.1,
+        c1: 11,
+        c2: 7,
+        prompt: 'Firm 2 has the lower marginal cost and also moves first in the Stackelberg comparison.'
+      },
+      {
+        id: 'p4',
+        title: 'Generic strategic substitutes',
+        family: 'substitutes',
+        leader: 'none',
+        alpha1: 9,
+        alpha2: 7,
+        slope: 0.45,
+        prompt: 'Each firm wants less output when the other firm expands. Locate the mutual best response.'
+      },
+      {
+        id: 'p5',
+        title: 'Generic strategic complements',
+        family: 'complements',
+        leader: 'none',
+        alpha1: 3.5,
+        alpha2: 2.8,
+        slope: 0.55,
+        prompt: 'Each firm wants more output when the other firm expands. Locate the Nash point and classify the relation.'
+      },
+      {
+        id: 'p6',
+        title: 'Complement game with stronger firm 1 intercept',
+        family: 'complements',
+        leader: 'none',
+        alpha1: 4.8,
+        alpha2: 2.6,
+        slope: 0.45,
+        prompt: 'The best responses slope upward, but firm 1 starts from a stronger baseline intercept.'
+      }
+    ];
+
+    const practiceState = {
+      scenarioIndex: 0,
+      guess: { q1: 6, q2: 6 },
+      revealed: false,
+      dragActive: false
+    };
+
+    const caseData = [
+      {
+        year: '2021',
+        austrian: 4.995915,
+        ryanair: 1.956721,
+        total: 10.405523,
+        shareA: 48.0,
+        shareR: 18.8,
+        contextShort: 'Recovery phase',
+        contextLong: 'Vienna was still climbing out of the pandemic slump. Austrian remained the largest carrier, while Ryanair/Lauda had already pushed its share to 18.8% thanks to new locations and higher frequency.',
+        stepNote: 'Baseline year for the post-pandemic rivalry. Observed passengers are still low, so both reaction curves sit relatively close to the origin.'
+      },
+      {
+        year: '2022',
+        austrian: 11.144003,
+        ryanair: 4.946744,
+        total: 23.682133,
+        shareA: 47.1,
+        shareR: 20.9,
+        contextShort: 'Traffic rebound',
+        contextLong: 'Airport traffic rebounded strongly. Austrian more than doubled its passenger count, but Ryanair/Lauda grew even faster and lifted its share above 20%.',
+        stepNote: 'The big rebound shifts both reaction curves outward. The observed point moves sharply north-east, which is what a recovering market with aggressive quantity expansion looks like in reaction-function space.'
+      },
+      {
+        year: '2023',
+        austrian: 13.862273,
+        ryanair: 5.954732,
+        total: 29.533186,
+        shareA: 46.9,
+        shareR: 20.2,
+        contextShort: 'Ryanair scales its Vienna base',
+        contextLong: 'Vienna Airport reported Austrian with 86 destinations, while Ryanair served 55 destinations and stationed 18 aircraft for the winter 2023/24 schedule. Both carriers added passengers, and Ryanair remained the clear quantity challenger.',
+        stepNote: 'The diagram reads this as another outward shift of both best responses, with the entrant still responding strongly at higher output levels.'
+      },
+      {
+        year: '2024',
+        austrian: 14.581301,
+        ryanair: 6.643398,
+        total: 31.719836,
+        shareA: 46.0,
+        shareR: 20.9,
+        contextShort: 'High-volume rivalry persists',
+        contextLong: 'Austrian stayed the market leader, but Ryanair/Lauda lifted passengers again to 6.64 million. Vienna Airport reported Ryanair offering 56 routes with 18 aircraft based at Vienna in the 2024/25 winter schedule.',
+        stepNote: 'The observed point edges further north-east. The key teaching message is not that output choices are simultaneous in a literal legal sense, but that the observed rivalry is well described by strategic substitutes in quantity space.'
+      }
+    ];
+
+    caseData.forEach((d) => {
+      d.caseModel = {
+        s1: 0.35,
+        s2: 0.25,
+        alpha1: d.austrian + 0.35 * d.ryanair,
+        alpha2: d.ryanair + 0.25 * d.austrian
+      };
+    });
+
+    const caseState = {
+      index: 0,
+      timer: null
+    };
+
+    function currentExploreModel() {
+      return exploreState.family === 'cournot'
+        ? createCournotModel(exploreState)
+        : createGenericModel(exploreState.family, exploreState);
+    }
+
+    function scenarioModel(scenario) {
+      return scenario.family === 'cournot'
+        ? createCournotModel(scenario)
+        : createGenericModel(scenario.family, scenario);
+    }
+
+    function drawReactionCanvas(canvas, config) {
+      const ctx = canvas.getContext('2d');
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+      const xMin = 0;
+      const yMin = 0;
+      const xMax = config.xMax;
+      const yMax = config.yMax;
+      const xTicks = makeTicks(xMin, xMax, 8, 'x');
+      const yTicks = makeTicks(yMin, yMax, 8, 'y');
+      EconDraw.drawAxes(ctx, {
+        xLabel: config.xLabel,
+        yLabel: config.yLabel,
+        xTicks,
+        yTicks
+      });
+
+      function sampleBR1(fn, color, dash, label, labelY, width) {
+        const points = [];
+        for (let y = yMin; y <= yMax; y += yMax / 140) {
+          const x = fn(y);
+          if (x >= -0.2 * xMax && x <= 1.2 * xMax) {
+            points.push({ x: EconDraw.valueToX(x, xMin, xMax), y: EconDraw.valueToY(y, yMin, yMax) });
+          }
+        }
+        EconDraw.drawLine(ctx, points, {
+          color,
+          dash,
+          lineWidth: width || ECON_THEME.line.main
+        });
+        if (label) {
+          const ly = clamp(labelY !== undefined ? labelY : yMax * 0.18, yMin, yMax);
+          const lx = fn(ly);
+          EconDraw.drawText(ctx, label, EconDraw.valueToX(clamp(lx, xMin, xMax), xMin, xMax) + 8, EconDraw.valueToY(ly, yMin, yMax) - 10, {
+            size: 13,
+            weight: '600',
+            color
+          });
+        }
+      }
+
+      function sampleBR2(fn, color, dash, label, labelX, width) {
+        const points = [];
+        for (let x = xMin; x <= xMax; x += xMax / 140) {
+          const y = fn(x);
+          if (y >= -0.2 * yMax && y <= 1.2 * yMax) {
+            points.push({ x: EconDraw.valueToX(x, xMin, xMax), y: EconDraw.valueToY(y, yMin, yMax) });
+          }
+        }
+        EconDraw.drawLine(ctx, points, {
+          color,
+          dash,
+          lineWidth: width || ECON_THEME.line.main
+        });
+        if (label) {
+          const lx = clamp(labelX !== undefined ? labelX : xMax * 0.18, xMin, xMax);
+          const ly = fn(lx);
+          EconDraw.drawText(ctx, label, EconDraw.valueToX(lx, xMin, xMax) + 8, EconDraw.valueToY(clamp(ly, yMin, yMax), yMin, yMax) - 10, {
+            size: 13,
+            weight: '600',
+            color
+          });
+        }
+      }
+
+      if (config.baselineModel) {
+        sampleBR1((y) => config.baselineModel.br1(y), ECON_THEME.color.baseline, ECON_THEME.dash.baseline, config.baselineLabel1 || 'BR₁,old', yMax * 0.28, ECON_THEME.line.baseline);
+        sampleBR2((x) => config.baselineModel.br2(x), ECON_THEME.color.baseline, ECON_THEME.dash.baseline, config.baselineLabel2 || 'BR₂,old', xMax * 0.25, ECON_THEME.line.baseline);
+      }
+
+      sampleBR1((y) => config.model.br1(y), ECON_THEME.color.demand, null, config.label1 || 'BR₁', yMax * 0.14);
+      sampleBR2((x) => config.model.br2(x), ECON_THEME.color.supply, null, config.label2 || 'BR₂', xMax * 0.14);
+
+      if (config.showGuess && config.guess) {
+        const gx = EconDraw.valueToX(config.guess.q1, xMin, xMax);
+        const gy = EconDraw.valueToY(config.guess.q2, yMin, yMax);
+        drawMarker(ctx, gx, gy, ECON_THEME.color.guess, config.guessLabel || 'Guess', {
+          fill: '#ffffff',
+          stroke: ECON_THEME.color.guess,
+          radius: 6
+        });
+        if (config.showGuessArrows) {
+          const br1xVal = clamp(config.model.br1(config.guess.q2), xMin, xMax);
+          const br2yVal = clamp(config.model.br2(config.guess.q1), yMin, yMax);
+          const br1x = EconDraw.valueToX(br1xVal, xMin, xMax);
+          const br2y = EconDraw.valueToY(br2yVal, yMin, yMax);
+          EconDraw.drawLine(ctx, [{ x: gx, y: gy }, { x: br1x, y: gy }], {
+            color: ECON_THEME.color.demand,
+            dash: [5, 4],
+            lineWidth: 2
+          });
+          EconDraw.drawLine(ctx, [{ x: gx, y: gy }, { x: gx, y: br2y }], {
+            color: ECON_THEME.color.supply,
+            dash: [5, 4],
+            lineWidth: 2
+          });
+          drawMarker(ctx, br1x, gy, ECON_THEME.color.demand, 'BR₁(q₂)', { radius: 4, fill: '#fff', stroke: ECON_THEME.color.demand });
+          drawMarker(ctx, gx, br2y, ECON_THEME.color.supply, 'BR₂(q₁)', { radius: 4, fill: '#fff', stroke: ECON_THEME.color.supply });
+        }
+      }
+
+      if (config.previousPoint) {
+        const px = EconDraw.valueToX(config.previousPoint.q1, xMin, xMax);
+        const py = EconDraw.valueToY(config.previousPoint.q2, yMin, yMax);
+        drawMarker(ctx, px, py, ECON_THEME.color.baseline, config.previousLabel || 'Previous', { fill: '#ffffff', stroke: ECON_THEME.color.baseline, radius: 6 });
+      }
+
+      if (config.showNash !== false) {
+        const nx = EconDraw.valueToX(config.model.nash.q1, xMin, xMax);
+        const ny = EconDraw.valueToY(config.model.nash.q2, yMin, yMax);
+        drawMarker(ctx, nx, ny, ECON_THEME.color.text, config.nashLabel || 'Nash', { fill: ECON_THEME.color.text, stroke: ECON_THEME.color.text });
+      }
+
+      if (config.stackPoint) {
+        const sx = EconDraw.valueToX(config.stackPoint.q1, xMin, xMax);
+        const sy = EconDraw.valueToY(config.stackPoint.q2, yMin, yMax);
+        drawMarker(ctx, sx, sy, ECON_THEME.color.government, config.stackLabel || 'Stack', { fill: ECON_THEME.color.government, stroke: ECON_THEME.color.government });
+      }
+
+      if (config.highlightPoint) {
+        const hx = EconDraw.valueToX(config.highlightPoint.q1, xMin, xMax);
+        const hy = EconDraw.valueToY(config.highlightPoint.q2, yMin, yMax);
+        drawMarker(ctx, hx, hy, ECON_THEME.color.text, config.highlightLabel || 'Observed', { fill: ECON_THEME.color.text, stroke: ECON_THEME.color.text, radius: 6 });
+      }
+
+      if (config.guidePoint) {
+        const q1 = config.guidePoint.q1;
+        const q2 = config.guidePoint.q2;
+        const x = EconDraw.valueToX(q1, xMin, xMax);
+        const y = EconDraw.valueToY(q2, yMin, yMax);
+        EconDraw.drawLine(ctx, [{ x, y }, { x, y: EconDraw.valueToY(yMin, yMin, yMax) }], {
+          color: ECON_THEME.color.baseline,
+          dash: ECON_THEME.dash.guide,
+          lineWidth: 1.5
+        });
+        EconDraw.drawLine(ctx, [{ x, y }, { x: EconDraw.valueToX(xMin, xMin, xMax), y }], {
+          color: ECON_THEME.color.baseline,
+          dash: ECON_THEME.dash.guide,
+          lineWidth: 1.5
+        });
+      }
+    }
+
+    function updateExploreControlsVisibility() {
+      const generic = exploreState.family !== 'cournot';
+      $('leaderSelect').disabled = generic;
+      $('aControl').classList.toggle('hidden', generic);
+      $('bControl').classList.toggle('hidden', generic);
+      $('c1Control').classList.toggle('hidden', generic);
+      $('c2Control').classList.toggle('hidden', generic);
+      $('alpha1Control').classList.toggle('hidden', !generic);
+      $('alpha2Control').classList.toggle('hidden', !generic);
+      $('slopeControl').classList.toggle('hidden', !generic);
+      if (generic) {
+        exploreState.leader = 'none';
+        $('leaderSelect').value = 'none';
+      }
+    }
+
+    function updateExploreReadouts() {
+      $('aValue').textContent = formatNumber(exploreState.a, 0);
+      $('bValue').textContent = formatNumber(exploreState.b, 1);
+      $('c1Value').textContent = formatNumber(exploreState.c1, 0);
+      $('c2Value').textContent = formatNumber(exploreState.c2, 0);
+      $('alpha1Value').textContent = formatNumber(exploreState.alpha1, 1);
+      $('alpha2Value').textContent = formatNumber(exploreState.alpha2, 1);
+      $('slopeValue').textContent = formatNumber(exploreState.slope, 2);
+    }
+
+    function renderExplore() {
+      updateExploreControlsVisibility();
+      updateExploreReadouts();
+      const model = currentExploreModel();
+      const axisMax = model.axisMax;
+      const stackPoint = exploreState.family === 'cournot' && exploreState.leader !== 'none'
+        ? model.stackelberg[exploreState.leader]
+        : null;
+      drawReactionCanvas($('exploreCanvas'), {
+        model,
+        xMax: axisMax,
+        yMax: axisMax,
+        xLabel: 'Firm 1 output q₁',
+        yLabel: 'Firm 2 output q₂',
+        showGuess: true,
+        guess: exploreState.guess,
+        showGuessArrows: true,
+        stackPoint,
+        guidePoint: model.nash
+      });
+
+      const relationText = model.relation === 'substitutes' ? 'Strategic substitutes' : 'Strategic complements';
+      $('metricNash').textContent = `(${formatNumber(model.nash.q1)}, ${formatNumber(model.nash.q2)})`;
+      $('metricRelation').textContent = relationText;
+      $('metricGuess').textContent = `(${formatNumber(exploreState.guess.q1)}, ${formatNumber(exploreState.guess.q2)})`;
+      $('metricLeader').textContent = stackPoint
+        ? `${exploreState.leader === 'firm1' ? 'Firm 1' : 'Firm 2'} leads → (${formatNumber(stackPoint.q1)}, ${formatNumber(stackPoint.q2)})`
+        : 'No Stackelberg point displayed';
+
+      const isCournot = exploreState.family === 'cournot';
+      $('metricPriceCard').classList.toggle('hidden', !isCournot);
+      $('metricQCard').classList.toggle('hidden', !isCournot);
+      $('metricProfit1Card').classList.toggle('hidden', !isCournot);
+      $('metricProfit2Card').classList.toggle('hidden', !isCournot);
+      if (isCournot) {
+        $('metricPrice').textContent = formatNumber(model.price);
+        $('metricTotalQ').textContent = formatNumber(model.nash.q1 + model.nash.q2);
+        $('metricProfit1').textContent = formatNumber(model.profits.firm1);
+        $('metricProfit2').textContent = formatNumber(model.profits.firm2);
+      }
+
+      $('exploreStatus').innerHTML = isCournot
+        ? `In the Cournot model, each firm chooses output taking the rival's output as given. The blue and red curves show each firm's best response. Their intersection is the <strong>Nash equilibrium</strong>. The purple point is your current trial choice. The dashed blue and red adjustment lines show how each firm wants to revise output from that trial point. ${stackPoint ? `The green marker compares the Cournot outcome with a <strong>${exploreState.leader === 'firm1' ? 'firm 1' : 'firm 2'}</strong> Stackelberg leader.` : ''}`
+        : `In this generic reaction-function game, the sign of the best-response slope tells you whether the firms are strategic substitutes or complements. Downward-sloping best responses indicate substitutes; upward-sloping best responses indicate complements. The purple point lets you explore whether a proposed pair of outputs is a mutual best response.`;
+
+      $('exploreFormula').innerHTML = isCournot
+        ? `<div class="pill-note">P = A - B(q₁ + q₂)</div><div class="pill-note">π₁ = (P - c₁)q₁</div><div class="pill-note">π₂ = (P - c₂)q₂</div><br/>Best responses: <strong>q₁ = (A - c₁ - Bq₂)/(2B)</strong> and <strong>q₂ = (A - c₂ - Bq₁)/(2B)</strong>, truncated at zero if necessary. In the standard linear Cournot model, reaction functions slope downward, so outputs are strategic substitutes.`
+        : `<div class="pill-note">BR₁ = α₁ ${model.relation === 'complements' ? '+' : '−'} βq₂</div><div class="pill-note">BR₂ = α₂ ${model.relation === 'complements' ? '+' : '−'} βq₁</div><br/>This generic version is here to make the <strong>sign</strong> of the best-response slope visually explicit. The slope is negative for strategic substitutes and positive for strategic complements.`;
+
+      $('exploreGraphNote').innerHTML = isCournot
+        ? `<strong>Read-off rule.</strong> Hold q₂ fixed, move horizontally to the blue curve to find firm 1's best response. Hold q₁ fixed, move vertically to the red curve to find firm 2's best response. Mutual best responses define Nash equilibrium.`
+        : `<strong>Read-off rule.</strong> When reaction functions slope upward, the firms' actions reinforce each other; when they slope downward, one firm's expansion makes the rival want to contract.`;
+    }
+
+    function resetExploreGuess() {
+      const model = currentExploreModel();
+      const axisMax = model.axisMax;
+      exploreState.guess = { q1: axisMax * 0.58, q2: axisMax * 0.58 };
+    }
+
+    function randomExploreScenario() {
+      const familyOptions = ['cournot', 'substitutes', 'complements'];
+      const family = familyOptions[Math.floor(Math.random() * familyOptions.length)];
+      exploreState.family = family;
+      $('familySelect').value = family;
+      if (family === 'cournot') {
+        exploreState.a = 40 + Math.floor(Math.random() * 28);
+        exploreState.b = [0.8, 0.9, 1.0, 1.1, 1.2][Math.floor(Math.random() * 5)];
+        exploreState.c1 = 5 + Math.floor(Math.random() * 10);
+        exploreState.c2 = 5 + Math.floor(Math.random() * 10);
+        const leaderOptions = ['none', 'firm1', 'firm2'];
+        exploreState.leader = leaderOptions[Math.floor(Math.random() * leaderOptions.length)];
+        $('leaderSelect').value = exploreState.leader;
+      } else {
+        exploreState.alpha1 = 3 + Math.floor(Math.random() * 10) / 2;
+        exploreState.alpha2 = 3 + Math.floor(Math.random() * 10) / 2;
+        exploreState.slope = [0.25, 0.35, 0.45, 0.55, 0.65][Math.floor(Math.random() * 5)];
+        exploreState.leader = 'none';
+        $('leaderSelect').value = 'none';
+      }
+      updateExploreReadouts();
+      resetExploreGuess();
+      renderExplore();
+    }
+
+    function bestResponseStepExplore() {
+      const model = currentExploreModel();
+      const q1New = clamp(model.br1(exploreState.guess.q2), 0, model.axisMax);
+      const q2New = clamp(model.br2(q1New), 0, model.axisMax);
+      exploreState.guess = { q1: q1New, q2: q2New };
+      renderExplore();
+    }
+
+    function moveExploreGuessToNash() {
+      const model = currentExploreModel();
+      exploreState.guess = { q1: model.nash.q1, q2: model.nash.q2 };
+      renderExplore();
+    }
+
+    function attachExploreDrag() {
+      const canvas = $('exploreCanvas');
+      canvas.addEventListener('mousedown', (event) => {
+        const pos = pointerOnCanvas(canvas, event);
+        const model = currentExploreModel();
+        const axisMax = model.axisMax;
+        const gx = EconDraw.valueToX(exploreState.guess.q1, 0, axisMax);
+        const gy = EconDraw.valueToY(exploreState.guess.q2, 0, axisMax);
+        if (Math.hypot(pos.x - gx, pos.y - gy) < 18) {
+          exploreState.dragActive = true;
+        }
+      });
+      canvas.addEventListener('mousemove', (event) => {
+        if (!exploreState.dragActive) return;
+        const pos = pointerOnCanvas(canvas, event);
+        const model = currentExploreModel();
+        const plot = EconDraw.getPlotArea();
+        const x = clamp(pos.x, plot.left, plot.right);
+        const y = clamp(pos.y, plot.top, plot.bottom);
+        exploreState.guess.q1 = clamp(EconDraw.xToValue(x, 0, model.axisMax), 0, model.axisMax);
+        exploreState.guess.q2 = clamp(EconDraw.yToValue(y, 0, model.axisMax), 0, model.axisMax);
+        renderExplore();
+      });
+      ['mouseup', 'mouseleave'].forEach((ev) => canvas.addEventListener(ev, () => { exploreState.dragActive = false; }));
+      canvas.addEventListener('touchstart', (event) => {
+        const pos = pointerOnCanvas(canvas, event);
+        const model = currentExploreModel();
+        const axisMax = model.axisMax;
+        const gx = EconDraw.valueToX(exploreState.guess.q1, 0, axisMax);
+        const gy = EconDraw.valueToY(exploreState.guess.q2, 0, axisMax);
+        if (Math.hypot(pos.x - gx, pos.y - gy) < 20) {
+          exploreState.dragActive = true;
+          event.preventDefault();
+        }
+      }, { passive: false });
+      canvas.addEventListener('touchmove', (event) => {
+        if (!exploreState.dragActive) return;
+        const pos = pointerOnCanvas(canvas, event);
+        const model = currentExploreModel();
+        const plot = EconDraw.getPlotArea();
+        const x = clamp(pos.x, plot.left, plot.right);
+        const y = clamp(pos.y, plot.top, plot.bottom);
+        exploreState.guess.q1 = clamp(EconDraw.xToValue(x, 0, model.axisMax), 0, model.axisMax);
+        exploreState.guess.q2 = clamp(EconDraw.yToValue(y, 0, model.axisMax), 0, model.axisMax);
+        renderExplore();
+        event.preventDefault();
+      }, { passive: false });
+      ['touchend', 'touchcancel'].forEach((ev) => canvas.addEventListener(ev, () => { exploreState.dragActive = false; }));
+    }
+
+    function renderPracticeScenarioBank() {
+      $('practiceScenarioBank').innerHTML = '';
+      practiceScenarios.forEach((scenario, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `scenario-chip ${practiceState.scenarioIndex === idx ? 'active' : ''}`;
+        btn.textContent = scenario.title;
+        btn.addEventListener('click', () => {
+          practiceState.scenarioIndex = idx;
+          practiceState.revealed = false;
+          const model = scenarioModel(practiceScenarios[practiceState.scenarioIndex]);
+          practiceState.guess = { q1: model.axisMax * 0.45, q2: model.axisMax * 0.55 };
+          $('practiceRelationSelect').value = '';
+          $('practiceLargerSelect').value = '';
+          $('practiceStackSelect').value = '';
+          renderPracticeScenarioBank();
+          renderPractice();
+        });
+        $('practiceScenarioBank').appendChild(btn);
+      });
+    }
+
+    function currentPracticeScenario() {
+      return practiceScenarios[practiceState.scenarioIndex];
+    }
+
+    function compareNear(a, b, tol = 0.45) {
+      return Math.abs(a - b) <= tol;
+    }
+
+    function renderPractice() {
+      const scenario = currentPracticeScenario();
+      const model = scenarioModel(scenario);
+      const axisMax = model.axisMax;
+      const stackPoint = scenario.family === 'cournot' && scenario.leader !== 'none' ? model.stackelberg[scenario.leader] : null;
+      drawReactionCanvas($('practiceCanvas'), {
+        model,
+        xMax: axisMax,
+        yMax: axisMax,
+        xLabel: 'Firm 1 output q₁',
+        yLabel: 'Firm 2 output q₂',
+        showGuess: true,
+        guess: practiceState.guess,
+        showGuessArrows: false,
+        stackPoint: practiceState.revealed ? stackPoint : null,
+        showNash: practiceState.revealed,
+        guidePoint: practiceState.revealed ? model.nash : null
+      });
+
+      $('practiceStatus').innerHTML = `<strong>${scenario.title}</strong><br/>${scenario.prompt}`;
+      $('practiceGraphNote').innerHTML = practiceState.revealed
+        ? '<strong>After checking.</strong> The black point shows the correct Nash equilibrium. When a Stackelberg comparison is included, the green point shows the leader-follower benchmark.'
+        : '<strong>Before checking.</strong> Drag the purple point to the mutual best-response location, then answer the short interpretation questions.';
+      $('practiceStackField').classList.toggle('hidden', !(scenario.family === 'cournot' && scenario.leader !== 'none'));
+
+      let tableRows = '';
+      if (practiceState.revealed) {
+        const larger = compareNear(model.nash.q1, model.nash.q2, 0.35) ? 'About equal' : (model.nash.q1 > model.nash.q2 ? 'Firm 1' : 'Firm 2');
+        tableRows += `<tr><td>Correct Nash point</td><td>(${formatNumber(model.nash.q1)}, ${formatNumber(model.nash.q2)})</td></tr>`;
+        tableRows += `<tr><td>Strategic relation</td><td>${model.relation === 'substitutes' ? 'Strategic substitutes' : 'Strategic complements'}</td></tr>`;
+        tableRows += `<tr><td>Larger Nash output</td><td>${larger}</td></tr>`;
+        if (stackPoint) {
+          const cournotTotal = model.nash.q1 + model.nash.q2;
+          const stackTotal = stackPoint.q1 + stackPoint.q2;
+          tableRows += `<tr><td>Stackelberg total output vs Cournot</td><td>${stackTotal > cournotTotal + 1e-6 ? 'Higher' : (stackTotal < cournotTotal - 1e-6 ? 'Lower' : 'About the same')}</td></tr>`;
+        }
+      } else {
+        tableRows = '<tr><td>Correct benchmark</td><td>Check answer to reveal.</td></tr>';
+      }
+      $('practiceTableBody').innerHTML = tableRows;
+    }
+
+    function checkPractice() {
+      const scenario = currentPracticeScenario();
+      const model = scenarioModel(scenario);
+      const relationAnswer = $('practiceRelationSelect').value;
+      const largerAnswer = $('practiceLargerSelect').value;
+      const stackAnswer = $('practiceStackSelect').value;
+
+      const pointCorrect = Math.hypot(practiceState.guess.q1 - model.nash.q1, practiceState.guess.q2 - model.nash.q2) <= Math.max(0.7, model.axisMax * 0.04);
+      const relationCorrect = relationAnswer === model.relation;
+      const largerTrue = compareNear(model.nash.q1, model.nash.q2, 0.35) ? 'same' : (model.nash.q1 > model.nash.q2 ? 'firm1' : 'firm2');
+      const largerCorrect = largerAnswer === largerTrue;
+      let stackCorrect = true;
+      let stackTrue = 'same';
+      if (scenario.family === 'cournot' && scenario.leader !== 'none') {
+        const stackPoint = model.stackelberg[scenario.leader];
+        const cournotTotal = model.nash.q1 + model.nash.q2;
+        const stackTotal = stackPoint.q1 + stackPoint.q2;
+        stackTrue = stackTotal > cournotTotal + 1e-6 ? 'higher' : (stackTotal < cournotTotal - 1e-6 ? 'lower' : 'same');
+        stackCorrect = stackAnswer === stackTrue;
+      }
+
+      practiceState.revealed = true;
+      renderPractice();
+
+      const feedbackCard = $('practiceFeedbackCard');
+      const allCorrect = pointCorrect && relationCorrect && largerCorrect && stackCorrect;
+      feedbackCard.className = `feedback-card ${allCorrect ? 'good' : 'warn'}`;
+
+      const bits = [];
+      if (!pointCorrect) bits.push(`The Nash point is ${formatNumber(model.nash.q1)}, ${formatNumber(model.nash.q2)} rather than your current guess.`);
+      if (!relationCorrect) bits.push(`The reaction functions show <strong>${model.relation}</strong>, not ${relationAnswer || 'an unanswered relation type'}.`);
+      if (!largerCorrect) bits.push(`At the Nash equilibrium, ${largerTrue === 'same' ? 'the two firms produce about the same amount.' : `${largerTrue === 'firm1' ? 'firm 1' : 'firm 2'} produces more.`}`);
+      if (!stackCorrect && scenario.family === 'cournot' && scenario.leader !== 'none') bits.push(`Relative to Cournot, total output under the Stackelberg comparison is <strong>${stackTrue}</strong>.`);
+
+      $('practiceFeedback').innerHTML = allCorrect
+        ? `Correct. The purple point matches the mutual best response, and your short answers line up with the model. In ${model.relation} games, the sign of the reaction-function slope tells you how one firm's action changes the rival's best response.`
+        : `Not quite yet. ${bits.join(' ')} In this scenario, mutual best responses are what matter: each firm is doing the best it can given the rival's choice.`;
+    }
+
+    function resetPracticeGuess() {
+      const scenario = currentPracticeScenario();
+      const model = scenarioModel(scenario);
+      practiceState.guess = { q1: model.axisMax * 0.48, q2: model.axisMax * 0.52 };
+      practiceState.revealed = false;
+      $('practiceFeedbackCard').className = 'feedback-card neutral';
+      $('practiceFeedback').innerHTML = 'Choose a scenario, move the purple point to where you think the Nash equilibrium lies, and then check your answer.';
+      renderPractice();
+    }
+
+    function randomPracticeScenario() {
+      practiceState.scenarioIndex = Math.floor(Math.random() * practiceScenarios.length);
+      renderPracticeScenarioBank();
+      resetPracticeGuess();
+      $('practiceRelationSelect').value = '';
+      $('practiceLargerSelect').value = '';
+      $('practiceStackSelect').value = '';
+    }
+
+    function attachPracticeDrag() {
+      const canvas = $('practiceCanvas');
+      canvas.addEventListener('mousedown', (event) => {
+        const scenario = currentPracticeScenario();
+        const model = scenarioModel(scenario);
+        const axisMax = model.axisMax;
+        const pos = pointerOnCanvas(canvas, event);
+        const gx = EconDraw.valueToX(practiceState.guess.q1, 0, axisMax);
+        const gy = EconDraw.valueToY(practiceState.guess.q2, 0, axisMax);
+        if (Math.hypot(pos.x - gx, pos.y - gy) < 18) practiceState.dragActive = true;
+      });
+      canvas.addEventListener('mousemove', (event) => {
+        if (!practiceState.dragActive) return;
+        const scenario = currentPracticeScenario();
+        const model = scenarioModel(scenario);
+        const plot = EconDraw.getPlotArea();
+        const pos = pointerOnCanvas(canvas, event);
+        const x = clamp(pos.x, plot.left, plot.right);
+        const y = clamp(pos.y, plot.top, plot.bottom);
+        practiceState.guess.q1 = clamp(EconDraw.xToValue(x, 0, model.axisMax), 0, model.axisMax);
+        practiceState.guess.q2 = clamp(EconDraw.yToValue(y, 0, model.axisMax), 0, model.axisMax);
+        practiceState.revealed = false;
+        renderPractice();
+      });
+      ['mouseup', 'mouseleave'].forEach((ev) => canvas.addEventListener(ev, () => { practiceState.dragActive = false; }));
+      canvas.addEventListener('touchstart', (event) => {
+        const scenario = currentPracticeScenario();
+        const model = scenarioModel(scenario);
+        const axisMax = model.axisMax;
+        const pos = pointerOnCanvas(canvas, event);
+        const gx = EconDraw.valueToX(practiceState.guess.q1, 0, axisMax);
+        const gy = EconDraw.valueToY(practiceState.guess.q2, 0, axisMax);
+        if (Math.hypot(pos.x - gx, pos.y - gy) < 20) {
+          practiceState.dragActive = true;
+          event.preventDefault();
+        }
+      }, { passive: false });
+      canvas.addEventListener('touchmove', (event) => {
+        if (!practiceState.dragActive) return;
+        const scenario = currentPracticeScenario();
+        const model = scenarioModel(scenario);
+        const plot = EconDraw.getPlotArea();
+        const pos = pointerOnCanvas(canvas, event);
+        const x = clamp(pos.x, plot.left, plot.right);
+        const y = clamp(pos.y, plot.top, plot.bottom);
+        practiceState.guess.q1 = clamp(EconDraw.xToValue(x, 0, model.axisMax), 0, model.axisMax);
+        practiceState.guess.q2 = clamp(EconDraw.yToValue(y, 0, model.axisMax), 0, model.axisMax);
+        practiceState.revealed = false;
+        renderPractice();
+        event.preventDefault();
+      }, { passive: false });
+      ['touchend', 'touchcancel'].forEach((ev) => canvas.addEventListener(ev, () => { practiceState.dragActive = false; }));
+    }
+
+    function drawMiniLineChart(canvas, series, options) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const margin = { left: 46, right: 14, top: 20, bottom: 32 };
+      const plot = {
+        left: margin.left,
+        right: canvas.width - margin.right,
+        top: margin.top,
+        bottom: canvas.height - margin.bottom,
+        width: canvas.width - margin.left - margin.right,
+        height: canvas.height - margin.top - margin.bottom
+      };
+      const xMin = 0;
+      const xMax = series.labels.length - 1;
+      const yMin = options.yMin;
+      const yMax = options.yMax;
+
+      ctx.strokeStyle = ECON_THEME.color.axis;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(plot.left, plot.top);
+      ctx.lineTo(plot.left, plot.bottom);
+      ctx.lineTo(plot.right, plot.bottom);
+      ctx.stroke();
+
+      ctx.fillStyle = ECON_THEME.color.muted;
+      ctx.font = '11px Inter, Arial, Helvetica, sans-serif';
+      for (let i = 0; i < series.labels.length; i += 1) {
+        const x = plot.left + (i / Math.max(1, xMax)) * plot.width;
+        ctx.fillText(series.labels[i], x - 14, plot.bottom + 18);
+      }
+      for (let j = 0; j <= 4; j += 1) {
+        const value = yMin + (j / 4) * (yMax - yMin);
+        const y = plot.bottom - (j / 4) * plot.height;
+        ctx.fillText(formatNumber(value, options.decimals ?? 0), 6, y + 4);
+        ctx.strokeStyle = '#edf1f7';
+        ctx.beginPath();
+        ctx.moveTo(plot.left, y);
+        ctx.lineTo(plot.right, y);
+        ctx.stroke();
+      }
+
+      function line(values, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        values.forEach((value, idx) => {
+          const x = plot.left + (idx / Math.max(1, xMax)) * plot.width;
+          const y = plot.bottom - ((value - yMin) / Math.max(1e-6, yMax - yMin)) * plot.height;
+          if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        values.forEach((value, idx) => {
+          const x = plot.left + (idx / Math.max(1, xMax)) * plot.width;
+          const y = plot.bottom - ((value - yMin) / Math.max(1e-6, yMax - yMin)) * plot.height;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      line(series.one, ECON_THEME.color.demand);
+      line(series.two, ECON_THEME.color.supply);
+
+      ctx.fillStyle = ECON_THEME.color.demand;
+      ctx.fillRect(plot.left + 10, plot.top + 6, 18, 3);
+      ctx.fillStyle = ECON_THEME.color.text;
+      ctx.fillText(options.labelOne, plot.left + 34, plot.top + 11);
+      ctx.fillStyle = ECON_THEME.color.supply;
+      ctx.fillRect(plot.left + 150, plot.top + 6, 18, 3);
+      ctx.fillStyle = ECON_THEME.color.text;
+      ctx.fillText(options.labelTwo, plot.left + 174, plot.top + 11);
+    }
+
+    function renderCaseSummary() {
+      const strip = $('caseSummaryStrip');
+      strip.innerHTML = '';
+      ['Austria context', 'Observed annual passenger data', 'Quantity-competition mapping', 'Strategic substitutes in output space', 'Stylised reaction-function calibration'].forEach((label) => {
+        const chip = document.createElement('div');
+        chip.className = 'summary-chip';
+        chip.textContent = label;
+        strip.appendChild(chip);
+      });
+    }
+
+    function renderCaseStepButtons() {
+      const wrap = $('caseStepButtons');
+      wrap.innerHTML = '';
+      caseData.forEach((step, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `case-step-btn ${caseState.index === idx ? 'active' : ''}`;
+        btn.textContent = `${step.year}`;
+        btn.addEventListener('click', () => {
+          caseState.index = idx;
+          if (caseState.timer) {
+            clearInterval(caseState.timer);
+            caseState.timer = null;
+          }
+          renderCaseStepButtons();
+          renderCase();
+        });
+        wrap.appendChild(btn);
+      });
+    }
+
+    function renderCaseTable() {
+      const body = $('caseTableBody');
+      body.innerHTML = '';
+      caseData.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        if (idx === caseState.index) tr.className = 'active-row';
+        tr.innerHTML = `
+          <td>${row.year}</td>
+          <td>${formatMillions(row.austrian)}</td>
+          <td>${formatMillions(row.ryanair)}</td>
+          <td>${formatMillions(row.total)}</td>
+          <td>${formatNumber(row.shareA, 1)}%</td>
+          <td>${formatNumber(row.shareR, 1)}%</td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    function renderCase() {
+      const row = caseData[caseState.index];
+      const prev = caseState.index > 0 ? caseData[caseState.index - 1] : null;
+      const xMax = 18;
+      const yMax = 12;
+      const model = {
+        br1: (q2) => Math.max(row.caseModel.alpha1 - row.caseModel.s1 * q2, 0),
+        br2: (q1) => Math.max(row.caseModel.alpha2 - row.caseModel.s2 * q1, 0),
+        nash: { q1: row.austrian, q2: row.ryanair }
+      };
+      const baselineModel = prev ? {
+        br1: (q2) => Math.max(prev.caseModel.alpha1 - prev.caseModel.s1 * q2, 0),
+        br2: (q1) => Math.max(prev.caseModel.alpha2 - prev.caseModel.s2 * q1, 0),
+        nash: { q1: prev.austrian, q2: prev.ryanair }
+      } : null;
+
+      drawReactionCanvas($('caseCanvas'), {
+        model,
+        baselineModel,
+        previousPoint: prev ? { q1: prev.austrian, q2: prev.ryanair } : null,
+        highlightPoint: { q1: row.austrian, q2: row.ryanair },
+        xMax,
+        yMax,
+        xLabel: 'Austrian Airlines passengers (millions)',
+        yLabel: 'Ryanair/Lauda passengers (millions)',
+        label1: 'BR_A',
+        label2: 'BR_R',
+        baselineLabel1: 'BR_A,prev',
+        baselineLabel2: 'BR_R,prev',
+        showNash: false,
+        highlightLabel: row.year,
+        guidePoint: { q1: row.austrian, q2: row.ryanair }
+      });
+
+      $('caseMetricAustrian').textContent = formatMillions(row.austrian);
+      $('caseMetricRyanair').textContent = formatMillions(row.ryanair);
+      $('caseMetricShareA').textContent = `${formatNumber(row.shareA, 1)}%`;
+      $('caseMetricShareR').textContent = `${formatNumber(row.shareR, 1)}%`;
+      $('caseMetricTotal').textContent = formatMillions(row.total);
+      $('caseMetricContext').textContent = row.contextShort;
+      $('caseStatus').innerHTML = `<strong>${row.year}:</strong> ${row.contextLong}<br/><br/>${row.stepNote}`;
+      $('caseGraphNote').innerHTML = prev
+        ? `<strong>Interpretation.</strong> The dashed light-gray reaction curves show the previous step. The solid blue and red curves show the current stylised reaction schedules calibrated to the observed ${row.year} passenger outputs.`
+        : `<strong>Interpretation.</strong> Start from 2021 as the base year. The observed point is the actual Austrian-versus-Ryanair passenger combination, and the reaction curves are a teaching calibration that makes the quantity rivalry readable in the same diagram family as G16.`;
+      renderCaseTable();
+
+      drawMiniLineChart($('casePassengerCanvas'), {
+        labels: caseData.map((d) => d.year),
+        one: caseData.map((d) => d.austrian),
+        two: caseData.map((d) => d.ryanair)
+      }, {
+        yMin: 0,
+        yMax: 16,
+        decimals: 1,
+        labelOne: 'Austrian Airlines',
+        labelTwo: 'Ryanair/Lauda'
+      });
+
+      drawMiniLineChart($('caseShareCanvas'), {
+        labels: caseData.map((d) => d.year),
+        one: caseData.map((d) => d.shareA),
+        two: caseData.map((d) => d.shareR)
+      }, {
+        yMin: 0,
+        yMax: 55,
+        decimals: 0,
+        labelOne: 'Austrian share',
+        labelTwo: 'Ryanair share'
+      });
+    }
+
+    function playCaseSequence() {
+      if (caseState.timer) {
+        clearInterval(caseState.timer);
+        caseState.timer = null;
+        return;
+      }
+      caseState.index = 0;
+      renderCaseStepButtons();
+      renderCase();
+      caseState.timer = setInterval(() => {
+        caseState.index += 1;
+        if (caseState.index >= caseData.length) {
+          clearInterval(caseState.timer);
+          caseState.timer = null;
+          caseState.index = caseData.length - 1;
+        }
+        renderCaseStepButtons();
+        renderCase();
+      }, 1700);
+    }
+
+    function wireTabs() {
+      document.querySelectorAll('.module-tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.module-tab').forEach((other) => other.classList.remove('active'));
+          document.querySelectorAll('.module-section').forEach((sec) => sec.classList.remove('active'));
+          tab.classList.add('active');
+          $(tab.dataset.target).classList.add('active');
+          if (tab.dataset.target === 'exploreModule') renderExplore();
+          if (tab.dataset.target === 'practiceModule') renderPractice();
+          if (tab.dataset.target === 'caseModule') renderCase();
+        });
+      });
+    }
+
+    function initControls() {
+      $('familySelect').addEventListener('change', (e) => {
+        exploreState.family = e.target.value;
+        resetExploreGuess();
+        renderExplore();
+      });
+      $('leaderSelect').addEventListener('change', (e) => {
+        exploreState.leader = e.target.value;
+        renderExplore();
+      });
+      [['aSlider', 'a'], ['bSlider', 'b'], ['c1Slider', 'c1'], ['c2Slider', 'c2'], ['alpha1Slider', 'alpha1'], ['alpha2Slider', 'alpha2'], ['slopeSlider', 'slope']].forEach(([id, key]) => {
+        $(id).addEventListener('input', (e) => {
+          exploreState[key] = Number(e.target.value);
+          resetExploreGuess();
+          renderExplore();
+        });
+      });
+      $('resetExploreBtn').addEventListener('click', () => {
+        exploreState.family = 'cournot';
+        exploreState.leader = 'none';
+        exploreState.a = 54;
+        exploreState.b = 1;
+        exploreState.c1 = 8;
+        exploreState.c2 = 10;
+        exploreState.alpha1 = 8;
+        exploreState.alpha2 = 6;
+        exploreState.slope = 0.45;
+        $('familySelect').value = 'cournot';
+        $('leaderSelect').value = 'none';
+        $('aSlider').value = '54';
+        $('bSlider').value = '1.0';
+        $('c1Slider').value = '8';
+        $('c2Slider').value = '10';
+        $('alpha1Slider').value = '8';
+        $('alpha2Slider').value = '6';
+        $('slopeSlider').value = '0.45';
+        resetExploreGuess();
+        renderExplore();
+      });
+      $('randomExploreBtn').addEventListener('click', randomExploreScenario);
+      $('stepExploreBtn').addEventListener('click', bestResponseStepExplore);
+      $('nashExploreBtn').addEventListener('click', moveExploreGuessToNash);
+
+      $('randomPracticeBtn').addEventListener('click', randomPracticeScenario);
+      $('resetPracticeBtn').addEventListener('click', resetPracticeGuess);
+      $('checkPracticeBtn').addEventListener('click', checkPractice);
+      $('playCaseBtn').addEventListener('click', playCaseSequence);
+      $('resetCaseBtn').addEventListener('click', () => {
+        if (caseState.timer) {
+          clearInterval(caseState.timer);
+          caseState.timer = null;
+        }
+        caseState.index = 0;
+        renderCaseStepButtons();
+        renderCase();
+      });
+    }
+
+    wireTabs();
+    initControls();
+    attachExploreDrag();
+    attachPracticeDrag();
+    renderCaseSummary();
+    renderPracticeScenarioBank();
+    resetExploreGuess();
+    resetPracticeGuess();
+    renderExplore();
+    renderCaseStepButtons();
+    renderCase();
+  </script>
+</body>
+</html>

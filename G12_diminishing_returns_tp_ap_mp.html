@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G12_diminishing_returns_tp_ap_mp</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .module-tab {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+    .module-tab:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active {
+      background: #eef3ff;
+      border-color: var(--color-output);
+      color: var(--color-output);
+    }
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-strip,
+    .legend-row,
+    .case-step-row,
+    .hint-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .summary-strip {
+      margin: 10px 0 16px 0;
+    }
+    .summary-chip,
+    .case-step-btn,
+    .mini-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+    .case-step-btn {
+      cursor: pointer;
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .case-step-btn.active {
+      background: #eefaf4;
+      border-color: var(--color-government);
+      color: var(--color-government);
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 14px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 160px;
+    }
+    .control-inline.wide {
+      min-width: 220px;
+    }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.95fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .graph-stack,
+    .side-stack,
+    .answer-grid,
+    .table-wrap,
+    .metric-grid,
+    .formula-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .status-card,
+    .source-note,
+    .mini-card,
+    .answer-card,
+    .data-card {
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .status-title,
+    .mini-card-title,
+    .data-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.tp { border-color: var(--color-output); }
+    .legend-line.ap { border-color: var(--color-government); }
+    .legend-line.mp { border-color: var(--color-supply); }
+    .legend-line.boundary {
+      border-color: var(--color-baseline);
+      border-top-width: 2px;
+      border-top-style: dashed;
+    }
+    .legend-line.guess {
+      border-color: var(--color-guess);
+      border-top-width: 2px;
+      border-top-style: dashed;
+    }
+    .legend-line.observed {
+      border-color: var(--color-long-run);
+      border-top-width: 2px;
+      border-top-style: dashed;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      background: white;
+      border: 2px solid var(--color-text);
+    }
+    .legend-dot.current {
+      background: var(--color-output);
+      border-color: var(--color-output);
+    }
+    .legend-dot.case {
+      background: var(--color-government);
+      border-color: var(--color-government);
+    }
+
+    .graph-note,
+    .small-muted,
+    .footer-note,
+    .formula-item {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .graph-note strong,
+    .formula-item strong,
+    .small-muted strong {
+      color: var(--color-text);
+    }
+
+    .metric-grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+    .metric-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+    .metric-item {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .metric-label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+    }
+    .metric-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text);
+      line-height: 1.35;
+    }
+    .metric-value.small {
+      font-size: 14px;
+    }
+
+    .answer-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .answer-card {
+      padding: 10px 12px;
+      background: white;
+    }
+    .answer-card label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 6px;
+    }
+    .answer-card select {
+      width: 100%;
+    }
+
+    .feedback-strong {
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: white;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .data-table th,
+    .data-table td {
+      padding: 8px 8px;
+      border-bottom: 1px solid #edf1f5;
+      text-align: right;
+    }
+    .data-table th:first-child,
+    .data-table td:first-child {
+      text-align: left;
+    }
+    .data-table thead th {
+      background: #f7f9fc;
+      color: var(--color-text);
+      font-weight: 600;
+    }
+    .data-table tbody tr.active {
+      background: rgba(46, 139, 87, 0.08);
+    }
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .nowrap { white-space: nowrap; }
+
+    .formula-list {
+      gap: 8px;
+    }
+    .formula-code {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: #f3f6fb;
+      border: 1px solid #e1e7ef;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--color-text);
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+      .answer-grid,
+      .metric-grid.two,
+      .metric-grid.three {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Diminishing marginal returns, stages of production, and TP–AP–MP</h1>
+        <p class="diagram-subtitle">
+          Explore how total product, average product, and marginal product move as a firm adds more of one variable input to a fixed factor. Then switch to a real Australian irrigated-maize trial to see how the same ideas appear in noisy field data.
+        </p>
+      </div>
+
+      <div class="summary-strip">
+        <div class="summary-chip">G12 roadmap model</div>
+        <div class="summary-chip">Two-panel TP / AP–MP graph</div>
+        <div class="summary-chip">Stage I, Stage II, Stage III</div>
+        <div class="summary-chip">Explore + practice + case study</div>
+        <div class="summary-chip">Real data from Kerang irrigated maize</div>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Real-world case study</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label for="labourSlider">Variable input L <span id="labourValue" class="inline-value"></span></label>
+            <input type="range" id="labourSlider" min="0" max="24" step="0.1" value="8.5" />
+          </div>
+          <div class="control-inline">
+            <label for="fixedSlider">Fixed factor K <span id="fixedValue" class="inline-value"></span></label>
+            <input type="range" id="fixedSlider" min="3" max="7" step="0.1" value="4.2" />
+          </div>
+          <div class="control-inline">
+            <label for="techSlider">Technology A <span id="techValue" class="inline-value"></span></label>
+            <input type="range" id="techSlider" min="0.8" max="1.4" step="0.05" value="1.0" />
+          </div>
+          <div class="control-inline">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="exploreResetButton">Reset</button>
+              <button class="btn-secondary" id="exploreShockButton">Productivity shock</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line tp"></span> Total product (TP)</span>
+                <span class="legend-item"><span class="legend-line ap"></span> Average product (AP)</span>
+                <span class="legend-item"><span class="legend-line mp"></span> Marginal product (MP)</span>
+                <span class="legend-item"><span class="legend-line boundary"></span> Stage boundary</span>
+                <span class="legend-item"><span class="legend-dot current"></span> Current input marker</span>
+              </div>
+            </div>
+            <div class="notes-panel graph-note" id="exploreNote"></div>
+          </div>
+
+          <div class="side-stack">
+            <div class="status-card" id="exploreStatus"></div>
+            <div class="metrics-panel">
+              <div class="metric-grid two">
+                <div class="metric-item">
+                  <div class="metric-label">Current stage</div>
+                  <div class="metric-value" id="metricStage">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">TP at L</div>
+                  <div class="metric-value" id="metricTP">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">AP at L</div>
+                  <div class="metric-value" id="metricAP">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">MP at L</div>
+                  <div class="metric-value" id="metricMP">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Stage I ends</div>
+                  <div class="metric-value small" id="metricL1">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Stage II ends</div>
+                  <div class="metric-value small" id="metricL2">—</div>
+                </div>
+              </div>
+            </div>
+            <div class="source-note">
+              <div class="status-title">Why the three stages matter</div>
+              <div class="formula-list">
+                <div class="formula-item"><strong>Stage I:</strong> TP rises and AP rises because MP is above AP.</div>
+                <div class="formula-item"><strong>Stage II:</strong> TP still rises, but at a diminishing rate. MP is positive and below AP.</div>
+                <div class="formula-item"><strong>Stage III:</strong> MP becomes negative, so extra input reduces TP.</div>
+              </div>
+            </div>
+            <div class="source-note">
+              <div class="status-title">Model used in explore mode</div>
+              <div class="formula-list">
+                <div class="formula-item"><span class="formula-code">TP(L) = A · K · (a·x + b·x² − c·x³)</span>, where <span class="formula-code">x = L / K</span>.</div>
+                <div class="formula-item"><span class="formula-code">AP = TP / L</span> and <span class="formula-code">MP = dTP / dL</span>.</div>
+                <div class="formula-item">The slider for <strong>K</strong> shifts the stage boundaries because more fixed capacity lets the firm use more of the variable input efficiently.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Practice scenario</label>
+            <div class="small-muted" id="practicePrompt">Press “New practice case” to generate a marker and classify the point.</div>
+          </div>
+          <div class="control-inline">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="practiceNewButton">New practice case</button>
+              <button class="btn-secondary" id="practiceResetButton">Reset answers</button>
+              <button class="btn-primary" id="practiceCheckButton">Check answer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line tp"></span> Total product (TP)</span>
+                <span class="legend-item"><span class="legend-line ap"></span> Average product (AP)</span>
+                <span class="legend-item"><span class="legend-line mp"></span> Marginal product (MP)</span>
+                <span class="legend-item"><span class="legend-line boundary"></span> Correct stage boundary after checking</span>
+                <span class="legend-item"><span class="legend-dot current"></span> Target point</span>
+              </div>
+            </div>
+            <div class="notes-panel graph-note" id="practiceNote"></div>
+          </div>
+
+          <div class="side-stack">
+            <div class="metrics-panel">
+              <div class="metric-grid two">
+                <div class="metric-item">
+                  <div class="metric-label">Fixed factor K</div>
+                  <div class="metric-value" id="practiceMetricK">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Technology A</div>
+                  <div class="metric-value" id="practiceMetricA">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Highlighted input L</div>
+                  <div class="metric-value" id="practiceMetricL">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">TP at L</div>
+                  <div class="metric-value" id="practiceMetricTP">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="answer-grid">
+              <div class="answer-card">
+                <label for="answerStage">Which stage is the firm in?</label>
+                <select id="answerStage">
+                  <option value="">Choose</option>
+                  <option value="Stage I">Stage I</option>
+                  <option value="Stage II">Stage II</option>
+                  <option value="Stage III">Stage III</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="answerRelation">How does MP compare with AP?</label>
+                <select id="answerRelation">
+                  <option value="">Choose</option>
+                  <option value="MP > AP">MP &gt; AP</option>
+                  <option value="MP = AP">MP = AP</option>
+                  <option value="MP < AP">MP &lt; AP</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="answerMPSign">What is the sign of MP?</label>
+                <select id="answerMPSign">
+                  <option value="">Choose</option>
+                  <option value="positive">Positive</option>
+                  <option value="zero">Zero</option>
+                  <option value="negative">Negative</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="answerTPChange">If one more unit is added, what happens to TP?</label>
+                <select id="answerTPChange">
+                  <option value="">Choose</option>
+                  <option value="rise">TP rises</option>
+                  <option value="flat">TP is unchanged</option>
+                  <option value="fall">TP falls</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="practiceFeedback" class="feedback-panel feedback-neutral">
+              Generate a practice case, study the marked point on the graph, then answer all four questions and press “Check answer”.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Kerang irrigated maize nitrogen sequence</label>
+            <div class="case-step-row" id="caseStepRow"></div>
+          </div>
+          <div class="control-inline">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="casePlayButton">Play sequence</button>
+              <button class="btn-secondary" id="caseResetButton">Reset case</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line tp"></span> Extra grain above control (case-study TP)</span>
+                <span class="legend-item"><span class="legend-line ap"></span> Average product of applied N</span>
+                <span class="legend-item"><span class="legend-line mp"></span> Marginal product of the latest 80 kg N</span>
+                <span class="legend-item"><span class="legend-line observed"></span> Observed trial path</span>
+                <span class="legend-item"><span class="legend-dot case"></span> Selected N rate</span>
+              </div>
+            </div>
+            <div class="notes-panel graph-note" id="caseNote"></div>
+          </div>
+
+          <div class="side-stack">
+            <div class="status-card" id="caseStatus"></div>
+            <div class="metrics-panel">
+              <div class="metric-grid two">
+                <div class="metric-item">
+                  <div class="metric-label">Selected total N</div>
+                  <div class="metric-value" id="caseMetricN">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Actual grain yield</div>
+                  <div class="metric-value" id="caseMetricYield">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Extra yield above control</div>
+                  <div class="metric-value" id="caseMetricExtra">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Average product</div>
+                  <div class="metric-value" id="caseMetricAP">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Marginal product</div>
+                  <div class="metric-value" id="caseMetricMP">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Interpretation</div>
+                  <div class="metric-value small" id="caseMetricStage">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="data-card">
+              <div class="data-title">Observed Kerang 2022 maize data</div>
+              <div class="table-wrap">
+                <table class="data-table" id="caseDataTable">
+                  <thead>
+                    <tr>
+                      <th>Total N</th>
+                      <th>Yield</th>
+                      <th>Extra TP</th>
+                      <th>AP</th>
+                      <th>MP</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="source-note">
+              <div class="status-title">How the case study is translated into production-theory language</div>
+              <div class="small-muted">
+                The zero-fertiliser plot acts as the fixed-factor baseline. The case-study “total product” is therefore the <strong>extra grain above the no-N control</strong>. That isolates the product of the variable input (applied nitrogen) while leaving land, irrigation, machinery, genetics, and background soil N in the baseline.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const theme = window.ECON_THEME;
+
+    const PROD = { a: 2.2, b: 2.0, c: 0.45 };
+
+    const exploreState = {
+      L: 8.5,
+      K: 4.2,
+      A: 1.0
+    };
+
+    const practiceState = {
+      L: 9,
+      K: 4.5,
+      A: 1.0,
+      revealed: false
+    };
+
+    const caseRaw = [
+      { n: 0, y: 10.34, dm: 22.64 },
+      { n: 80, y: 11.98, dm: 29.33 },
+      { n: 160, y: 15.05, dm: 33.94 },
+      { n: 240, y: 17.13, dm: 31.42 },
+      { n: 320, y: 16.66, dm: 32.53 },
+      { n: 400, y: 17.76, dm: 35.56 },
+      { n: 480, y: 17.04, dm: 33.66 },
+      { n: 560, y: 17.03, dm: 34.28 }
+    ];
+
+    const caseData = caseRaw.map((d, index) => {
+      const extra = d.y - caseRaw[0].y;
+      const ap = index === 0 ? null : (extra * 1000) / d.n;
+      const mp = index === 0 ? null : ((extra - (caseRaw[index - 1].y - caseRaw[0].y)) * 1000) / (d.n - caseRaw[index - 1].n);
+      return { ...d, extra, ap, mp };
+    });
+
+    const caseState = {
+      index: 0,
+      timer: null
+    };
+
+    function fmt(value, digits = 2) {
+      if (value === null || value === undefined || Number.isNaN(value)) return "—";
+      return Number(value).toFixed(digits).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function genericTP(L, K, A) {
+      const x = L / K;
+      return Math.max(0, A * K * (PROD.a * x + PROD.b * x * x - PROD.c * x * x * x));
+    }
+
+    function genericAP(L, K, A) {
+      if (L <= 0) return null;
+      return genericTP(L, K, A) / L;
+    }
+
+    function genericMP(L, K, A) {
+      const x = L / K;
+      return A * (PROD.a + 2 * PROD.b * x - 3 * PROD.c * x * x);
+    }
+
+    function stageBoundaries(K) {
+      const x1 = PROD.b / (2 * PROD.c);
+      const x2 = (2 * PROD.b + Math.sqrt(4 * PROD.b * PROD.b + 12 * PROD.a * PROD.c)) / (6 * PROD.c);
+      return { L1: K * x1, L2: K * x2 };
+    }
+
+    function stageName(L, K) {
+      const { L1, L2 } = stageBoundaries(K);
+      const tolerance = 0.15;
+      if (L < tolerance) return "No variable input yet";
+      if (Math.abs(L - L1) <= tolerance) return "Stage I / II boundary";
+      if (Math.abs(L - L2) <= tolerance) return "Stage II / III boundary";
+      if (L < L1) return "Stage I";
+      if (L < L2) return "Stage II";
+      return "Stage III";
+    }
+
+    function relationMPAP(L, K, A) {
+      const ap = genericAP(L, K, A);
+      const mp = genericMP(L, K, A);
+      if (ap === null) return "MP = AP";
+      const gap = mp - ap;
+      if (Math.abs(gap) < 0.08) return "MP = AP";
+      return gap > 0 ? "MP > AP" : "MP < AP";
+    }
+
+    function mpSign(L, K, A) {
+      const mp = genericMP(L, K, A);
+      if (Math.abs(mp) < 0.08) return "zero";
+      return mp > 0 ? "positive" : "negative";
+    }
+
+    function tpNextDirection(L, K, A) {
+      const sign = mpSign(L, K, A);
+      if (sign === "positive") return "rise";
+      if (sign === "negative") return "fall";
+      return "flat";
+    }
+
+    function makePanel(left, top, width, height, xMin, xMax, yMin, yMax) {
+      return {
+        left,
+        top,
+        width,
+        height,
+        xMin,
+        xMax,
+        yMin,
+        yMax,
+        x(value) {
+          return left + ((value - xMin) / (xMax - xMin)) * width;
+        },
+        y(value) {
+          return top + height - ((value - yMin) / (yMax - yMin)) * height;
+        }
+      };
+    }
+
+    function linearTicks(min, max, count) {
+      const ticks = [];
+      for (let i = 0; i <= count; i += 1) {
+        ticks.push(min + (i / count) * (max - min));
+      }
+      return ticks;
+    }
+
+    function drawPanelFrame(ctx, panel, xLabel, yLabel, xTicks, yTicks, title) {
+      ctx.save();
+      ctx.strokeStyle = theme.color.frame;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(panel.left, panel.top, panel.width, panel.height);
+
+      ctx.fillStyle = theme.color.text;
+      ctx.font = `600 ${theme.font.panel}px ${theme.font.family}`;
+      ctx.fillText(title, panel.left + 10, panel.top + 18);
+
+      ctx.strokeStyle = theme.color.grid;
+      ctx.lineWidth = theme.line.grid;
+      xTicks.forEach((tick) => {
+        const x = panel.x(tick);
+        ctx.beginPath();
+        ctx.moveTo(x, panel.top);
+        ctx.lineTo(x, panel.top + panel.height);
+        ctx.stroke();
+      });
+      yTicks.forEach((tick) => {
+        const y = panel.y(tick);
+        ctx.beginPath();
+        ctx.moveTo(panel.left, y);
+        ctx.lineTo(panel.left + panel.width, y);
+        ctx.stroke();
+      });
+
+      ctx.strokeStyle = theme.color.axis;
+      ctx.lineWidth = theme.line.axis;
+      ctx.beginPath();
+      ctx.moveTo(panel.left, panel.top + panel.height);
+      ctx.lineTo(panel.left + panel.width, panel.top + panel.height);
+      ctx.moveTo(panel.left, panel.top);
+      ctx.lineTo(panel.left, panel.top + panel.height);
+      ctx.stroke();
+
+      ctx.fillStyle = theme.color.muted;
+      ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      xTicks.forEach((tick) => {
+        const x = panel.x(tick);
+        ctx.fillText(fmt(tick, 0), x, panel.top + panel.height + 8);
+      });
+
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      yTicks.forEach((tick) => {
+        const y = panel.y(tick);
+        ctx.fillText(fmt(tick, Math.abs(tick) < 10 ? 1 : 0), panel.left - 8, y);
+      });
+
+      ctx.fillStyle = theme.color.text;
+      ctx.font = `500 ${theme.font.axisLabel}px ${theme.font.family}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(xLabel, panel.left + panel.width / 2, panel.top + panel.height + 28);
+
+      ctx.save();
+      ctx.translate(panel.left - 52, panel.top + panel.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+
+      ctx.restore();
+    }
+
+    function drawLineSeries(ctx, panel, data, color, dash = [], width = theme.line.main) {
+      if (!data.length) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.setLineDash(dash);
+      ctx.moveTo(panel.x(data[0].x), panel.y(data[0].y));
+      for (let i = 1; i < data.length; i += 1) {
+        ctx.lineTo(panel.x(data[i].x), panel.y(data[i].y));
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawMarker(ctx, panel, x, y, color, radius = theme.radius.marker, fillWhite = false) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(panel.x(x), panel.y(y), radius, 0, Math.PI * 2);
+      ctx.fillStyle = fillWhite ? "#ffffff" : color;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = color;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawVerticalGuide(ctx, panel, xValue, color = theme.color.baseline, dash = theme.dash.baseline, label = "") {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = theme.line.baseline;
+      ctx.setLineDash(dash);
+      ctx.beginPath();
+      ctx.moveTo(panel.x(xValue), panel.top);
+      ctx.lineTo(panel.x(xValue), panel.top + panel.height);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      if (label) {
+        ctx.fillStyle = color;
+        ctx.font = `600 ${theme.font.tick}px ${theme.font.family}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "bottom";
+        ctx.fillText(label, panel.x(xValue), panel.top - 4);
+      }
+      ctx.restore();
+    }
+
+    function drawStageBands(ctx, panel, bounds, xMax) {
+      const bands = [
+        { from: 0, to: clamp(bounds.L1, 0, xMax), fill: "rgba(47,107,255,0.05)", label: "Stage I" },
+        { from: clamp(bounds.L1, 0, xMax), to: clamp(bounds.L2, 0, xMax), fill: "rgba(46,139,87,0.06)", label: "Stage II" },
+        { from: clamp(bounds.L2, 0, xMax), to: xMax, fill: "rgba(216,74,58,0.05)", label: "Stage III" }
+      ];
+
+      ctx.save();
+      bands.forEach((band) => {
+        if (band.to <= band.from) return;
+        const x1 = panel.x(band.from);
+        const x2 = panel.x(band.to);
+        ctx.fillStyle = band.fill;
+        ctx.fillRect(x1, panel.top, x2 - x1, panel.height);
+        ctx.fillStyle = theme.color.muted;
+        ctx.font = `600 ${theme.font.tick}px ${theme.font.family}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(band.label, (x1 + x2) / 2, panel.top + 8);
+      });
+      ctx.restore();
+    }
+
+    function drawPanelZeroLine(ctx, panel) {
+      if (panel.yMin >= 0 || panel.yMax <= 0) return;
+      ctx.save();
+      ctx.strokeStyle = theme.color.axis;
+      ctx.lineWidth = 1.25;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(panel.left, panel.y(0));
+      ctx.lineTo(panel.left + panel.width, panel.y(0));
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function baseCanvasPrep(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      return { canvas, ctx };
+    }
+
+    function renderExplore() {
+      const { ctx } = baseCanvasPrep("exploreCanvas");
+      const xMax = 24;
+      const tps = [];
+      const aps = [];
+      const mps = [];
+      for (let L = 0; L <= xMax + 0.0001; L += 0.1) {
+        tps.push({ x: L, y: genericTP(L, exploreState.K, exploreState.A) });
+        if (L > 0) aps.push({ x: L, y: genericAP(L, exploreState.K, exploreState.A) });
+        mps.push({ x: L, y: genericMP(L, exploreState.K, exploreState.A) });
+      }
+      const tpMax = Math.max(...tps.map((d) => d.y)) * 1.12;
+      const lowerValues = [...aps.map((d) => d.y), ...mps.map((d) => d.y)];
+      const lowerMin = Math.min(-1.0, Math.min(...lowerValues) * 1.12);
+      const lowerMax = Math.max(...lowerValues) * 1.15;
+
+      const topPanel = makePanel(78, 48, 842, 228, 0, xMax, 0, tpMax);
+      const bottomPanel = makePanel(78, 332, 842, 208, 0, xMax, lowerMin, lowerMax);
+      const bounds = stageBoundaries(exploreState.K);
+
+      drawStageBands(ctx, topPanel, bounds, xMax);
+      drawStageBands(ctx, bottomPanel, bounds, xMax);
+      drawPanelFrame(ctx, topPanel, "Variable input (L)", "Output units", linearTicks(0, xMax, 6), linearTicks(0, tpMax, 5), "Total product (TP)");
+      drawPanelFrame(ctx, bottomPanel, "Variable input (L)", "Output per input unit", linearTicks(0, xMax, 6), linearTicks(lowerMin, lowerMax, 5), "Average product (AP) and marginal product (MP)");
+      drawPanelZeroLine(ctx, bottomPanel);
+
+      drawLineSeries(ctx, topPanel, tps, theme.color.output);
+      drawLineSeries(ctx, bottomPanel, aps, theme.color.government);
+      drawLineSeries(ctx, bottomPanel, mps, theme.color.supply);
+
+      drawVerticalGuide(ctx, topPanel, bounds.L1, theme.color.baseline, theme.dash.baseline, "L₁");
+      drawVerticalGuide(ctx, topPanel, bounds.L2, theme.color.baseline, theme.dash.baseline, "L₂");
+      drawVerticalGuide(ctx, bottomPanel, bounds.L1, theme.color.baseline, theme.dash.baseline);
+      drawVerticalGuide(ctx, bottomPanel, bounds.L2, theme.color.baseline, theme.dash.baseline);
+
+      const tp = genericTP(exploreState.L, exploreState.K, exploreState.A);
+      const ap = genericAP(exploreState.L, exploreState.K, exploreState.A);
+      const mp = genericMP(exploreState.L, exploreState.K, exploreState.A);
+      drawVerticalGuide(ctx, topPanel, exploreState.L, theme.color.longRun, [3, 4], "L*");
+      drawVerticalGuide(ctx, bottomPanel, exploreState.L, theme.color.longRun, [3, 4]);
+      drawMarker(ctx, topPanel, exploreState.L, tp, theme.color.output, 6);
+      if (ap !== null) drawMarker(ctx, bottomPanel, exploreState.L, ap, theme.color.government, 6);
+      drawMarker(ctx, bottomPanel, exploreState.L, mp, theme.color.supply, 6, true);
+
+      ctx.save();
+      ctx.fillStyle = theme.color.output;
+      ctx.font = `600 ${theme.font.tick}px ${theme.font.family}`;
+      ctx.fillText("TP", topPanel.x(xMax - 0.9), topPanel.y(tps[tps.length - 1].y) - 10);
+      ctx.fillStyle = theme.color.government;
+      ctx.fillText("AP", bottomPanel.x(xMax - 1.3), bottomPanel.y(aps[aps.length - 1].y) - 10);
+      ctx.fillStyle = theme.color.supply;
+      ctx.fillText("MP", bottomPanel.x(xMax - 2.4), bottomPanel.y(mps[mps.length - 1].y) + 18);
+      ctx.restore();
+
+      document.getElementById("labourValue").textContent = `${fmt(exploreState.L, 1)} units`;
+      document.getElementById("fixedValue").textContent = `${fmt(exploreState.K, 1)} index`;
+      document.getElementById("techValue").textContent = `${fmt(exploreState.A, 2)}`;
+
+      const currentStage = stageName(exploreState.L, exploreState.K);
+      document.getElementById("metricStage").textContent = currentStage;
+      document.getElementById("metricTP").textContent = fmt(tp, 2);
+      document.getElementById("metricAP").textContent = ap === null ? "—" : fmt(ap, 2);
+      document.getElementById("metricMP").textContent = fmt(mp, 2);
+      document.getElementById("metricL1").textContent = `${fmt(bounds.L1, 2)} labour units`;
+      document.getElementById("metricL2").textContent = `${fmt(bounds.L2, 2)} labour units`;
+
+      document.getElementById("exploreStatus").innerHTML = `
+        <div class="status-title">Current interpretation</div>
+        <div class="small-muted">
+          With <strong>L = ${fmt(exploreState.L, 1)}</strong>, <strong>K = ${fmt(exploreState.K, 1)}</strong>, and <strong>A = ${fmt(exploreState.A, 2)}</strong>, the firm is in <strong>${currentStage}</strong>.
+          ${exploreState.L < 0.1 ? "Start adding the variable input to bring the firm into Stage I." : currentStage === "Stage I" ? "The extra worker/input unit raises TP and also lifts AP because MP still sits above AP." : currentStage === "Stage II" ? "The firm is in the economically relevant zone: TP is still rising, but MP has fallen below AP." : currentStage === "Stage III" ? "The variable input has been over-applied: MP is negative, so TP is now falling." : "You are sitting right on a stage boundary where a key relationship changes."}
+        </div>
+      `;
+
+      document.getElementById("exploreNote").innerHTML = `
+        <strong>Reading the graph.</strong> The blue TP curve first steepens, then flattens, then turns down. On the lower panel, AP peaks exactly where MP cuts AP from above, and TP peaks exactly where MP hits zero. The fixed-factor slider moves both stage boundaries because a larger fixed factor lets the firm use more of the variable input before crowding becomes severe.
+      `;
+    }
+
+    function randomBetween(min, max, step = 0.1) {
+      const count = Math.round((max - min) / step);
+      return min + Math.floor(Math.random() * (count + 1)) * step;
+    }
+
+    function generatePracticeScenario() {
+      const stages = ["Stage I", "Stage II", "Stage III"];
+      const desiredStage = stages[Math.floor(Math.random() * stages.length)];
+      practiceState.K = Number(randomBetween(3.2, 6.4, 0.1).toFixed(1));
+      practiceState.A = Number(randomBetween(0.85, 1.3, 0.05).toFixed(2));
+      const bounds = stageBoundaries(practiceState.K);
+
+      let L = 8;
+      if (desiredStage === "Stage I") {
+        const maxL = Math.max(1.5, Math.floor((bounds.L1 - 1.2) * 10) / 10);
+        L = randomBetween(1.2, maxL, 0.1);
+      } else if (desiredStage === "Stage II") {
+        const minL = Math.ceil((bounds.L1 + 0.8) * 10) / 10;
+        const maxL = Math.floor((bounds.L2 - 0.8) * 10) / 10;
+        L = randomBetween(minL, maxL, 0.1);
+      } else {
+        const minL = Math.ceil((bounds.L2 + 0.8) * 10) / 10;
+        L = randomBetween(minL, 23.4, 0.1);
+      }
+
+      practiceState.L = Number(clamp(L, 0.8, 23.4).toFixed(1));
+      practiceState.revealed = false;
+      document.getElementById("answerStage").value = "";
+      document.getElementById("answerRelation").value = "";
+      document.getElementById("answerMPSign").value = "";
+      document.getElementById("answerTPChange").value = "";
+      document.getElementById("practiceFeedback").className = "feedback-panel feedback-neutral";
+      document.getElementById("practiceFeedback").textContent = "Answer all four questions, then press “Check answer”.";
+      renderPractice();
+    }
+
+    function renderPractice() {
+      const { ctx } = baseCanvasPrep("practiceCanvas");
+      const xMax = 24;
+      const tps = [];
+      const aps = [];
+      const mps = [];
+      for (let L = 0; L <= xMax + 0.0001; L += 0.1) {
+        tps.push({ x: L, y: genericTP(L, practiceState.K, practiceState.A) });
+        if (L > 0) aps.push({ x: L, y: genericAP(L, practiceState.K, practiceState.A) });
+        mps.push({ x: L, y: genericMP(L, practiceState.K, practiceState.A) });
+      }
+      const tpMax = Math.max(...tps.map((d) => d.y)) * 1.12;
+      const lowerValues = [...aps.map((d) => d.y), ...mps.map((d) => d.y)];
+      const lowerMin = Math.min(-1.0, Math.min(...lowerValues) * 1.12);
+      const lowerMax = Math.max(...lowerValues) * 1.15;
+      const topPanel = makePanel(78, 48, 842, 228, 0, xMax, 0, tpMax);
+      const bottomPanel = makePanel(78, 332, 842, 208, 0, xMax, lowerMin, lowerMax);
+      const bounds = stageBoundaries(practiceState.K);
+
+      if (practiceState.revealed) {
+        drawStageBands(ctx, topPanel, bounds, xMax);
+        drawStageBands(ctx, bottomPanel, bounds, xMax);
+      }
+      drawPanelFrame(ctx, topPanel, "Variable input (L)", "Output units", linearTicks(0, xMax, 6), linearTicks(0, tpMax, 5), "Total product (TP)");
+      drawPanelFrame(ctx, bottomPanel, "Variable input (L)", "Output per input unit", linearTicks(0, xMax, 6), linearTicks(lowerMin, lowerMax, 5), "Average product (AP) and marginal product (MP)");
+      drawPanelZeroLine(ctx, bottomPanel);
+      drawLineSeries(ctx, topPanel, tps, theme.color.output);
+      drawLineSeries(ctx, bottomPanel, aps, theme.color.government);
+      drawLineSeries(ctx, bottomPanel, mps, theme.color.supply);
+
+      if (practiceState.revealed) {
+        drawVerticalGuide(ctx, topPanel, bounds.L1, theme.color.baseline, theme.dash.baseline, "L₁");
+        drawVerticalGuide(ctx, topPanel, bounds.L2, theme.color.baseline, theme.dash.baseline, "L₂");
+        drawVerticalGuide(ctx, bottomPanel, bounds.L1, theme.color.baseline, theme.dash.baseline);
+        drawVerticalGuide(ctx, bottomPanel, bounds.L2, theme.color.baseline, theme.dash.baseline);
+      }
+
+      const tp = genericTP(practiceState.L, practiceState.K, practiceState.A);
+      const ap = genericAP(practiceState.L, practiceState.K, practiceState.A);
+      const mp = genericMP(practiceState.L, practiceState.K, practiceState.A);
+      drawVerticalGuide(ctx, topPanel, practiceState.L, theme.color.longRun, [3, 4], "Target");
+      drawVerticalGuide(ctx, bottomPanel, practiceState.L, theme.color.longRun, [3, 4]);
+      drawMarker(ctx, topPanel, practiceState.L, tp, theme.color.output, 6);
+      if (ap !== null) drawMarker(ctx, bottomPanel, practiceState.L, ap, theme.color.government, 6);
+      drawMarker(ctx, bottomPanel, practiceState.L, mp, theme.color.supply, 6, true);
+
+      document.getElementById("practiceMetricK").textContent = fmt(practiceState.K, 1);
+      document.getElementById("practiceMetricA").textContent = fmt(practiceState.A, 2);
+      document.getElementById("practiceMetricL").textContent = fmt(practiceState.L, 1);
+      document.getElementById("practiceMetricTP").textContent = fmt(tp, 2);
+      document.getElementById("practicePrompt").innerHTML = `A firm with <strong>K = ${fmt(practiceState.K, 1)}</strong> and <strong>A = ${fmt(practiceState.A, 2)}</strong> is highlighted at <strong>L = ${fmt(practiceState.L, 1)}</strong>. Classify the point using the graph.`;
+      document.getElementById("practiceNote").innerHTML = practiceState.revealed
+        ? `<strong>After checking.</strong> The dashed light-gray lines show where Stage I ends and where Stage II ends. Compare your answers with the revealed boundaries and the positions of AP and MP.`
+        : `<strong>Before checking.</strong> Focus on four clues: the slope of TP, whether MP is above or below AP, whether MP is positive or negative, and whether adding one more unit would raise or lower TP.`;
+    }
+
+    function checkPractice() {
+      const expectedStage = stageName(practiceState.L, practiceState.K);
+      const expectedRelation = relationMPAP(practiceState.L, practiceState.K, practiceState.A);
+      const expectedMPSign = mpSign(practiceState.L, practiceState.K, practiceState.A);
+      const expectedTPChange = tpNextDirection(practiceState.L, practiceState.K, practiceState.A);
+
+      const userStage = document.getElementById("answerStage").value;
+      const userRelation = document.getElementById("answerRelation").value;
+      const userMPSign = document.getElementById("answerMPSign").value;
+      const userTPChange = document.getElementById("answerTPChange").value;
+
+      if (!userStage || !userRelation || !userMPSign || !userTPChange) {
+        const panel = document.getElementById("practiceFeedback");
+        panel.className = "feedback-panel feedback-warning";
+        panel.textContent = "Complete all four answers before checking.";
+        return;
+      }
+
+      const wrong = [];
+      if (userStage !== expectedStage) wrong.push(`the firm is in ${expectedStage}`);
+      if (userRelation !== expectedRelation) wrong.push(`${expectedRelation}`);
+      if (userMPSign !== expectedMPSign) wrong.push(`MP is ${expectedMPSign}`);
+      if (userTPChange !== expectedTPChange) wrong.push(`TP would ${expectedTPChange}`);
+
+      practiceState.revealed = true;
+      renderPractice();
+
+      const panel = document.getElementById("practiceFeedback");
+      if (wrong.length === 0) {
+        panel.className = "feedback-panel feedback-success";
+        panel.innerHTML = `
+          <span class="feedback-strong">Correct.</span> The point sits in <strong>${expectedStage}</strong>, with <strong>${expectedRelation}</strong> and <strong>MP ${expectedMPSign}</strong>. Therefore one more unit of input would make TP <strong>${expectedTPChange === "rise" ? "rise" : expectedTPChange === "fall" ? "fall" : "stay unchanged"}</strong>.
+        `;
+      } else {
+        panel.className = "feedback-panel feedback-warning";
+        panel.innerHTML = `
+          <span class="feedback-strong">Not quite.</span> The correct interpretation is that <strong>${expectedStage}</strong>, <strong>${expectedRelation}</strong>, <strong>MP is ${expectedMPSign}</strong>, and <strong>TP would ${expectedTPChange === "rise" ? "rise" : expectedTPChange === "fall" ? "fall" : "stay unchanged"}</strong>. Use the revealed stage boundaries and the position of MP relative to AP to see why.
+        `;
+      }
+    }
+
+    function caseStageDescription(index) {
+      if (index === 0) return "Baseline control";
+      const d = caseData[index];
+      if (d.mp === null) return "Early response";
+      if (d.mp > d.ap) return "Stage I signal";
+      if (d.mp > 0) return "Stage II signal";
+      return "Stage III signal";
+    }
+
+    function caseNarrative(index) {
+      const d = caseData[index];
+      if (index === 0) {
+        return "The control plot still yielded 10.34 t/ha. That output came from fixed and background inputs already in place: land, irrigation, machinery, the hybrid itself, soil nitrogen, and in-crop mineralisation.";
+      }
+      if (index === 1) {
+        return "The first 80 kg N/ha lifted yield by 1.64 t/ha above control. Because only one dose has been added so far, AP and MP are the same: 20.5 kg grain per kg N.";
+      }
+      if (index === 2) {
+        return "By 160 kg N/ha, extra yield above control reached 4.71 t/ha. AP rose to 29.44 and interval MP rose to 38.38 kg grain per kg N, so the trial still looks like Stage I.";
+      }
+      if (index === 3) {
+        return "At 240 kg N/ha, extra yield above control reached 6.79 t/ha. AP slipped while MP stayed positive, which is the textbook move from Stage I into Stage II.";
+      }
+      if (index === 4) {
+        return "At 320 kg N/ha the latest 80 kg of N reduced output relative to the previous treatment. That makes the interval MP negative, a Stage III warning sign or a noisy over-application result around the plateau.";
+      }
+      if (index === 5) {
+        return "The 400 kg N/ha treatment produced the trial’s highest grain yield, 17.76 t/ha, but the gain over the previous step was tiny compared with the early doses. The high-N end of the trial is effectively a plateau.";
+      }
+      if (index === 6) {
+        return "At 480 kg N/ha the latest 80 kg of N again reduced output, so interval MP turned negative once more. AP kept falling as well.";
+      }
+      return "At 560 kg N/ha, extra yield above control was 6.69 t/ha, almost unchanged from 480 kg N/ha. The top end of the trial delivered essentially no additional product from more nitrogen.";
+    }
+
+    function renderCaseTable() {
+      const tbody = document.querySelector("#caseDataTable tbody");
+      tbody.innerHTML = caseData.map((d, index) => `
+        <tr class="${index === caseState.index ? "active" : ""}">
+          <td class="nowrap">${fmt(d.n, 0)} kg/ha</td>
+          <td>${fmt(d.y, 2)} t/ha</td>
+          <td>${fmt(d.extra, 2)} t/ha</td>
+          <td>${d.ap === null ? "—" : fmt(d.ap, 2)}</td>
+          <td>${d.mp === null ? "—" : fmt(d.mp, 2)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderCaseButtons() {
+      const row = document.getElementById("caseStepRow");
+      row.innerHTML = caseData.map((d, index) => `
+        <button class="case-step-btn ${index === caseState.index ? "active" : ""}" data-index="${index}">${fmt(d.n, 0)} kg N</button>
+      `).join("");
+      Array.from(row.querySelectorAll(".case-step-btn")).forEach((button) => {
+        button.addEventListener("click", () => {
+          stopCasePlayback();
+          caseState.index = Number(button.dataset.index);
+          renderCase();
+        });
+      });
+    }
+
+    function renderCase() {
+      renderCaseButtons();
+      renderCaseTable();
+      const { ctx } = baseCanvasPrep("caseCanvas");
+      const selected = caseData[caseState.index];
+
+      const topPanel = makePanel(78, 48, 842, 228, 0, 560, 0, 8.4);
+      const bottomPanel = makePanel(78, 332, 842, 208, 0, 560, -12, 42);
+      drawPanelFrame(ctx, topPanel, "Total applied nitrogen (kg N/ha)", "Extra grain above control (t/ha)", linearTicks(0, 560, 7), linearTicks(0, 8, 4), "Case-study total product: maize response above the 0-N plot");
+      drawPanelFrame(ctx, bottomPanel, "Total applied nitrogen (kg N/ha)", "kg grain per kg N", linearTicks(0, 560, 7), linearTicks(-10, 40, 5), "Case-study AP and MP of applied nitrogen");
+      drawPanelZeroLine(ctx, bottomPanel);
+
+      const tpSeries = caseData.map((d) => ({ x: d.n, y: d.extra }));
+      const apSeries = caseData.filter((d) => d.ap !== null).map((d) => ({ x: d.n, y: d.ap }));
+      const mpSeries = caseData.filter((d) => d.mp !== null).map((d) => ({ x: d.n, y: d.mp }));
+      drawLineSeries(ctx, topPanel, tpSeries, theme.color.output, theme.dash.baseline, 2.4);
+      drawLineSeries(ctx, bottomPanel, apSeries, theme.color.government, theme.dash.baseline, 2.4);
+      drawLineSeries(ctx, bottomPanel, mpSeries, theme.color.supply, theme.dash.baseline, 2.4);
+
+      tpSeries.forEach((d) => drawMarker(ctx, topPanel, d.x, d.y, theme.color.output, 4, true));
+      apSeries.forEach((d) => drawMarker(ctx, bottomPanel, d.x, d.y, theme.color.government, 4, true));
+      mpSeries.forEach((d) => drawMarker(ctx, bottomPanel, d.x, d.y, theme.color.supply, 4, true));
+
+      drawVerticalGuide(ctx, topPanel, selected.n, theme.color.longRun, [3, 4], `${fmt(selected.n, 0)} kg`);
+      drawVerticalGuide(ctx, bottomPanel, selected.n, theme.color.longRun, [3, 4]);
+      drawMarker(ctx, topPanel, selected.n, selected.extra, theme.color.output, 6);
+      if (selected.ap !== null) drawMarker(ctx, bottomPanel, selected.n, selected.ap, theme.color.government, 6);
+      if (selected.mp !== null) drawMarker(ctx, bottomPanel, selected.n, selected.mp, theme.color.supply, 6, true);
+
+      ctx.save();
+      ctx.fillStyle = theme.color.output;
+      ctx.font = `600 ${theme.font.tick}px ${theme.font.family}`;
+      ctx.fillText("TP (extra)", topPanel.x(505), topPanel.y(6.9) - 8);
+      ctx.fillStyle = theme.color.government;
+      ctx.fillText("AP", bottomPanel.x(510), bottomPanel.y(14) - 6);
+      ctx.fillStyle = theme.color.supply;
+      ctx.fillText("MP", bottomPanel.x(510), bottomPanel.y(-4) + 16);
+      ctx.restore();
+
+      document.getElementById("caseMetricN").textContent = `${fmt(selected.n, 0)} kg/ha`;
+      document.getElementById("caseMetricYield").textContent = `${fmt(selected.y, 2)} t/ha`;
+      document.getElementById("caseMetricExtra").textContent = `${fmt(selected.extra, 2)} t/ha`;
+      document.getElementById("caseMetricAP").textContent = selected.ap === null ? "—" : `${fmt(selected.ap, 2)} kg/kg`;
+      document.getElementById("caseMetricMP").textContent = selected.mp === null ? "—" : `${fmt(selected.mp, 2)} kg/kg`;
+      document.getElementById("caseMetricStage").textContent = caseStageDescription(caseState.index);
+
+      document.getElementById("caseStatus").innerHTML = `
+        <div class="status-title">Kerang 2022 irrigated maize trial</div>
+        <div class="small-muted">
+          The selected treatment applies <strong>${fmt(selected.n, 0)} kg N/ha</strong> in the Kerang, Victoria maize trial. The observed grain yield was <strong>${fmt(selected.y, 2)} t/ha</strong>, which is <strong>${fmt(selected.extra, 2)} t/ha above the 0-N control</strong>. ${caseNarrative(caseState.index)}
+        </div>
+      `;
+
+      document.getElementById("caseNote").innerHTML = `
+        <strong>What the real data show.</strong> Early nitrogen additions raised both AP and MP. Once the trial moved into the higher-N range, extra output flattened and MP became tiny or negative. Because this is field data rather than a perfectly smooth textbook experiment, the top end is noisy. That is why the safest economic reading is <strong>strong early returns, then diminishing marginal returns, then a high-input plateau that brushes Stage III</strong>.
+      `;
+    }
+
+    function stopCasePlayback() {
+      if (caseState.timer) {
+        clearInterval(caseState.timer);
+        caseState.timer = null;
+      }
+      document.getElementById("casePlayButton").textContent = "Play sequence";
+    }
+
+    function toggleCasePlayback() {
+      if (caseState.timer) {
+        stopCasePlayback();
+        return;
+      }
+      document.getElementById("casePlayButton").textContent = "Pause";
+      caseState.timer = setInterval(() => {
+        caseState.index += 1;
+        if (caseState.index >= caseData.length) {
+          caseState.index = caseData.length - 1;
+          stopCasePlayback();
+        }
+        renderCase();
+      }, 1400);
+    }
+
+    function activateSection(targetId) {
+      Array.from(document.querySelectorAll(".module-tab")).forEach((button) => {
+        button.classList.toggle("active", button.dataset.target === targetId);
+      });
+      Array.from(document.querySelectorAll(".module-section")).forEach((section) => {
+        section.classList.toggle("active", section.id === targetId);
+      });
+      if (targetId === "exploreSection") renderExplore();
+      if (targetId === "practiceSection") renderPractice();
+      if (targetId === "caseSection") renderCase();
+    }
+
+    document.querySelectorAll(".module-tab").forEach((button) => {
+      button.addEventListener("click", () => activateSection(button.dataset.target));
+    });
+
+    document.getElementById("labourSlider").addEventListener("input", (event) => {
+      exploreState.L = Number(event.target.value);
+      renderExplore();
+    });
+    document.getElementById("fixedSlider").addEventListener("input", (event) => {
+      exploreState.K = Number(event.target.value);
+      renderExplore();
+    });
+    document.getElementById("techSlider").addEventListener("input", (event) => {
+      exploreState.A = Number(event.target.value);
+      renderExplore();
+    });
+    document.getElementById("exploreResetButton").addEventListener("click", () => {
+      exploreState.L = 8.5;
+      exploreState.K = 4.2;
+      exploreState.A = 1.0;
+      document.getElementById("labourSlider").value = String(exploreState.L);
+      document.getElementById("fixedSlider").value = String(exploreState.K);
+      document.getElementById("techSlider").value = String(exploreState.A);
+      renderExplore();
+    });
+    document.getElementById("exploreShockButton").addEventListener("click", () => {
+      exploreState.A = exploreState.A < 1.2 ? 1.25 : 0.9;
+      document.getElementById("techSlider").value = String(exploreState.A);
+      renderExplore();
+    });
+
+    document.getElementById("practiceNewButton").addEventListener("click", generatePracticeScenario);
+    document.getElementById("practiceResetButton").addEventListener("click", () => {
+      practiceState.revealed = false;
+      document.getElementById("answerStage").value = "";
+      document.getElementById("answerRelation").value = "";
+      document.getElementById("answerMPSign").value = "";
+      document.getElementById("answerTPChange").value = "";
+      document.getElementById("practiceFeedback").className = "feedback-panel feedback-neutral";
+      document.getElementById("practiceFeedback").textContent = "Answers cleared. Study the point again, then check when you are ready.";
+      renderPractice();
+    });
+    document.getElementById("practiceCheckButton").addEventListener("click", checkPractice);
+
+    document.getElementById("casePlayButton").addEventListener("click", toggleCasePlayback);
+    document.getElementById("caseResetButton").addEventListener("click", () => {
+      stopCasePlayback();
+      caseState.index = 0;
+      renderCase();
+    });
+
+    generatePracticeScenario();
+    renderExplore();
+    renderCase();
+  </script>
+</body>
+</html>

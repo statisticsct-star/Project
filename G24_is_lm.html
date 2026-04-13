@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G24_is_lm</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+
+  <style>
+    .module-tabs,
+    .summary-strip,
+    .legend-row,
+    .button-row,
+    .scenario-bank,
+    .case-step-row,
+    .chart-grid,
+    .metric-grid,
+    .note-list,
+    .toggle-row,
+    .data-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .module-tabs,
+    .summary-strip,
+    .case-step-row,
+    .scenario-bank,
+    .chart-grid,
+    .toggle-row,
+    .data-pills {
+      margin-bottom: 16px;
+    }
+    .module-tab,
+    .case-step-btn,
+    .scenario-chip,
+    .toggle-chip,
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+      text-align: center;
+      line-height: 1.25;
+    }
+    .module-tab:hover,
+    .case-step-btn:hover,
+    .scenario-chip:hover,
+    .toggle-chip:hover,
+    .ghost-btn:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active,
+    .case-step-btn.active,
+    .scenario-chip.active,
+    .toggle-chip.active,
+    .ghost-btn.active {
+      background: #eef5ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-chip,
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 16px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 165px;
+    }
+    .control-inline.wide { min-width: 240px; }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    input[type="range"] { width: 210px; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.52fr) minmax(320px, 0.98fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .graph-card,
+    .panel-card,
+    .status-card,
+    .metric-card,
+    .data-card,
+    .table-card,
+    .feedback-card,
+    .source-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .panel-stack {
+      display: grid;
+      gap: 16px;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .metric-item {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .metric-label,
+    .table-wrap th,
+    .answer-grid label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .metric-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.3;
+    }
+
+    .card-title,
+    .status-title,
+    .data-title,
+    .chart-title,
+    .table-title,
+    .feedback-title,
+    .answer-title,
+    .legend-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+    .small-muted,
+    .graph-note,
+    .status-copy,
+    .source-copy,
+    .feedback-copy,
+    .table-note,
+    .answer-copy,
+    .metric-note,
+    .note-list li {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .small-muted strong,
+    .graph-note strong,
+    .status-copy strong,
+    .source-copy strong,
+    .feedback-copy strong,
+    .answer-copy strong,
+    .metric-note strong {
+      color: var(--color-text);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.blue { border-color: var(--color-demand); }
+    .legend-line.red { border-color: var(--color-supply); }
+    .legend-line.gray { border-color: var(--color-long-run); }
+    .legend-line.green { border-color: var(--color-government); }
+    .legend-line.baseline { border-color: var(--color-baseline); border-top-style: dashed; }
+    .legend-line.guess { border-color: var(--color-guess); border-top-style: dashed; }
+    .legend-dot,
+    .legend-square {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 2px solid var(--color-text);
+      background: white;
+      flex: 0 0 auto;
+    }
+    .legend-dot.current { border-color: #111827; background: #111827; }
+    .legend-dot.revealed { border-color: var(--color-government); background: white; }
+    .legend-dot.guess { border-color: var(--color-guess); background: white; }
+    .legend-square.band {
+      border-radius: 4px;
+      border-color: var(--color-baseline);
+      background: rgba(163,170,181,0.16);
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      padding: 8px 8px;
+      border-bottom: 1px solid #e6eaf0;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--color-muted);
+      font-weight: 700;
+      background: rgba(249, 251, 255, 0.85);
+    }
+    td strong { color: var(--color-text); }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .answer-grid select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+    }
+    .feedback-card.success { border-left: 4px solid var(--color-government); }
+    .feedback-card.warning { border-left: 4px solid var(--color-inflation); }
+    .feedback-card.neutral { border-left: 4px solid var(--color-baseline); }
+    .result-correct { color: var(--color-government); font-weight: 700; }
+    .result-incorrect { color: var(--color-supply); font-weight: 700; }
+    .result-neutral { color: var(--color-muted); font-weight: 700; }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .chart-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .chart-card canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .note-list {
+      padding-left: 18px;
+      margin: 8px 0 0 0;
+    }
+    .note-list li + li { margin-top: 6px; }
+
+    .triple-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .triple-grid .mini-panel {
+      background: white;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .mini-panel canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .balance-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .balance-box {
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 10px;
+      background: white;
+    }
+    .balance-head {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--color-text);
+    }
+    .balance-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      padding: 3px 0;
+      color: var(--color-muted);
+    }
+    .balance-line strong { color: var(--color-text); }
+
+    @media (max-width: 1080px) {
+      .workspace,
+      .chart-grid,
+      .triple-grid,
+      .answer-grid,
+      .balance-grid {
+        grid-template-columns: 1fr;
+      }
+      .metric-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 760px) {
+      .metric-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">IS–LM, fiscal policy, monetary policy, and crowding out</h1>
+        <p class="diagram-subtitle">Shift IS and LM to study the joint determination of output and interest rates, then map Australia’s pandemic policy mix into a stylised IS–LM sequence.</p>
+      </div>
+
+      <div class="summary-strip">
+        <span class="summary-chip">Cross topology in (Y, i)</span>
+        <span class="summary-chip">Explore mode</span>
+        <span class="summary-chip">Practice and check</span>
+        <span class="summary-chip">Australian case study</span>
+        <span class="summary-chip">Shared theme and QA</span>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Australian case study</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+<div class="control-row">
+
+          <div class="control-inline">
+            <label for="param_fiscal">Fiscal stance <span id="label_fiscal" class="inline-value"></span></label>
+            <input id="param_fiscal" type="range" min="-20" max="30" step="5" value="0" />
+          </div>
+
+          <div class="control-inline">
+            <label for="param_money">Money-supply support <span id="label_money" class="inline-value"></span></label>
+            <input id="param_money" type="range" min="-10" max="25" step="5" value="0" />
+          </div>
+
+          <div class="control-inline">
+            <label for="param_liquidity">Liquidity preference / money demand <span id="label_liquidity" class="inline-value"></span></label>
+            <input id="param_liquidity" type="range" min="-10" max="15" step="5" value="0" />
+          </div>
+
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="exploreRandom">Random scenario</button>
+              <button class="btn-secondary" id="exploreReset">Reset</button>
+            </div>
+          </div>
+        </div>
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line blue"></span>Demand-side or first schedule</span>
+              <span class="legend-item"><span class="legend-line red"></span>Supply-side or second schedule</span>
+              <span class="legend-item"><span class="legend-line gray"></span>Benchmark or policy line</span>
+              <span class="legend-item"><span class="legend-line baseline"></span>Baseline state</span>
+              <span class="legend-item"><span class="legend-dot current"></span>Current equilibrium</span>
+              <span class="legend-item"><span class="legend-dot guess"></span>Practice guess</span>
+              <span class="legend-item"><span class="legend-dot revealed"></span>Revealed answer</span>
+            </div>
+            <div class="graph-note"><strong>How to read the diagram:</strong> Show how the IS–LM model combines goods-market and money-market equilibrium, and how fiscal and monetary policy jointly determine output and interest rates.</div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="metric-card">
+              <div class="card-title">Live metrics</div>
+              <div class="metric-grid">
+
+                <div class="metric-item">
+                  <div class="metric-label">Output</div>
+                  <div id="explore_output" class="metric-value">—</div>
+                </div>
+
+                <div class="metric-item">
+                  <div class="metric-label">Interest rate</div>
+                  <div id="explore_interest_rate" class="metric-value">—</div>
+                </div>
+
+                <div class="metric-item">
+                  <div class="metric-label">Crowding-out index</div>
+                  <div id="explore_crowding_out_index" class="metric-value">—</div>
+                </div>
+
+                <div class="metric-item">
+                  <div class="metric-label">Fiscal impulse</div>
+                  <div id="explore_fiscal_impulse" class="metric-value">—</div>
+                </div>
+
+                <div class="metric-item">
+                  <div class="metric-label">Monetary impulse</div>
+                  <div id="explore_monetary_impulse" class="metric-value">—</div>
+                </div>
+
+                <div class="metric-item">
+                  <div class="metric-label">Policy mix reading</div>
+                  <div id="explore_policy_mix_reading" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="exploreMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+            <div class="status-card">
+              <div class="status-title">Economic reading</div>
+              <div id="exploreStatusText" class="status-copy">—</div>
+            </div>
+
+            <div class="data-card">
+              <div class="data-title">What this graph is teaching</div>
+              <ul class="note-list">
+<li><strong>Show</strong>: show why expansionary fiscal policy tends to raise both output and interest rates</li>
+<li><strong>Show</strong>: show why expansionary monetary policy lowers rates and supports output</li>
+<li><strong>Illustrate</strong>: illustrate partial crowding out</li>
+<li><strong>Translate</strong>: translate Australia’s COVID fiscal expansion and RBA easing into a classroom IS–LM story</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Scenario bank</label>
+            <div id="practiceScenarioBank" class="scenario-bank"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="practiceRandom">Random scenario</button>
+              <button class="btn-secondary" id="practiceReset">Reset answer</button>
+              <button class="btn-primary" id="practiceCheck">Check answer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line blue"></span>Demand-side or first schedule</span>
+              <span class="legend-item"><span class="legend-line red"></span>Supply-side or second schedule</span>
+              <span class="legend-item"><span class="legend-line gray"></span>Benchmark or policy line</span>
+              <span class="legend-item"><span class="legend-line baseline"></span>Baseline state</span>
+              <span class="legend-item"><span class="legend-dot current"></span>Current equilibrium</span>
+              <span class="legend-item"><span class="legend-dot guess"></span>Practice guess</span>
+              <span class="legend-item"><span class="legend-dot revealed"></span>Revealed answer</span>
+            </div>
+            <div class="graph-note"><strong>Student task:</strong> Use the practice scenario, answer the questions, and compare your answer with the revealed benchmark.</div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="status-card">
+              <div class="status-title">Practice prompt</div>
+              <div id="practiceStatusText" class="status-copy">—</div>
+            </div>
+
+            <div class="panel-card">
+              <div class="answer-title">Your answers</div>
+              <div class="answer-copy" style="margin-bottom: 10px;">Answer the concept questions for the selected scenario.</div>
+              <div class="answer-grid">
+
+                <div>
+                  <label for="answer_driver">Dominant driver</label>
+                  <select id="answer_driver">
+                    <option value="">Choose</option><option value="fiscal">Mainly fiscal</option><option value="monetary">Mainly monetary</option><option value="mix">Joint policy mix</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="answer_output">Output relative to baseline</label>
+                  <select id="answer_output">
+                    <option value="">Choose</option><option value="higher">Higher</option><option value="lower">Lower</option><option value="same">Unchanged</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="answer_rate">Interest rate relative to baseline</label>
+                  <select id="answer_rate">
+                    <option value="">Choose</option><option value="higher">Higher</option><option value="lower">Lower</option><option value="same">Unchanged</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="practiceFeedbackCard" class="feedback-card neutral">
+              <div class="feedback-title">Feedback</div>
+              <div id="practiceFeedbackText" class="feedback-copy">Select a scenario, answer the questions, and then check your answer.</div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Answer check</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Item</th><th>Your answer</th><th>Correct answer</th></tr>
+                  </thead>
+                  <tbody id="practiceTableBody"></tbody>
+                </table>
+              </div>
+              <div id="practiceTableNote" class="table-note" style="margin-top: 10px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Case-study sequence</label>
+            <div id="caseStepRow" class="case-step-row"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="casePlay">Play sequence</button>
+              <button class="btn-secondary" id="caseReset">Reset to step 1</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line blue"></span>Demand-side or first schedule</span>
+              <span class="legend-item"><span class="legend-line red"></span>Supply-side or second schedule</span>
+              <span class="legend-item"><span class="legend-line gray"></span>Benchmark or policy line</span>
+              <span class="legend-item"><span class="legend-line baseline"></span>Baseline state</span>
+              <span class="legend-item"><span class="legend-dot current"></span>Current equilibrium</span>
+              <span class="legend-item"><span class="legend-dot guess"></span>Practice guess</span>
+              <span class="legend-item"><span class="legend-dot revealed"></span>Revealed answer</span>
+            </div>
+            <div class="graph-note"><strong>Case-study mapping:</strong> Sources used in the case-study panel: Australian Treasury coronavirus response overview; ABS national accounts; RBA cash-rate target timeline.</div>
+
+            <div class="chart-grid">
+
+              <div class="chart-card">
+                <div class="chart-title">Cash rate path</div>
+                <canvas id="caseChart0" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">RBA cash-rate timeline.</div>
+              </div>
+
+              <div class="chart-card">
+                <div class="chart-title">GDP index around the pandemic</div>
+                <canvas id="caseChart1" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">ABS national accounts, indexed to Dec 2019 = 100.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="status-card">
+              <div class="status-title">Current step</div>
+              <div id="caseStatusText" class="status-copy">—</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="card-title">Case-study metrics</div>
+              <div class="metric-grid">
+
+                <div class="metric-item">
+                  <div class="metric-label">Output</div>
+                  <div id="case_output" class="metric-value">—</div>
+                </div>
+
+                <div class="metric-item">
+                  <div class="metric-label">Interest rate</div>
+                  <div id="case_interest_rate" class="metric-value">—</div>
+                </div>
+
+                <div class="metric-item">
+                  <div class="metric-label">Crowding-out index</div>
+                  <div id="case_crowding_out_index" class="metric-value">—</div>
+                </div>
+
+                <div class="metric-item">
+                  <div class="metric-label">Fiscal impulse</div>
+                  <div id="case_fiscal_impulse" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="caseMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+
+            <div class="table-card">
+              <div class="table-title">Observed Australian data used in the case</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Observed series</th><th>Data point</th><th>How the diagram uses it</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><strong>Treasury support</strong></td><td>$259 billion</td><td>Illustrates the rightward fiscal shift in IS</td></tr>
+                    <tr><td><strong>Cash rate</strong></td><td>0.75% to 0.10% in 2020</td><td>Illustrates the rightward LM shift</td></tr>
+                    <tr><td><strong>GDP</strong></td><td>-7.0% in June quarter 2020</td><td>Anchors the recession shock</td></tr>
+                    <tr><td><strong>Recovery</strong></td><td>GDP 3.4% above Dec 2019 by Dec quarter 2021</td><td>Anchors the recovery step</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="source-card">
+              <div class="card-title">Interpretation note</div>
+              <div class="source-copy">Sources used in the case-study panel: Australian Treasury coronavirus response overview; ABS national accounts; RBA cash-rate target timeline.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    (() => {
+      const CONFIG = {"id": "G24", "filename": "G24_is_lm.html", "title": "IS\u2013LM, fiscal policy, monetary policy, and crowding out", "subtitle": "Shift IS and LM to study the joint determination of output and interest rates, then map Australia\u2019s pandemic policy mix into a stylised IS\u2013LM sequence.", "topology": "Cross topology in (Y, i): IS downward, LM upward", "roadmap": "G24. Cross topology in (Y, i): IS downward, LM upward", "primary_objective": "Show how the IS\u2013LM model combines goods-market and money-market equilibrium, and how fiscal and monetary policy jointly determine output and interest rates.", "secondary_objectives": ["show why expansionary fiscal policy tends to raise both output and interest rates", "show why expansionary monetary policy lowers rates and supports output", "illustrate partial crowding out", "translate Australia\u2019s COVID fiscal expansion and RBA easing into a classroom IS\u2013LM story"], "interactivity_value": "Students can vary fiscal and monetary settings and watch the IS and LM schedules shift in opposite or complementary ways, making policy mix and crowding-out intuition concrete.", "core_concepts": "IS curve, LM curve, fiscal policy, monetary policy, crowding out, policy mix", "assumptions": ["IS is downward sloping in output-interest-rate space", "LM is upward sloping", "government spending shifts IS and money supply shifts LM", "the case study is a stylised translation of Australia\u2019s COVID response"], "relationships": ["IS: `i = a - bY + fiscal shock`", "LM: `i = c + dY - money shock`", "equilibrium is the intersection of IS and LM", "crowding out is proxied by the increase in the equilibrium interest rate when IS shifts right"], "reference_state": "A baseline with output index 100 and interest rate 3.", "edge_cases": ["large fiscal expansion with little monetary accommodation", "large monetary easing with modest fiscal change", "offsetting policy mix that keeps rates or output nearly unchanged"], "axis_labels": ["Output (Y)", "Interest rate"], "curve_labels": "IS, LM, baseline IS, baseline LM", "equilibrium_labels": "`E0`, `E1`, `G`", "area_labels": "not used", "metrics": ["Output", "Interest rate", "Crowding-out index", "Fiscal impulse", "Monetary impulse", "Policy mix reading"], "visual_objects": ["baseline IS curve", "baseline LM curve", "current IS curve", "current LM curve", "baseline equilibrium point `E0`", "current equilibrium point `E1`", "practice guess point `G`", "case-study mini charts"], "interactivity": {"controls": ["sliders for fiscal stance, money supply, and money-demand pressure", "reset and random-scenario buttons", "practice scenario bank and check-answer button", "case-study step buttons and play/reset buttons"], "draggables": ["Practice mode: a student guess point for the equilibrium"], "reveal": ["Explore mode updates immediately", "Practice mode reveals the correct equilibrium and answers after checking", "Case-study mode steps through a stylised Australian sequence"]}, "practice": {"tasks": ["drag the guess point to the new equilibrium", "state whether fiscal or monetary policy is the dominant driver", "state whether output rises or falls", "state whether interest rates rise or fall"], "answer_types": "spatial guess plus multiple-choice conceptual answers", "logic": "The guess is checked against the scenario equilibrium and the concept answers are matched to the selected scenario.", "feedback": "Explain which schedule shifted, whether the policies reinforced or offset each other, and whether the result reflects crowding out or accommodation.", "reveal": "Correct equilibrium point, answer table, and economic explanation."}, "kind": "cross", "params": [{"key": "fiscal", "label": "Fiscal stance", "min": -20, "max": 30, "step": 5, "value": 0}, {"key": "money", "label": "Money-supply support", "min": -10, "max": 25, "step": 5, "value": 0}, {"key": "liquidity", "label": "Liquidity preference / money demand", "min": -10, "max": 15, "step": 5, "value": 0}], "questions": [{"key": "driver", "label": "Dominant driver", "options": [["fiscal", "Mainly fiscal"], ["monetary", "Mainly monetary"], ["mix", "Joint policy mix"]]}, {"key": "output", "label": "Output relative to baseline", "options": [["higher", "Higher"], ["lower", "Lower"], ["same", "Unchanged"]]}, {"key": "rate", "label": "Interest rate relative to baseline", "options": [["higher", "Higher"], ["lower", "Lower"], ["same", "Unchanged"]]}], "practice_scenarios": [{"title": "Fiscal expansion with little accommodation", "params": {"fiscal": 20, "money": 0, "liquidity": 0}, "answers": {"driver": "fiscal", "output": "higher", "rate": "higher"}}, {"title": "RBA easing during recession", "params": {"fiscal": 5, "money": 20, "liquidity": 5}, "answers": {"driver": "monetary", "output": "higher", "rate": "lower"}}, {"title": "Demand recovery with tighter money demand", "params": {"fiscal": 10, "money": 5, "liquidity": 10}, "answers": {"driver": "mix", "output": "higher", "rate": "higher"}}], "case_steps": [{"title": "Step 1 \u2014 pre-pandemic baseline", "params": {"fiscal": 0, "money": 0, "liquidity": 0}, "copy": "The baseline places output near trend and the cash rate above its emergency floor.", "observed": "Cash rate 0.75% in February 2020."}, {"title": "Step 2 \u2014 recession shock and fiscal bridge", "params": {"fiscal": 20, "money": 10, "liquidity": 8}, "copy": "The pandemic recession shifted IS left, but large fiscal support pushed it back right. The stylised step focuses on the bridge role of fiscal policy.", "observed": "Treasury support package $259b; GDP fell 7.0% in June quarter 2020."}, {"title": "Step 3 \u2014 strong monetary accommodation", "params": {"fiscal": 15, "money": 25, "liquidity": 5}, "copy": "The RBA cut the cash rate to 0.10 and added balance-sheet tools. In the diagram LM shifts right and rates fall.", "observed": "Cash rate cut to 0.10% in November 2020."}, {"title": "Step 4 \u2014 recovery and later tightening", "params": {"fiscal": 5, "money": -5, "liquidity": 10}, "copy": "As demand recovered and inflation rose, accommodation was later withdrawn. The stylised point moves up along the recovering IS schedule.", "observed": "Cash rate reached 4.35% in November 2023."}], "case_charts": [{"title": "Cash rate path", "groups": ["Feb 2020", "Nov 2020", "Nov 2023"], "maxY": 5, "series": [{"label": "Cash rate", "color": "#2E8B57", "values": [0.75, 0.1, 4.35], "format": "percent"}], "note": "RBA cash-rate timeline."}, {"title": "GDP index around the pandemic", "groups": ["2019 Q4", "2020 Q2", "2021 Q4"], "maxY": 110, "series": [{"label": "GDP index", "color": "#2F6BFF", "values": [100, 93, 103.4], "format": "index"}], "note": "ABS national accounts, indexed to Dec 2019 = 100."}], "case_rows": [["Treasury support", "$259 billion", "Illustrates the rightward fiscal shift in IS"], ["Cash rate", "0.75% to 0.10% in 2020", "Illustrates the rightward LM shift"], ["GDP", "-7.0% in June quarter 2020", "Anchors the recession shock"], ["Recovery", "GDP 3.4% above Dec 2019 by Dec quarter 2021", "Anchors the recovery step"]], "source_note": "Sources used in the case-study panel: Australian Treasury coronavirus response overview; ABS national accounts; RBA cash-rate target timeline."};
+      const theme = window.ECON_THEME;
+      const AX = { xTicks: 5, yTicks: 5 };
+      const PLOT = { left: 92, top: 68, right: 900, bottom: 520 };
+      const fmt = (v, d = 1) => Number(v).toFixed(d).replace(/\.0$/, "");
+      const nice = (v) => {
+        if (Math.abs(v) >= 100) return fmt(v, 0);
+        if (Math.abs(v) >= 10) return fmt(v, 1);
+        return fmt(v, 2);
+      };
+      const qs = (id) => document.getElementById(id);
+      const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+      function metricId(prefix, label) {
+        return prefix + "_" + label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+      }
+
+      function setMetrics(prefix, values, labels) {
+        labels.slice(0, values.length).forEach((label, idx) => {
+          const node = qs(metricId(prefix, label));
+          if (node) node.textContent = values[idx];
+        });
+      }
+
+      function loadParams(params) {
+        CONFIG.params.forEach((p) => {
+          const el = qs("param_" + p.key);
+          if (!el) return;
+          el.value = params[p.key];
+        });
+      }
+
+      function readParams() {
+        const params = {};
+        CONFIG.params.forEach((p) => {
+          const el = qs("param_" + p.key);
+          if (!el) return;
+          params[p.key] = p.type === "select" ? el.value : Number(el.value);
+        });
+        return params;
+      }
+
+      function updateExploreLabels() {
+        CONFIG.params.forEach((p) => {
+          if (p.type === "select") return;
+          const span = qs("label_" + p.key);
+          const el = qs("param_" + p.key);
+          if (!span || !el) return;
+          span.textContent = typeof p.step === "number" && p.step < 1 ? fmt(Number(el.value), 2) : fmt(Number(el.value), 0);
+        });
+      }
+
+      function randomParams() {
+        const out = {};
+        CONFIG.params.forEach((p) => {
+          if (p.type === "select") {
+            const vals = p.options.map((o) => o[0]);
+            out[p.key] = vals[Math.floor(Math.random() * vals.length)];
+          } else {
+            const steps = Math.round((p.max - p.min) / p.step);
+            out[p.key] = Number((p.min + p.step * Math.floor(Math.random() * (steps + 1))).toFixed(4));
+          }
+        });
+        return out;
+      }
+
+      function valueToX(v, min, max, area) {
+        return area.left + ((v - min) / (max - min)) * (area.right - area.left);
+      }
+      function valueToY(v, min, max, area) {
+        return area.bottom - ((v - min) / (max - min)) * (area.bottom - area.top);
+      }
+      function xToValue(x, min, max, area) {
+        return min + ((x - area.left) / (area.right - area.left)) * (max - min);
+      }
+      function yToValue(y, min, max, area) {
+        return min + ((area.bottom - y) / (area.bottom - area.top)) * (max - min);
+      }
+      function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+      function clearAndFrame(ctx) {
+        EconDraw.clearCanvas(ctx);
+        EconDraw.drawFrame(ctx);
+      }
+
+      function makeTicks(min, max, count, axis, area = PLOT) {
+        const out = [];
+        for (let i = 0; i <= count; i += 1) {
+          const v = min + ((max - min) * i) / count;
+          out.push({
+            label: Math.abs(v) >= 10 ? fmt(v, 0) : fmt(v, 1),
+            x: axis === "x" ? valueToX(v, min, max, area) : undefined,
+            y: axis === "y" ? valueToY(v, min, max, area) : undefined
+          });
+        }
+        return out;
+      }
+
+      function drawStandardAxes(ctx, xMin, xMax, yMin, yMax, xLabel, yLabel, area = PLOT) {
+        EconDraw.drawAxes(ctx, {
+          xLabel,
+          yLabel,
+          xTicks: makeTicks(xMin, xMax, AX.xTicks, "x", area),
+          yTicks: makeTicks(yMin, yMax, AX.yTicks, "y", area),
+          showGrid: true
+        });
+      }
+
+      function drawCurve(ctx, curve, area) {
+        const pts = curve.points.map((p) => ({
+          x: valueToX(p.x, curve.xMin, curve.xMax, area),
+          y: valueToY(p.y, curve.yMin, curve.yMax, area)
+        }));
+        EconDraw.drawLine(ctx, pts, {
+          color: curve.color,
+          lineWidth: curve.width || (curve.baseline ? theme.line.baseline : theme.line.main),
+          dash: curve.dash || (curve.baseline ? theme.dash.baseline : null)
+        });
+        if (curve.label && pts.length > 0) {
+          const end = pts[Math.floor(pts.length * 0.82)];
+          EconDraw.drawText(ctx, curve.label, end.x + 6, end.y - 6, { size: 12, color: curve.color, weight: "600" });
+        }
+      }
+
+      function drawPoint(ctx, point, area, xMin, xMax, yMin, yMax) {
+        const c = {
+          x: valueToX(point.x, xMin, xMax, area),
+          y: valueToY(point.y, yMin, yMax, area)
+        };
+        EconDraw.drawCircle(ctx, c.x, c.y, {
+          radius: point.radius || theme.radius.marker + 1,
+          fill: point.fill || "#fff",
+          stroke: point.stroke || theme.color.text,
+          lineWidth: 2
+        });
+        if (point.label) EconDraw.drawText(ctx, point.label, c.x + 8, c.y - 8, { size: 12, color: point.stroke || theme.color.text, weight: "700" });
+        return c;
+      }
+
+      function drawGuides(ctx, point, area, xMin, xMax, yMin, yMax, color = theme.color.baseline) {
+        const c = {
+          x: valueToX(point.x, xMin, xMax, area),
+          y: valueToY(point.y, yMin, yMax, area)
+        };
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash(theme.dash.guide);
+        ctx.beginPath();
+        ctx.moveTo(area.left, c.y);
+        ctx.lineTo(c.x, c.y);
+        ctx.moveTo(c.x, area.bottom);
+        ctx.lineTo(c.x, c.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function sampleLine(fn, xMin, xMax, n = 120) {
+        const pts = [];
+        for (let i = 0; i <= n; i += 1) {
+          const x = xMin + ((xMax - xMin) * i) / n;
+          const y = fn(x);
+          if (Number.isFinite(y)) pts.push({ x, y });
+        }
+        return pts;
+      }
+
+      function drawBarChart(canvas, chart) {
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = theme.color.frame;
+        ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+        const m = { left: 48, right: 18, top: 16, bottom: 42 };
+        const pw = w - m.left - m.right, ph = h - m.top - m.bottom;
+        const maxY = chart.maxY;
+        const derivedMin = Math.min(0, ...chart.series.flatMap(s => s.values));
+        const minY = chart.minY !== undefined ? chart.minY : derivedMin;
+        ctx.strokeStyle = theme.color.grid;
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i += 1) {
+          const y = m.top + (ph * i) / 4;
+          ctx.beginPath();
+          ctx.moveTo(m.left, y);
+          ctx.lineTo(w - m.right, y);
+          ctx.stroke();
+          const label = maxY - (maxY * i) / 4;
+          ctx.fillStyle = theme.color.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = "right";
+          ctx.textBaseline = "middle";
+          ctx.fillText(fmt(label, maxY <= 5 ? 1 : 0), m.left - 6, y);
+        }
+        ctx.strokeStyle = theme.color.axis;
+        ctx.beginPath();
+        ctx.moveTo(m.left, m.top);
+        ctx.lineTo(m.left, h - m.bottom);
+        ctx.lineTo(w - m.right, h - m.bottom);
+        ctx.stroke();
+        const groups = chart.groups.length;
+        const seriesCount = chart.series.length;
+        const slot = pw / groups;
+        const barWidth = Math.min(28, (slot * 0.72) / Math.max(seriesCount, 1));
+        const gap = 6;
+        chart.groups.forEach((g, gi) => {
+          const totalW = seriesCount * barWidth + Math.max(0, seriesCount - 1) * gap;
+          const baseX = m.left + gi * slot + (slot - totalW) / 2;
+          chart.series.forEach((s, si) => {
+            const val = s.values[gi];
+            const norm = (val + Math.abs(minY)) / (maxY + Math.abs(minY));
+            const zeroY = m.top + ph - ((0 + Math.abs(minY)) / (maxY + Math.abs(minY))) * ph;
+            const barH = Math.abs(norm * ph - ((0 + Math.abs(minY)) / (maxY + Math.abs(minY))) * ph);
+            const x = baseX + si * (barWidth + gap);
+            const y = val >= 0 ? zeroY - barH : zeroY;
+            ctx.fillStyle = s.color;
+            ctx.fillRect(x, y, barWidth, barH);
+            ctx.fillStyle = theme.color.text;
+            ctx.font = `600 10px ${theme.font.family}`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = val >= 0 ? "bottom" : "top";
+            const textY = val >= 0 ? y - 2 : y + barH + 2;
+            let label = nice(val);
+            if (s.format === "percent") label = nice(val) + "%";
+            if (s.format === "ratio") label = fmt(val, 3);
+            if (s.format === "index") label = fmt(val, 1);
+            ctx.fillText(label, x + barWidth / 2, textY);
+          });
+          ctx.fillStyle = theme.color.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "top";
+          ctx.fillText(g, m.left + gi * slot + slot / 2, h - m.bottom + 8);
+        });
+      }
+
+      function lineIntersection(l1, l2) {
+        if (l1.type === "vertical" && l2.type === "vertical") return null;
+        if (l1.type === "horizontal" && l2.type === "horizontal") return null;
+        if (l1.type === "vertical") {
+          const x = l1.x;
+          if (l2.type === "line") return { x, y: l2.m * x + l2.b };
+          if (l2.type === "horizontal") return { x, y: l2.y };
+        }
+        if (l2.type === "vertical") return lineIntersection(l2, l1);
+        if (l1.type === "horizontal") {
+          const y = l1.y;
+          if (l2.type === "line") return { x: (y - l2.b) / l2.m, y };
+        }
+        if (l2.type === "horizontal") return lineIntersection(l2, l1);
+        if (Math.abs(l1.m - l2.m) < 1e-9) return null;
+        const x = (l2.b - l1.b) / (l1.m - l2.m);
+        return { x, y: l1.m * x + l1.b };
+      }
+
+      function toLineObject(obj) {
+        return obj;
+      }
+
+      function computeCrossCurves(params) {
+        const id = CONFIG.id;
+        let xMin = 0, xMax = 200, yMin = 0, yMax = 200;
+        let xLabel = CONFIG.axis_labels[0], yLabel = CONFIG.axis_labels[1];
+        let baseline = [], current = [], eqPair = null, baselineEq = null, currentEq = null, extra = {};
+        if (id === "G23") {
+          xMin = 0; xMax = 200; yMin = 0; yMax = 200;
+          const baseAE = { type: "line", m: params.base ? params.base.mpc : 0.70, b: 30 };
+          const curAE = { type: "line", m: params.mpc, b: 30 + params.shock + params.fiscal - 0.8 * params.leak };
+          const diag = { type: "line", m: 1, b: 0 };
+          baseline = [
+            { label: "Baseline AE", color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: sampleLine((x) => baseAE.m * x + baseAE.b, xMin, xMax) },
+            { label: "45°", color: theme.color.longRun, xMin, xMax, yMin, yMax, points: sampleLine((x) => x, xMin, xMax) }
+          ];
+          current = [
+            { label: "AE", color: theme.color.demand, xMin, xMax, yMin, yMax, points: sampleLine((x) => curAE.m * x + curAE.b, xMin, xMax) }
+          ];
+          baselineEq = lineIntersection(baseAE, diag);
+          currentEq = lineIntersection(curAE, diag);
+          extra.multiplier = 1 / (1 - params.mpc);
+          extra.auto = curAE.b;
+          extra.inventory = "Below equilibrium output, inventories run down";
+        } else if (id === "G24") {
+          xMin = 60; xMax = 150; yMin = 0; yMax = 8;
+          const baseIS = { type: "line", m: -0.06, b: 9 };
+          const baseLM = { type: "line", m: 0.05, b: -2 };
+          const curIS = { type: "line", m: -0.06, b: 9 + 0.12 * params.fiscal };
+          const curLM = { type: "line", m: 0.05, b: -2 - 0.12 * params.money + 0.10 * params.liquidity };
+          baseline = [
+            { label: "Baseline IS", color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: sampleLine((x) => baseIS.m * x + baseIS.b, xMin, xMax) },
+            { label: "Baseline LM", color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: sampleLine((x) => baseLM.m * x + baseLM.b, xMin, xMax) }
+          ];
+          current = [
+            { label: "IS", color: theme.color.demand, xMin, xMax, yMin, yMax, points: sampleLine((x) => curIS.m * x + curIS.b, xMin, xMax) },
+            { label: "LM", color: theme.color.supply, xMin, xMax, yMin, yMax, points: sampleLine((x) => curLM.m * x + curLM.b, xMin, xMax) }
+          ];
+          baselineEq = lineIntersection(baseIS, baseLM);
+          currentEq = lineIntersection(curIS, curLM);
+          extra.crowd = currentEq.y - baselineEq.y;
+        } else if (id === "G27") {
+          xMin = 40; xMax = 140; yMin = 0; yMax = 8;
+          const baseMD = { type: "line", m: -0.05, b: 9 };
+          const curMD = { type: "line", m: -0.05, b: 9 + 0.10 * params.liquidity + 0.08 * params.income };
+          const baseMS = { type: "vertical", x: 90 };
+          const curMS = { type: "vertical", x: 90 + params.supply };
+          baseline = [
+            { label: "Baseline money demand", color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: sampleLine((x) => baseMD.m * x + baseMD.b, xMin, xMax) },
+            { label: "Baseline money supply", color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: [{x:90,y:yMin},{x:90,y:yMax}] }
+          ];
+          current = [
+            { label: "Money demand", color: theme.color.demand, xMin, xMax, yMin, yMax, points: sampleLine((x) => curMD.m * x + curMD.b, xMin, xMax) },
+            { label: "Money supply", color: theme.color.government, xMin, xMax, yMin, yMax, points: [{x:curMS.x,y:yMin},{x:curMS.x,y:yMax}] }
+          ];
+          baselineEq = lineIntersection(baseMD, baseMS);
+          currentEq = lineIntersection(curMD, curMS);
+        } else if (id === "G28") {
+          xMin = 60; xMax = 100; yMin = 0.6; yMax = 1.4;
+          const baseWS = { type: "line", m: 0.012, b: -0.19 };
+          const curWS = { type: "line", m: 0.012, b: -0.19 + 0.004 * params.bargain - 0.002 * params.prod };
+          const basePSy = 1.00;
+          const curPSy = 1.00 + 0.01 * params.prod - 0.008 * params.markup;
+          baseline = [
+            { label: "Baseline WS", color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: sampleLine((x) => baseWS.m * x + baseWS.b, xMin, xMax) },
+            { label: "Baseline PS", color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: [{x:xMin,y:basePSy},{x:xMax,y:basePSy}] }
+          ];
+          current = [
+            { label: "WS", color: theme.color.demand, xMin, xMax, yMin, yMax, points: sampleLine((x) => curWS.m * x + curWS.b, xMin, xMax) },
+            { label: "PS", color: theme.color.supply, xMin, xMax, yMin, yMax, points: [{x:xMin,y:curPSy},{x:xMax,y:curPSy}] }
+          ];
+          baselineEq = lineIntersection(baseWS, {type:"horizontal", y: basePSy});
+          currentEq = lineIntersection(curWS, {type:"horizontal", y: curPSy});
+          extra.unemployment = 100 - currentEq.x;
+        } else if (id === "G31") {
+          xMin = 40; xMax = 140; yMin = 0.45; yMax = 0.85;
+          const baseD = { type: "line", m: -0.0025, b: 0.95 };
+          const baseS = { type: "line", m: 0.0020, b: 0.45 };
+          const curD = { type: "line", m: -0.0025, b: 0.95 + 0.002 * params.export + 0.002 * params.capital };
+          const curS = { type: "line", m: 0.0020, b: 0.45 + 0.002 * params.import };
+          baseline = [
+            { label: "Baseline AUD demand", color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: sampleLine((x) => baseD.m * x + baseD.b, xMin, xMax) },
+            { label: "Baseline AUD supply", color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: sampleLine((x) => baseS.m * x + baseS.b, xMin, xMax) }
+          ];
+          current = [
+            { label: "AUD demand", color: theme.color.demand, xMin, xMax, yMin, yMax, points: sampleLine((x) => curD.m * x + curD.b, xMin, xMax) },
+            { label: "AUD supply", color: theme.color.supply, xMin, xMax, yMin, yMax, points: sampleLine((x) => curS.m * x + curS.b, xMin, xMax) }
+          ];
+          baselineEq = lineIntersection(baseD, baseS);
+          currentEq = lineIntersection(curD, curS);
+          extra.fxMove = currentEq.y > baselineEq.y ? "Appreciation" : (currentEq.y < baselineEq.y ? "Depreciation" : "Little change");
+        }
+        return { xMin, xMax, yMin, yMax, xLabel, yLabel, baseline, current, baselineEq, currentEq, extra };
+      }
+
+      function computeDownwardModel(params) {
+        const id = CONFIG.id;
+        let xMin, xMax, yMin, yMax, baseline = [], current = [], baselinePoint = null, currentPoint = null, extra = {};
+        if (id === "G26") {
+          xMin = 3; xMax = 8; yMin = 0; yMax = 9;
+          const baseFn = (u) => 2.5 - 1.0 * (u - 4.5);
+          const curFn = (u) => params.exp + params.shock - 1.0 * (u - params.nairu);
+          baseline = [{ label: "Baseline PC", color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: sampleLine(baseFn, xMin, xMax) }];
+          current = [{ label: "Phillips curve", color: theme.color.demand, xMin, xMax, yMin, yMax, points: sampleLine(curFn, xMin, xMax) }, { label: "Natural rate", color: theme.color.longRun, xMin, xMax, yMin, yMax, points: [{x:params.nairu,y:yMin},{x:params.nairu,y:yMax}] }];
+          baselinePoint = { x: 4.5, y: baseFn(4.5) };
+          currentPoint = { x: params.u, y: curFn(params.u) };
+          extra.moveShift = Math.abs(params.exp - 2.5) > 0.4 || Math.abs(params.shock) > 0.1 || Math.abs(params.nairu - 4.5) > 0.25 ? "Shift involved" : "Mostly movement";
+        } else if (id === "G29") {
+          xMin = 3; xMax = 8; yMin = 100; yMax = 520;
+          const baseFn = (u) => 620 - 70 * u;
+          const curFn = (u) => 620 - 70 * u + 6 * params.match + 8 * params.sep;
+          baseline = [{ label: "Baseline Beveridge curve", color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: sampleLine(baseFn, xMin, xMax) }];
+          current = [{ label: "Beveridge curve", color: theme.color.demand, xMin, xMax, yMin, yMax, points: sampleLine(curFn, xMin, xMax) }];
+          baselinePoint = { x: 4.5, y: baseFn(4.5) };
+          currentPoint = { x: params.u, y: curFn(params.u) };
+          extra.moveShift = Math.abs(params.match) > 4 || Math.abs(params.sep) > 4 ? "Curve shift / mismatch" : "Mostly cyclical movement";
+        }
+        return { xMin, xMax, yMin, yMax, xLabel: CONFIG.axis_labels[0], yLabel: CONFIG.axis_labels[1], baseline, current, baselinePoint, currentPoint, extra };
+      }
+
+      function computeSolow(params) {
+        const xMin = 0, xMax = 220, yMin = 0, yMax = 10;
+        const save = params.save, br = params.break, A = params.prod;
+        const yFn = (k) => A * Math.sqrt(Math.max(k, 0)) / 2.8;
+        const iFn = (k) => save * yFn(k) * 3.0;
+        const beFn = (k) => br * k / 25;
+        const baselineIF = (k) => 0.25 * (1.0 * Math.sqrt(Math.max(k, 0)) / 2.8) * 3.0;
+        let kStar = 1;
+        for (let k = 1; k <= xMax; k += 0.5) {
+          if (iFn(k) <= beFn(k)) { kStar = k; break; }
+        }
+        const baseK = 122.5;
+        return {
+          xMin,xMax,yMin,yMax,xLabel:CONFIG.axis_labels[0],yLabel:CONFIG.axis_labels[1],
+          baseline:[
+            {label:"Baseline saving",color:theme.color.baseline,baseline:true,xMin,xMax,yMin,yMax,points:sampleLine(baselineIF,xMin,xMax)},
+            {label:"Baseline break-even",color:theme.color.baseline,baseline:true,xMin,xMax,yMin,yMax,points:sampleLine((k)=>0.10*k/25,xMin,xMax)}
+          ],
+          current:[
+            {label:"Output per worker",color:theme.color.demand,xMin,xMax,yMin,yMax,points:sampleLine(yFn,xMin,xMax)},
+            {label:"Saving per worker",color:theme.color.government,xMin,xMax,yMin,yMax,points:sampleLine(iFn,xMin,xMax)},
+            {label:"Break-even",color:theme.color.supply,xMin,xMax,yMin,yMax,points:sampleLine(beFn,xMin,xMax)}
+          ],
+          currentPoint:{x:kStar,y:iFn(kStar)},
+          baselinePoint:{x:baseK,y:baselineIF(baseK)},
+          extra:{kStar, yStar:yFn(kStar), direction:kStar>baseK?"Transition right":"Transition left"}
+        };
+      }
+
+      function computeNK(params) {
+        const target = 2.5, neutral = 1.0;
+        let x = params.demand;
+        for (let t = 0; t < 10; t += 1) {
+          const pi = target + 0.8 * x + params.cost;
+          const i = neutral + pi + params.phi * (pi - target) + 0.4 * x;
+          const rGap = i - pi - neutral;
+          x = params.demand - 0.7 * rGap;
+        }
+        const pi = target + 0.8 * x + params.cost;
+        const i = neutral + pi + params.phi * (pi - target) + 0.4 * x;
+        return { target, neutral, x, pi, i, rGap: i - pi - neutral };
+      }
+
+      function computeMundell(params) {
+        const mobility = params.mobility;
+        const floating = params.regime === "floating";
+        const y = 100 + (floating ? 0.4 * params.fiscal + 0.9 * params.money : 0.9 * params.fiscal + 0.1 * params.money) * mobility;
+        const e = 0.70 + (floating ? (-0.004 * params.money + 0.003 * params.fiscal) : 0);
+        const i = 3;
+        return { y, e, i, floating };
+      }
+
+      function computeIRF(params) {
+        const horizon = 12;
+        const out = [], inf = [], rate = [];
+        const supply = params.shockType === "supply";
+        for (let t = 0; t < horizon; t += 1) {
+          const p = Math.pow(params.persist, t);
+          const base = params.size * p;
+          const y = supply ? -0.7 * base + 0.15 * t : 0.9 * base;
+          const pi = supply ? 1.0 * base : 0.6 * base * (1 + 0.15 * t);
+          const r = params.policy * 0.7 * pi;
+          out.push({ t, v: y });
+          inf.push({ t, v: pi });
+          rate.push({ t, v: r });
+        }
+        return { out, inf, rate, halfLife: Math.log(0.5) / Math.log(params.persist) };
+      }
+
+      function computeDebt(params) {
+        const path = [];
+        let d = params.debt;
+        for (let t = 0; t <= 10; t += 1) {
+          path.push({ t, v: d });
+          d = d * (1 + params.r / 100) / (1 + params.g / 100) - params.pb;
+        }
+        const stab = params.debt * ((params.r - params.g) / 100) / (1 + params.g / 100);
+        return { path, stab };
+      }
+
+      function computeSectoral(params) {
+        const priv = -(params.gov + params.ext);
+        return { gov: params.gov, ext: params.ext, priv };
+      }
+
+      function computeBalanceSheet(state, op, amount) {
+        const next = JSON.parse(JSON.stringify(state));
+        next.lastOp = op;
+        if (op === "spend") {
+          next.private.deposits += amount;
+          next.banks.reserves += amount;
+          next.private.nfa += amount;
+          next.treasury.deficit += amount;
+        } else if (op === "tax") {
+          next.private.deposits -= amount;
+          next.banks.reserves -= amount;
+          next.private.nfa -= amount;
+          next.treasury.deficit -= amount;
+        } else if (op === "bond") {
+          next.private.deposits -= amount;
+          next.private.bonds += amount;
+          next.banks.reserves -= amount;
+          next.treasury.bonds += amount;
+        } else if (op === "qe") {
+          const q = Math.min(amount, next.private.bonds);
+          next.private.bonds -= q;
+          next.banks.reserves += q;
+          next.rba.bonds += q;
+        } else if (op === "loan") {
+          next.private.deposits += amount;
+          next.private.loans += amount;
+          next.banks.loans += amount;
+          next.banks.depositsLiab += amount;
+        }
+        return next;
+      }
+
+      function computeJobGuarantee(params) {
+        const labourForce = 100;
+        const unemployment = 4;
+        let privateEmp = 86 + params.demand * params.hire * 0.5 - (params.jgwage - 1) * 18;
+        privateEmp = clamp(privateEmp, 60, 95);
+        let jg = clamp(labourForce - unemployment - privateEmp, 0, 35);
+        const infl = 2 + (params.jgwage - 1) * 8 + Math.max(0, privateEmp - 88) * 0.15;
+        return { privateEmp, jg, unemployment: labourForce - privateEmp - jg, infl };
+      }
+
+      function solveModel(params) {
+        switch (CONFIG.kind) {
+          case "cross": return computeCrossCurves(params);
+          case "downward": return computeDownwardModel(params);
+          case "solow": return computeSolow(params);
+          case "nk": return computeNK(params);
+          case "mundell": return computeMundell(params);
+          case "irf": return computeIRF(params);
+          case "debt": return computeDebt(params);
+          case "sectoral": return computeSectoral(params);
+          case "jobguarantee": return computeJobGuarantee(params);
+          default: return {};
+        }
+      }
+
+      function defaultBalanceState() {
+        return {
+          treasury: { deficit: 0, bonds: 100 },
+          rba: { bonds: 80 },
+          banks: { reserves: 100, loans: 100, depositsLiab: 100 },
+          private: { deposits: 100, bonds: 100, loans: 100, nfa: 200 },
+          lastOp: "baseline"
+        };
+      }
+
+
+      function drawSinglePlot(ctx, model, opts = {}) {
+        clearAndFrame(ctx);
+        drawStandardAxes(ctx, model.xMin, model.xMax, model.yMin, model.yMax, model.xLabel, model.yLabel);
+        (model.baseline || []).forEach((c) => drawCurve(ctx, c, PLOT));
+        (model.current || []).forEach((c) => drawCurve(ctx, c, PLOT));
+        if (model.baselineEq) {
+          drawGuides(ctx, model.baselineEq, PLOT, model.xMin, model.xMax, model.yMin, model.yMax, theme.color.baseline);
+          drawPoint(ctx, { ...model.baselineEq, label: "E0", stroke: theme.color.baseline }, PLOT, model.xMin, model.xMax, model.yMin, model.yMax);
+        }
+        if (opts.guess) {
+          drawPoint(ctx, { ...opts.guess, label: "G", stroke: theme.color.guess }, PLOT, model.xMin, model.xMax, model.yMin, model.yMax);
+        }
+        if (model.currentEq) {
+          drawGuides(ctx, model.currentEq, PLOT, model.xMin, model.xMax, model.yMin, model.yMax, theme.color.text);
+          drawPoint(ctx, { ...model.currentEq, label: opts.revealed ? "E1" : "P", stroke: theme.color.government }, PLOT, model.xMin, model.xMax, model.yMin, model.yMax);
+        }
+        if (model.currentPoint) {
+          drawGuides(ctx, model.currentPoint, PLOT, model.xMin, model.xMax, model.yMin, model.yMax, theme.color.text);
+          drawPoint(ctx, { ...model.currentPoint, label: opts.revealed ? "P" : "P", stroke: theme.color.government }, PLOT, model.xMin, model.xMax, model.yMin, model.yMax);
+        }
+        if (opts.titleText) EconDraw.drawText(ctx, opts.titleText, 100, 34, { size: 13, color: theme.color.muted });
+        if (opts.footText) EconDraw.drawText(ctx, opts.footText, 100, 560, { size: 12, color: theme.color.muted });
+      }
+
+      function drawMultiPanel(ctx, panels, titleText, footText) {
+        clearAndFrame(ctx);
+        const gap = 14;
+        const pw = 250, ph = 360, top = 96;
+        const lefts = [74, 74 + pw + gap, 74 + 2 * (pw + gap)];
+        panels.forEach((panel, idx) => {
+          const area = { left: lefts[idx], right: lefts[idx] + pw, top, bottom: top + ph };
+          drawStandardAxes(ctx, panel.xMin, panel.xMax, panel.yMin, panel.yMax, panel.xLabel, panel.yLabel, area);
+          (panel.baseline || []).forEach((c) => drawCurve(ctx, c, area));
+          (panel.current || []).forEach((c) => drawCurve(ctx, c, area));
+          if (panel.point) drawPoint(ctx, { ...panel.point, label: panel.point.label || "P", stroke: theme.color.government }, area, panel.xMin, panel.xMax, panel.yMin, panel.yMax);
+          EconDraw.drawText(ctx, panel.title, area.left, 78, { size: 12, color: theme.color.text, weight: "700" });
+        });
+        if (titleText) EconDraw.drawText(ctx, titleText, 100, 34, { size: 13, color: theme.color.muted });
+        if (footText) EconDraw.drawText(ctx, footText, 100, 560, { size: 12, color: theme.color.muted });
+      }
+
+      function drawIRFCanvas(ctx, model, titleText, footText) {
+        const panels = [
+          { title: "Output", xMin: 0, xMax: 11, yMin: Math.min(-4, ...model.out.map(d => d.v)) - 0.5, yMax: Math.max(4, ...model.out.map(d => d.v)) + 0.5, xLabel: "Quarters", yLabel: "Deviation", current: [{ color: theme.color.output, xMin: 0, xMax: 11, yMin: -5, yMax: 5, points: model.out.map(d => ({ x: d.t, y: d.v })), label: "Output" }], baseline: [{ color: theme.color.baseline, baseline: true, xMin: 0, xMax: 11, yMin: -5, yMax: 5, points: [{x:0,y:0},{x:11,y:0}], label:"Zero" }] },
+          { title: "Inflation", xMin: 0, xMax: 11, yMin: -1, yMax: Math.max(4, ...model.inf.map(d => d.v)) + 0.5, xLabel: "Quarters", yLabel: "Deviation", current: [{ color: theme.color.inflation, xMin: 0, xMax: 11, yMin: -1, yMax: 5, points: model.inf.map(d => ({ x: d.t, y: d.v })), label: "Inflation" }], baseline: [{ color: theme.color.baseline, baseline: true, xMin: 0, xMax: 11, yMin: -1, yMax: 5, points: [{x:0,y:0},{x:11,y:0}], label:"Zero" }] },
+          { title: "Policy rate", xMin: 0, xMax: 11, yMin: -1, yMax: Math.max(4, ...model.rate.map(d => d.v)) + 0.5, xLabel: "Quarters", yLabel: "Deviation", current: [{ color: theme.color.policyRate, xMin: 0, xMax: 11, yMin: -1, yMax: 5, points: model.rate.map(d => ({ x: d.t, y: d.v })), label: "Rate" }], baseline: [{ color: theme.color.baseline, baseline: true, xMin: 0, xMax: 11, yMin: -1, yMax: 5, points: [{x:0,y:0},{x:11,y:0}], label:"Zero" }] }
+        ];
+        drawMultiPanel(ctx, panels, titleText, footText);
+      }
+
+      function drawDebtCanvas(ctx, model, titleText, footText) {
+        clearAndFrame(ctx);
+        const yMax = Math.max(80, ...model.path.map(d => d.v)) + 5;
+        drawStandardAxes(ctx, 0, 10, 0, yMax, CONFIG.axis_labels[0], CONFIG.axis_labels[1]);
+        drawCurve(ctx, { color: theme.color.demand, xMin: 0, xMax: 10, yMin: 0, yMax, points: model.path.map(d => ({ x: d.t, y: d.v })), label: "Debt path" }, PLOT);
+        drawCurve(ctx, { color: theme.color.baseline, baseline: true, xMin: 0, xMax: 10, yMin: 0, yMax, points: [{ x: 0, y: model.path[0].v }, { x: 10, y: model.path[0].v }], label: "Start" }, PLOT);
+        if (titleText) EconDraw.drawText(ctx, titleText, 100, 34, { size: 13, color: theme.color.muted });
+        if (footText) EconDraw.drawText(ctx, footText, 100, 560, { size: 12, color: theme.color.muted });
+      }
+
+      function drawSectoralCanvas(ctx, model, titleText, footText) {
+        clearAndFrame(ctx);
+        const xMin = -8, xMax = 4, yMin = -4, yMax = 4;
+        drawStandardAxes(ctx, xMin, xMax, yMin, yMax, CONFIG.axis_labels[0], CONFIG.axis_labels[1]);
+        [-6, -4, -2, 0, 2, 4, 6].forEach((p) => {
+          const pts = sampleLine((x) => -p - x, xMin, xMax);
+          drawCurve(ctx, { color: theme.color.baseline, baseline: true, xMin, xMax, yMin, yMax, points: pts, label: p === 0 ? "Private=0" : "" }, PLOT);
+        });
+        const point = { x: model.gov, y: model.ext };
+        drawGuides(ctx, point, PLOT, xMin, xMax, yMin, yMax, theme.color.text);
+        drawPoint(ctx, { ...point, label: "B", stroke: theme.color.government }, PLOT, xMin, xMax, yMin, yMax);
+        if (titleText) EconDraw.drawText(ctx, titleText, 100, 34, { size: 13, color: theme.color.muted });
+        if (footText) EconDraw.drawText(ctx, footText, 100, 560, { size: 12, color: theme.color.muted });
+      }
+
+      function drawBalanceSheetCanvas(ctx, state, titleText, footText) {
+        clearAndFrame(ctx);
+        const boxes = [
+          { x: 90, y: 120, w: 150, h: 120, title: "Treasury", lines: [`Deficit: ${nice(state.treasury.deficit)}`, `Bonds: ${nice(state.treasury.bonds)}`] },
+          { x: 290, y: 120, w: 150, h: 120, title: "RBA", lines: [`Bond assets: ${nice(state.rba.bonds)}`] },
+          { x: 490, y: 120, w: 170, h: 140, title: "Banks", lines: [`Reserves: ${nice(state.banks.reserves)}`, `Loans: ${nice(state.banks.loans)}`, `Deposits liab: ${nice(state.banks.depositsLiab)}`] },
+          { x: 710, y: 120, w: 170, h: 150, title: "Private sector", lines: [`Deposits: ${nice(state.private.deposits)}`, `Bonds: ${nice(state.private.bonds)}`, `Loans: ${nice(state.private.loans)}`, `NFA: ${nice(state.private.nfa)}`] }
+        ];
+        boxes.forEach((b) => {
+          ctx.strokeStyle = theme.color.frame;
+          ctx.lineWidth = 1.2;
+          ctx.strokeRect(b.x, b.y, b.w, b.h);
+          EconDraw.drawText(ctx, b.title, b.x + 10, b.y + 18, { size: 13, weight: "700" });
+          b.lines.forEach((line, idx) => EconDraw.drawText(ctx, line, b.x + 10, b.y + 42 + idx * 20, { size: 12, color: theme.color.muted }));
+        });
+        const arrows = {
+          spend: [{ from:[240,180], to:[710,180], color:theme.color.government, label:"Spending / reserves" }],
+          tax: [{ from:[710,190], to:[240,190], color:theme.color.supply, label:"Taxes" }],
+          bond: [{ from:[710,210], to:[240,210], color:theme.color.longRun, label:"Bond sale" }],
+          qe: [{ from:[730,230], to:[330,230], color:theme.color.centralBank, label:"QE asset swap" }],
+          loan: [{ from:[575,250], to:[760,250], color:theme.color.demand, label:"Bank loan creates deposit" }]
+        }[state.lastOp] || [];
+        arrows.forEach((a) => {
+          ctx.strokeStyle = a.color;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(a.from[0], a.from[1]);
+          ctx.lineTo(a.to[0], a.to[1]);
+          ctx.stroke();
+          EconDraw.drawText(ctx, a.label, Math.min(a.from[0], a.to[0]) + 12, a.from[1] - 8, { size: 12, color: a.color, weight: "600" });
+        });
+        if (titleText) EconDraw.drawText(ctx, titleText, 100, 34, { size: 13, color: theme.color.muted });
+        if (footText) EconDraw.drawText(ctx, footText, 100, 560, { size: 12, color: theme.color.muted });
+      }
+
+      function drawJobGuaranteeCanvas(ctx, model, titleText, footText) {
+        clearAndFrame(ctx);
+        const left = { left: 96, right: 420, top: 110, bottom: 500 };
+        const right = { left: 520, right: 860, top: 110, bottom: 500 };
+        // Left bars
+        ctx.strokeStyle = theme.color.frame;
+        ctx.strokeRect(left.left, left.top, left.right-left.left, left.bottom-left.top);
+        EconDraw.drawText(ctx, "Employment composition", left.left, 92, { size: 12, weight: "700" });
+        const totalH = left.bottom - left.top - 40;
+        const baseX = left.left + 120, barW = 80, bottom = left.bottom - 20;
+        const parts = [
+          { label:"Private", value:model.privateEmp, color:theme.color.demand },
+          { label:"JG", value:model.jg, color:theme.color.government },
+          { label:"Unemp.", value:model.unemployment, color:theme.color.baseline }
+        ];
+        let acc = 0;
+        parts.forEach((p) => {
+          const h = totalH * p.value / 100;
+          const y = bottom - acc - h;
+          ctx.fillStyle = p.color;
+          ctx.fillRect(baseX, y, barW, h);
+          EconDraw.drawText(ctx, `${p.label} ${nice(p.value)}`, baseX + barW + 16, y + h/2, { size: 12, color: theme.color.text, weight: "600", baseline:"middle" });
+          acc += h;
+        });
+        // Right panel
+        ctx.strokeStyle = theme.color.frame;
+        ctx.strokeRect(right.left, right.top, right.right-right.left, right.bottom-right.top);
+        EconDraw.drawText(ctx, "Anchor wage and inflation pressure", right.left, 92, { size: 12, weight: "700" });
+        const yMin = 0, yMax = 6, xMin = 0.8, xMax = 1.2;
+        drawStandardAxes(ctx, xMin, xMax, yMin, yMax, "JG wage index", "Inflation pressure", right);
+        drawCurve(ctx, { color: theme.color.inflation, xMin, xMax, yMin, yMax, points: sampleLine((w)=>1.5 + 8*(w-1), xMin, xMax), label:"Pressure schedule" }, right);
+        drawPoint(ctx, { x: CONFIG._currentJGWage || 1.0, y: model.infl, label: "A", stroke: theme.color.government }, right, xMin, xMax, yMin, yMax);
+        if (titleText) EconDraw.drawText(ctx, titleText, 100, 34, { size: 13, color: theme.color.muted });
+        if (footText) EconDraw.drawText(ctx, footText, 100, 560, { size: 12, color: theme.color.muted });
+      }
+
+      function renderExplore() {
+        updateExploreLabels();
+        const params = readParams();
+        let model = solveModel(params);
+        let title = CONFIG.primary_objective;
+        if (CONFIG.kind === "cross" || CONFIG.kind === "downward" || CONFIG.kind === "solow") {
+          drawSinglePlot(qs("exploreCanvas").getContext("2d"), model, { titleText: title });
+        } else if (CONFIG.kind === "nk") {
+          const nk = model;
+          const panels = [
+            { title: "IS block", xMin: -4, xMax: 4, yMin: -1, yMax: 4, xLabel: "Output gap", yLabel: "Real rate gap", current: [{ color: theme.color.demand, xMin:-4,xMax:4,yMin:-1,yMax:4, points: sampleLine((x)=>params.demand/0.7 - x/0.7, -4, 4), label:"IS" }], point: { x: nk.x, y: nk.rGap, label:"P" } },
+            { title: "Phillips curve", xMin: -4, xMax: 4, yMin: 0, yMax: 8, xLabel: "Output gap", yLabel: "Inflation", current: [{ color: theme.color.inflation, xMin:-4,xMax:4,yMin:0,yMax:8, points: sampleLine((x)=>2.5 + 0.8*x + params.cost, -4, 4), label:"PC" }], point: { x: nk.x, y: nk.pi, label:"P" } },
+            { title: "Policy rule", xMin: 0, xMax: 8, yMin: 0, yMax: 8, xLabel: "Inflation", yLabel: "Policy rate", current: [{ color: theme.color.policyRate, xMin:0,xMax:8,yMin:0,yMax:8, points: sampleLine((pi)=>1 + pi + params.phi*(pi-2.5), 0, 8), label:"Rule" }], point: { x: nk.pi, y: nk.i, label:"P" } }
+          ];
+          drawMultiPanel(qs("exploreCanvas").getContext("2d"), panels, title);
+        } else if (CONFIG.kind === "mundell") {
+          const mf = model;
+          const panels = [
+            { title: "IS*–LM*", xMin: 80, xMax: 120, yMin: 1, yMax: 5, xLabel: "Output", yLabel: "i", current: [
+              { color: theme.color.demand, xMin:80,xMax:120,yMin:1,yMax:5, points: sampleLine((y)=>5.8-0.03*y + 0.02*params.fiscal, 80, 120), label:"IS*" },
+              { color: theme.color.supply, xMin:80,xMax:120,yMin:1,yMax:5, points: sampleLine((y)=>0.1+0.03*y - 0.02*params.money, 80, 120), label:"LM*" },
+              { color: theme.color.longRun, xMin:80,xMax:120,yMin:1,yMax:5, points: [{x:80,y:3},{x:120,y:3}], label:"i*" }
+            ], point: { x: mf.y, y: 3, label:"Y" } },
+            { title: "FX panel", xMin: 40, xMax: 140, yMin: 0.55, yMax: 0.85, xLabel: "AUD qty", yLabel: "e", current: [
+              { color: theme.color.demand, xMin:40,xMax:140,yMin:0.55,yMax:0.85, points: sampleLine((q)=>0.95-0.0025*q + 0.0008*params.fiscal, 40, 140), label:"D_AUD" },
+              { color: theme.color.supply, xMin:40,xMax:140,yMin:0.55,yMax:0.85, points: sampleLine((q)=>0.45+0.0020*q - 0.0008*params.money, 40, 140), label:"S_AUD" }
+            ], point: { x: 90, y: mf.e, label:"e" } },
+            { title: "Regime reading", xMin: 0, xMax: 10, yMin: 0, yMax: 10, xLabel: "Policy", yLabel: "Strength", current: [
+              { color: theme.color.government, xMin:0,xMax:10,yMin:0,yMax:10, points:[{x:2,y:mf.floating?3:7},{x:8,y:mf.floating?8:4}], label: mf.floating ? "Floating" : "Fixed" }
+            ], point: { x: 5, y: mf.floating ? 7 : 4, label: mf.floating ? "Float" : "Peg" } }
+          ];
+          drawMultiPanel(qs("exploreCanvas").getContext("2d"), panels, title);
+        } else if (CONFIG.kind === "irf") {
+          drawIRFCanvas(qs("exploreCanvas").getContext("2d"), model, title);
+        } else if (CONFIG.kind === "debt") {
+          drawDebtCanvas(qs("exploreCanvas").getContext("2d"), model, title);
+        } else if (CONFIG.kind === "sectoral") {
+          drawSectoralCanvas(qs("exploreCanvas").getContext("2d"), model, title);
+        } else if (CONFIG.kind === "balancesheet") {
+          state.balance = state.balance || defaultBalanceState();
+          drawBalanceSheetCanvas(qs("exploreCanvas").getContext("2d"), state.balance, title, "Use the operation buttons to update the simplified balance sheets.");
+        } else if (CONFIG.kind === "jobguarantee") {
+          CONFIG._currentJGWage = params.jgwage;
+          drawJobGuaranteeCanvas(qs("exploreCanvas").getContext("2d"), model, title);
+        }
+
+        const metricValues = computeMetricValues(params, model, false);
+        setMetrics("explore", metricValues, CONFIG.metrics);
+        qs("exploreStatusText").innerHTML = describeModel(params, model, false);
+        qs("exploreMetricNote").textContent = metricNote(params, model, false);
+      }
+
+      function computeMetricValues(params, model, isCase) {
+        switch (CONFIG.id) {
+          case "G23": return [nice(model.currentEq.x), fmt(model.extra.multiplier,2), nice(model.extra.auto), model.extra.inventory, nice(model.currentEq.x - model.baselineEq.x), nice(params.fiscal)];
+          case "G24": return [nice(model.currentEq.x), fmt(model.currentEq.y,2) + "%", fmt(model.extra.crowd,2) + " pp", nice(params.fiscal), nice(params.money), params.money > params.fiscal ? "Monetary-led" : (params.fiscal > params.money ? "Fiscal-led" : "Mixed")];
+          case "G25": return [fmt(model.x,2), fmt(model.pi,2) + "%", fmt(model.i,2) + "%", fmt(model.rGap,2), fmt(model.pi - model.target,2) + " pp", model.i > model.pi + model.neutral ? "Tight rule" : "Easy rule"];
+          case "G26": return [fmt(model.currentPoint.y,2) + "%", fmt(model.currentPoint.x,1) + "%", fmt(params.exp,1) + "%", fmt(params.nairu,1) + "%", model.extra.moveShift, fmt(model.currentPoint.y - 2.5,2) + " pp"];
+          case "G27": return [fmt(model.currentEq.y,2) + "%", nice(model.currentEq.x), params.liquidity > params.supply ? "High demand for money" : "Ample liquidity", nice(params.supply), model.currentEq.y > model.baselineEq.y ? "Tighter" : "Easier", fmt(model.currentEq.y - model.baselineEq.y,2) + " pp"];
+          case "G28": return [nice(model.currentEq.x), fmt(model.currentEq.y,2), fmt(model.extra.unemployment,1) + "%", nice(params.markup), nice(params.bargain), params.prod > 0 ? "Supports PS" : "Weakens PS"];
+          case "G29": return [fmt(model.currentPoint.x,1) + "%", nice(model.currentPoint.y), nice(params.match), model.extra.moveShift, model.currentPoint.x > 5.5 ? "Slack" : "Tight", nice(model.currentPoint.y - model.baselinePoint.y)];
+          case "G30": return [nice(model.extra.kStar), fmt(model.extra.yStar,2), fmt(params.save*100,0) + "%", fmt(params.break*100,0) + "%", model.extra.direction, fmt(params.prod,1)];
+          case "G31": return [fmt(model.currentEq.y,3), nice(model.currentEq.x), params.export - params.import > 0 ? "NX support" : "Import pressure", nice(params.capital), nice(params.export), model.extra.fxMove];
+          case "G32": return [nice(model.y), fmt(model.e,3), model.floating ? "Monetary stronger" : "Fiscal stronger", nice(params.fiscal), nice(params.money), model.floating ? "Floating" : "Fixed"];
+          case "G33": return [fmt(Math.max(...model.out.map(d => d.v)),2), fmt(Math.max(...model.inf.map(d => d.v)),2), fmt(Math.max(...model.rate.map(d => d.v)),2), fmt(model.halfLife,1) + " qtrs", fmt(params.persist,1), params.shockType];
+          case "G34": return [fmt(params.debt,1) + "%", fmt(model.path[model.path.length-1].v,1) + "%", fmt(params.r,1) + "%", fmt(params.g,1) + "%", fmt(params.pb,1) + "%", fmt(model.stab,2) + "%"];
+          case "G35": return [fmt(model.gov,1), fmt(model.ext,1), fmt(model.priv,1), fmt(model.gov + model.ext + model.priv,1), model.priv > 0 ? "Private surplus" : (model.priv < 0 ? "Private deficit" : "Near balance"), model.gov < 0 ? "Fiscal deficit" : "Fiscal surplus"];
+          case "G36": {
+            const s = state.balance;
+            return [nice(s.private.deposits), nice(s.banks.reserves), nice(s.private.bonds), nice(s.private.loans), nice(s.private.nfa), s.lastOp];
+          }
+          case "G37": return [fmt(model.privateEmp,1), fmt(model.jg,1), fmt(model.unemployment,1), fmt(params.jgwage,2), fmt(model.infl,2), model.jg > 12 ? "Large buffer" : "Small buffer"];
+          default: return CONFIG.metrics.slice(0,6).map(() => "—");
+        }
+      }
+
+      function describeModel(params, model, isCase) {
+        switch (CONFIG.id) {
+          case "G23":
+            return `<p style="margin:0 0 8px 0;">Planned expenditure intersects the 45-degree line at income ${nice(model.currentEq.x)}. With MPC ${fmt(params.mpc,2)}, the multiplier is ${fmt(model.extra.multiplier,2)}.</p><p style="margin:0;">A higher intercept or steeper slope raises equilibrium income; stronger leakages flatten the line and reduce the multiplier.</p>`;
+          case "G24":
+            return `<p style="margin:0 0 8px 0;">The IS–LM equilibrium is output ${nice(model.currentEq.x)} and interest rate ${fmt(model.currentEq.y,2)}%.</p><p style="margin:0;">Fiscal shifts move IS; money-supply or liquidity shifts move LM. The change in the interest rate summarises the crowding-out or accommodation story.</p>`;
+          case "G25":
+            return `<p style="margin:0 0 8px 0;">The linked panels imply an output gap of ${fmt(model.x,2)}, inflation of ${fmt(model.pi,2)}%, and a policy rate of ${fmt(model.i,2)}%.</p><p style="margin:0;">Demand shocks work mainly through the IS block; cost-push shocks raise inflation directly in the Phillips-curve block.</p>`;
+          case "G26":
+            return `<p style="margin:0 0 8px 0;">At unemployment ${fmt(model.currentPoint.x,1)}%, the short-run Phillips curve implies inflation of ${fmt(model.currentPoint.y,2)}%.</p><p style="margin:0;">Changes in expected inflation or supply shocks shift the curve; changes in unemployment move the economy along it.</p>`;
+          case "G27":
+            return `<p style="margin:0 0 8px 0;">The money market clears at interest rate ${fmt(model.currentEq.y,2)}% with real money balances ${nice(model.currentEq.x)}.</p><p style="margin:0;">A rightward money-supply shift lowers rates, while stronger liquidity preference raises them.</p>`;
+          case "G28":
+            return `<p style="margin:0 0 8px 0;">WS and PS intersect at employment ${nice(model.currentEq.x)} and a real wage of ${fmt(model.currentEq.y,2)}.</p><p style="margin:0;">Higher markups push PS down; higher productivity lifts PS and can support both higher real wages and employment.</p>`;
+          case "G29":
+            return `<p style="margin:0 0 8px 0;">The current Beveridge-curve point combines unemployment ${fmt(model.currentPoint.x,1)}% with a vacancy index of ${nice(model.currentPoint.y)}.</p><p style="margin:0;">An outward shift points to weaker matching efficiency or more mismatch; movement along the curve is more cyclical.</p>`;
+          case "G30":
+            return `<p style="margin:0 0 8px 0;">The steady state is around k* = ${nice(model.extra.kStar)} with output per worker ${fmt(model.extra.yStar,2)}.</p><p style="margin:0;">Higher saving or productivity raises the steady state; faster break-even investment lowers it.</p>`;
+          case "G31":
+            return `<p style="margin:0 0 8px 0;">The FX market clears at about ${fmt(model.currentEq.y,3)} US dollars per Australian dollar.</p><p style="margin:0;">Export or capital-inflow shocks shift demand for AUD; import demand shifts supply.</p>`;
+          case "G32":
+            return `<p style="margin:0 0 8px 0;">Under a ${model.floating ? "floating" : "fixed"} regime, the current settings imply output around ${nice(model.y)} and an exchange rate of ${fmt(model.e,3)}.</p><p style="margin:0;">The classic textbook result is that monetary policy is more powerful under floating rates, while fiscal policy is more powerful under fixed rates.</p>`;
+          case "G33":
+            return `<p style="margin:0 0 8px 0;">The simulated responses show the sign, peak, and persistence of output, inflation, and the policy rate after the selected shock.</p><p style="margin:0;">Higher persistence lengthens the half-life; stronger policy dampens the inflation and output response more quickly.</p>`;
+          case "G34":
+            return `<p style="margin:0 0 8px 0;">With the chosen parameters the debt ratio reaches ${fmt(model.path[model.path.length-1].v,1)}% after 10 years.</p><p style="margin:0;">The debt-stabilising primary balance is about ${fmt(model.stab,2)}% of GDP in this simple setup.</p>`;
+          case "G35":
+            return `<p style="margin:0 0 8px 0;">Given the chosen government and external balances, the implied private balance is ${fmt(model.priv,1)}.</p><p style="margin:0;">The key lesson is accounting consistency: once two balances are chosen, the third is pinned down.</p>`;
+          case "G36":
+            return `<p style="margin:0 0 8px 0;">The selected operation changes the simplified Treasury, RBA, banking, and private-sector balance sheets shown in the flow map.</p><p style="margin:0;">Focus on whether the operation changes private net financial assets or simply swaps one asset for another.</p>`;
+          case "G37":
+            return `<p style="margin:0 0 8px 0;">Private employment is ${fmt(model.privateEmp,1)}, the JG pool is ${fmt(model.jg,1)}, and inflation pressure is ${fmt(model.infl,2)}.</p><p style="margin:0;">In the classroom logic, the JG pool expands in slumps and shrinks in booms while the anchor wage influences wage pressure.</p>`;
+          default:
+            return "<p style='margin:0;'>Use the controls to explore the model.</p>";
+        }
+      }
+
+      function metricNote(params, model, isCase) {
+        switch (CONFIG.id) {
+          case "G23": return "Lower leakages and a higher MPC make the multiplier larger; stronger leakages flatten the expenditure line.";
+          case "G24": return "A higher interest rate after fiscal expansion is the textbook crowding-out signal.";
+          case "G25": return "The RBA’s target band gives the benchmark for whether inflation is above or below target.";
+          case "G26": return "Use the distinction between movements and shifts to separate labour-market slack from changing expectations or supply pressure.";
+          case "G27": return "In the simple money-market story, the central bank chooses the money supply while liquidity preference shapes money demand.";
+          case "G28": return "Productivity and markups determine how much of wage growth can be sustained without squeezing firms.";
+          case "G29": return "A movement along the Beveridge curve is more cyclical; an outward shift suggests matching problems.";
+          case "G30": return "The Solow model is about steady-state levels, not permanent growth-rate effects from a one-off saving-rate change.";
+          case "G31": return "A floating exchange rate lets the currency absorb part of an external shock before output does.";
+          case "G32": return "The exchange-rate regime changes which policy instrument transmits most strongly to output.";
+          case "G33": return "Watch not just the sign of the response but also the peak timing and speed of decay.";
+          case "G34": return "Debt arithmetic depends on both the flow balance and the denominator effect from GDP growth.";
+          case "G35": return "This graph teaches accounting consistency, not a full behavioural model of causation.";
+          case "G36": return "Deficit spending changes private net financial assets; QE mostly changes asset composition.";
+          case "G37": return "This is a hypothetical policy experiment anchored to observed Australian slack, not an observed Australian program.";
+          default: return "";
+        }
+      }
+
+      const state = {
+        practiceIndex: 0,
+        caseIndex: 0,
+        guess: null,
+        revealed: false,
+        caseTimer: null,
+        balance: defaultBalanceState()
+      };
+
+      function setScenarioBank() {
+        const bank = qs("practiceScenarioBank");
+        bank.innerHTML = "";
+        CONFIG.practice_scenarios.forEach((sc, idx) => {
+          const btn = document.createElement("button");
+          btn.className = "scenario-chip" + (idx === state.practiceIndex ? " active" : "");
+          btn.textContent = sc.title;
+          btn.addEventListener("click", () => {
+            state.practiceIndex = idx;
+            state.revealed = false;
+            resetAnswers();
+            initGuessForScenario();
+            setScenarioBank();
+            renderPractice();
+          });
+          bank.appendChild(btn);
+        });
+      }
+
+      function setCaseSteps() {
+        const row = qs("caseStepRow");
+        row.innerHTML = "";
+        CONFIG.case_steps.forEach((st, idx) => {
+          const btn = document.createElement("button");
+          btn.className = "case-step-btn" + (idx === state.caseIndex ? " active" : "");
+          btn.textContent = "Step " + (idx + 1);
+          btn.addEventListener("click", () => {
+            state.caseIndex = idx;
+            if (state.caseTimer) clearInterval(state.caseTimer);
+            state.caseTimer = null;
+            setCaseSteps();
+            renderCase();
+          });
+          row.appendChild(btn);
+        });
+      }
+
+      function resetAnswers() {
+        CONFIG.questions.forEach((q) => {
+          const el = qs("answer_" + q.key);
+          if (el) el.value = "";
+        });
+        qs("practiceFeedbackCard").className = "feedback-card neutral";
+        qs("practiceFeedbackText").textContent = "Select a scenario, answer the questions, and then check your answer.";
+      }
+
+      function initGuessForScenario() {
+        const scenario = CONFIG.practice_scenarios[state.practiceIndex];
+        if (["cross", "downward", "solow"].includes(CONFIG.kind)) {
+          const m = solveModel(scenario.params);
+          if (m.currentEq) state.guess = { x: m.baselineEq ? m.baselineEq.x : m.currentEq.x, y: m.baselineEq ? m.baselineEq.y : m.currentEq.y };
+          else if (m.currentPoint) state.guess = { x: m.baselinePoint ? m.baselinePoint.x : m.currentPoint.x, y: m.baselinePoint ? m.baselinePoint.y : m.currentPoint.y };
+        } else {
+          state.guess = null;
+        }
+      }
+
+      function renderPractice() {
+        const scenario = CONFIG.practice_scenarios[state.practiceIndex];
+        const model = solveModel(scenario.params);
+        const ctx = qs("practiceCanvas").getContext("2d");
+        if (CONFIG.kind === "cross" || CONFIG.kind === "downward" || CONFIG.kind === "solow") {
+          drawSinglePlot(ctx, model, { guess: state.guess, revealed: state.revealed, titleText: "Practice: locate or interpret the model-implied answer for the selected scenario." });
+        } else if (CONFIG.kind === "nk") {
+          const nk = model;
+          const panels = [
+            { title: "IS block", xMin: -4, xMax: 4, yMin: -1, yMax: 4, xLabel: "Output gap", yLabel: "Real rate gap", current: [{ color: theme.color.demand, xMin:-4,xMax:4,yMin:-1,yMax:4, points: sampleLine((x)=>scenario.params.demand/0.7 - x/0.7, -4, 4), label:"IS" }], point: { x: nk.x, y: nk.rGap, label:"P" } },
+            { title: "Phillips curve", xMin: -4, xMax: 4, yMin: 0, yMax: 8, xLabel: "Output gap", yLabel: "Inflation", current: [{ color: theme.color.inflation, xMin:-4,xMax:4,yMin:0,yMax:8, points: sampleLine((x)=>2.5 + 0.8*x + scenario.params.cost, -4, 4), label:"PC" }], point: { x: nk.x, y: nk.pi, label:"P" } },
+            { title: "Policy rule", xMin: 0, xMax: 8, yMin: 0, yMax: 8, xLabel: "Inflation", yLabel: "Policy rate", current: [{ color: theme.color.policyRate, xMin:0,xMax:8,yMin:0,yMax:8, points: sampleLine((pi)=>1 + pi + scenario.params.phi*(pi-2.5), 0, 8), label:"Rule" }], point: { x: nk.pi, y: nk.i, label:"P" } }
+          ];
+          drawMultiPanel(ctx, panels, "Practice: interpret the linked-panel outcome.");
+        } else if (CONFIG.kind === "mundell") {
+          renderExplore(); // keep consistent drawing maybe not ideal
+          drawMultiPanel(ctx, [
+            { title: "Regime logic", xMin: 0, xMax: 10, yMin: 0, yMax: 10, xLabel: "Policy", yLabel: "Strength", current: [{ color: theme.color.government, xMin:0,xMax:10,yMin:0,yMax:10, points:[{x:2,y:scenario.params.regime==="floating"?3:7},{x:8,y:scenario.params.regime==="floating"?8:4}], label: scenario.params.regime==="floating"?"Floating":"Fixed" }], point: { x: 5, y: scenario.params.regime==="floating"?7:4, label: scenario.params.regime==="floating"?"Float":"Peg" } },
+            { title: "Output", xMin: 80, xMax: 120, yMin: 0, yMax: 10, xLabel: "Index", yLabel: "Y", current: [{ color: theme.color.demand, xMin:80,xMax:120,yMin:0,yMax:10, points:[{x:80,y:2},{x:120,y:8}], label:"Y" }], point: { x: 100, y: 5, label:"Y" } },
+            { title: "FX", xMin: 0, xMax: 10, yMin: 0, yMax: 10, xLabel: "Direction", yLabel: "e", current: [{ color: theme.color.external, xMin:0,xMax:10,yMin:0,yMax:10, points:[{x:2,y:scenario.params.regime==="fixed"?5:3},{x:8,y:scenario.params.regime==="fixed"?5:7}], label:"FX" }], point: { x: 5, y: scenario.params.regime==="fixed"?5:(scenario.params.money>0?3:7), label:"e" } }
+          ], "Practice: identify policy effectiveness under the regime.");
+        } else if (CONFIG.kind === "irf") {
+          drawIRFCanvas(ctx, model, "Practice: interpret the impulse responses.");
+        } else if (CONFIG.kind === "debt") {
+          drawDebtCanvas(ctx, model, "Practice: interpret the debt path.");
+        } else if (CONFIG.kind === "sectoral") {
+          drawSectoralCanvas(ctx, model, "Practice: use the identity to infer the missing balance.");
+        } else if (CONFIG.kind === "balancesheet") {
+          drawBalanceSheetCanvas(ctx, state.balance, "Practice: answer the accounting question for the selected operation.");
+        } else if (CONFIG.kind === "jobguarantee") {
+          CONFIG._currentJGWage = scenario.params.jgwage;
+          drawJobGuaranteeCanvas(ctx, model, "Practice: interpret the buffer-stock response.");
+        }
+        qs("practiceStatusText").innerHTML = `<p style="margin:0 0 8px 0;"><strong>${scenario.title}.</strong></p><p style="margin:0;">Use the scenario settings and answer the questions below${state.guess ? ", then compare your purple guess with the revealed answer." : "."}</p>`;
+        renderPracticeTable(null, false, model);
+      }
+
+
+      function optionLabel(qKey, value) {
+        const q = CONFIG.questions.find((qq) => qq.key === qKey);
+        if (!q) return value || "—";
+        const found = q.options.find((op) => op[0] === value);
+        return found ? found[1] : (value || "—");
+      }
+
+      function renderPracticeTable(results, checked, model) {
+        const body = qs("practiceTableBody");
+        const rows = [];
+        CONFIG.questions.forEach((q) => {
+          const user = qs("answer_" + q.key).value;
+          const actual = CONFIG.practice_scenarios[state.practiceIndex].answers[q.key];
+          rows.push(`<tr><td>${q.label}</td><td class="${checked ? (user === actual ? "result-correct" : "result-incorrect") : "result-neutral"}">${optionLabel(q.key, user)}</td><td class="${checked ? "result-correct" : "result-neutral"}">${checked ? optionLabel(q.key, actual) : "Check answer"}</td></tr>`);
+        });
+        body.innerHTML = rows.join("");
+        let note = checked ? "Check completed." : "After checking, the correct answers appear here.";
+        if (state.guess && checked) {
+          const target = model.currentEq || model.currentPoint;
+          note += ` Your guess is ${fmt(Math.hypot(state.guess.x - target.x, state.guess.y - target.y), 2)} plot units from the revealed answer.`;
+        }
+        qs("practiceTableNote").textContent = note;
+      }
+
+      function checkPractice() {
+        const scenario = CONFIG.practice_scenarios[state.practiceIndex];
+        const model = solveModel(scenario.params);
+        let correct = 0;
+        CONFIG.questions.forEach((q) => {
+          if (qs("answer_" + q.key).value === scenario.answers[q.key]) correct += 1;
+        });
+        let pointCorrect = true;
+        if (state.guess) {
+          const target = model.currentEq || model.currentPoint;
+          pointCorrect = Math.hypot(state.guess.x - target.x, state.guess.y - target.y) < ((model.xMax - model.xMin) * 0.06);
+        }
+        state.revealed = true;
+        renderPractice();
+        renderPracticeTable(null, true, model);
+        if (correct === CONFIG.questions.length && pointCorrect) {
+          qs("practiceFeedbackCard").className = "feedback-card success";
+          qs("practiceFeedbackText").textContent = "Correct. Your answers line up with the benchmark and the revealed model outcome.";
+        } else {
+          qs("practiceFeedbackCard").className = "feedback-card warning";
+          qs("practiceFeedbackText").textContent = "Not quite. Use the revealed answer and explanation to compare the benchmark with your choices.";
+        }
+      }
+
+      function renderCase() {
+        const step = CONFIG.case_steps[state.caseIndex];
+        let model;
+        if (CONFIG.kind === "balancesheet") {
+          state.balance = defaultBalanceState();
+          state.balance = computeBalanceSheet(state.balance, step.operation, 40);
+          model = state.balance;
+          drawBalanceSheetCanvas(qs("caseCanvas").getContext("2d"), model, step.copy, step.observed);
+        } else {
+          model = solveModel(step.params);
+          if (CONFIG.kind === "cross" || CONFIG.kind === "downward" || CONFIG.kind === "solow") {
+            drawSinglePlot(qs("caseCanvas").getContext("2d"), model, { revealed: true, titleText: step.copy, footText: step.observed });
+          } else if (CONFIG.kind === "nk") {
+            const nk = model;
+            const panels = [
+              { title: "IS block", xMin: -4, xMax: 4, yMin: -1, yMax: 4, xLabel: "Output gap", yLabel: "Real rate gap", current: [{ color: theme.color.demand, xMin:-4,xMax:4,yMin:-1,yMax:4, points: sampleLine((x)=>step.params.demand/0.7 - x/0.7, -4, 4), label:"IS" }], point: { x: nk.x, y: nk.rGap, label:"P" } },
+              { title: "Phillips curve", xMin: -4, xMax: 4, yMin: 0, yMax: 8, xLabel: "Output gap", yLabel: "Inflation", current: [{ color: theme.color.inflation, xMin:-4,xMax:4,yMin:0,yMax:8, points: sampleLine((x)=>2.5 + 0.8*x + step.params.cost, -4, 4), label:"PC" }], point: { x: nk.x, y: nk.pi, label:"P" } },
+              { title: "Policy rule", xMin: 0, xMax: 8, yMin: 0, yMax: 8, xLabel: "Inflation", yLabel: "Policy rate", current: [{ color: theme.color.policyRate, xMin:0,xMax:8,yMin:0,yMax:8, points: sampleLine((pi)=>1 + pi + step.params.phi*(pi-2.5), 0, 8), label:"Rule" }], point: { x: nk.pi, y: nk.i, label:"P" } }
+            ];
+            drawMultiPanel(qs("caseCanvas").getContext("2d"), panels, step.copy, step.observed);
+          } else if (CONFIG.kind === "mundell") {
+            const mf = model;
+            const panels = [
+              { title: "IS*–LM*", xMin: 80, xMax: 120, yMin: 1, yMax: 5, xLabel: "Output", yLabel: "i", current: [
+                { color: theme.color.demand, xMin:80,xMax:120,yMin:1,yMax:5, points: sampleLine((y)=>5.8-0.03*y + 0.02*step.params.fiscal, 80, 120), label:"IS*" },
+                { color: theme.color.supply, xMin:80,xMax:120,yMin:1,yMax:5, points: sampleLine((y)=>0.1+0.03*y - 0.02*step.params.money, 80, 120), label:"LM*" },
+                { color: theme.color.longRun, xMin:80,xMax:120,yMin:1,yMax:5, points: [{x:80,y:3},{x:120,y:3}], label:"i*" }
+              ], point: { x: mf.y, y: 3, label:"Y" } },
+              { title: "FX panel", xMin: 40, xMax: 140, yMin: 0.55, yMax: 0.85, xLabel: "AUD qty", yLabel: "e", current: [
+                { color: theme.color.demand, xMin:40,xMax:140,yMin:0.55,yMax:0.85, points: sampleLine((q)=>0.95-0.0025*q + 0.0008*step.params.fiscal, 40, 140), label:"D_AUD" },
+                { color: theme.color.supply, xMin:40,xMax:140,yMin:0.55,yMax:0.85, points: sampleLine((q)=>0.45+0.0020*q - 0.0008*step.params.money, 40, 140), label:"S_AUD" }
+              ], point: { x: 90, y: mf.e, label:"e" } },
+              { title: "Regime", xMin: 0, xMax: 10, yMin: 0, yMax: 10, xLabel: "Policy", yLabel: "Strength", current: [{ color: theme.color.government, xMin:0,xMax:10,yMin:0,yMax:10, points:[{x:2,y:mf.floating?3:7},{x:8,y:mf.floating?8:4}], label: mf.floating?"Floating":"Fixed" }], point: { x: 5, y: mf.floating?7:4, label: mf.floating?"Float":"Peg" } }
+            ];
+            drawMultiPanel(qs("caseCanvas").getContext("2d"), panels, step.copy, step.observed);
+          } else if (CONFIG.kind === "irf") {
+            drawIRFCanvas(qs("caseCanvas").getContext("2d"), model, step.copy, step.observed);
+          } else if (CONFIG.kind === "debt") {
+            drawDebtCanvas(qs("caseCanvas").getContext("2d"), model, step.copy, step.observed);
+          } else if (CONFIG.kind === "sectoral") {
+            drawSectoralCanvas(qs("caseCanvas").getContext("2d"), model, step.copy, step.observed);
+          } else if (CONFIG.kind === "jobguarantee") {
+            CONFIG._currentJGWage = step.params.jgwage;
+            drawJobGuaranteeCanvas(qs("caseCanvas").getContext("2d"), model, step.copy, step.observed);
+          }
+        }
+        const caseMetrics = computeMetricValues(step.params || readParams(), model, true);
+        setMetrics("case", caseMetrics.slice(0, 4), CONFIG.metrics.slice(0, 4));
+        qs("caseStatusText").innerHTML = `<p style="margin:0 0 8px 0;"><strong>${step.title}</strong></p><p style="margin:0 0 8px 0;">${step.copy}</p><p style="margin:0; color: var(--color-muted);"><strong>Observed anchor:</strong> ${step.observed}</p>`;
+        qs("caseMetricNote").textContent = metricNote(step.params || readParams(), model, true);
+        (CONFIG.case_charts || []).slice(0, 2).forEach((chart, idx) => {
+          const node = qs("caseChart" + idx);
+          if (node) drawBarChart(node, chart);
+        });
+      }
+
+      function activateTabs() {
+        const tabs = Array.from(document.querySelectorAll(".module-tab"));
+        const sections = Array.from(document.querySelectorAll(".module-section"));
+        tabs.forEach((tab) => tab.addEventListener("click", () => {
+          tabs.forEach((t) => t.classList.toggle("active", t === tab));
+          sections.forEach((s) => s.classList.toggle("active", s.id === tab.dataset.target));
+          if (tab.dataset.target === "exploreSection") renderExplore();
+          if (tab.dataset.target === "practiceSection") renderPractice();
+          if (tab.dataset.target === "caseSection") renderCase();
+        }));
+      }
+
+      function bindExploreControls() {
+        CONFIG.params.forEach((p) => {
+          const el = qs("param_" + p.key);
+          if (!el) return;
+          el.addEventListener("input", renderExplore);
+          el.addEventListener("change", renderExplore);
+        });
+        qs("exploreReset").addEventListener("click", () => {
+          const defaults = {};
+          CONFIG.params.forEach((p) => { defaults[p.key] = p.value; });
+          loadParams(defaults);
+          updateExploreLabels();
+          if (CONFIG.kind === "balancesheet") state.balance = defaultBalanceState();
+          renderExplore();
+        });
+        qs("exploreRandom").addEventListener("click", () => {
+          loadParams(randomParams());
+          updateExploreLabels();
+          renderExplore();
+        });
+        if (CONFIG.kind === "balancesheet") {
+          document.querySelectorAll(".operation-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const amount = Number(qs("param_amount").value);
+              state.balance = computeBalanceSheet(state.balance, btn.dataset.op, amount);
+              renderExplore();
+            });
+          });
+        }
+      }
+
+      function bindPracticeButtons() {
+        qs("practiceRandom").addEventListener("click", () => {
+          state.practiceIndex = Math.floor(Math.random() * CONFIG.practice_scenarios.length);
+          state.revealed = false;
+          resetAnswers();
+          initGuessForScenario();
+          setScenarioBank();
+          renderPractice();
+        });
+        qs("practiceReset").addEventListener("click", () => {
+          state.revealed = false;
+          resetAnswers();
+          initGuessForScenario();
+          renderPractice();
+        });
+        qs("practiceCheck").addEventListener("click", checkPractice);
+      }
+
+      function bindCaseButtons() {
+        qs("casePlay").addEventListener("click", () => {
+          if (state.caseTimer) clearInterval(state.caseTimer);
+          state.caseIndex = 0;
+          setCaseSteps();
+          renderCase();
+          state.caseTimer = setInterval(() => {
+            state.caseIndex += 1;
+            if (state.caseIndex >= CONFIG.case_steps.length) {
+              clearInterval(state.caseTimer);
+              state.caseTimer = null;
+              state.caseIndex = CONFIG.case_steps.length - 1;
+            }
+            setCaseSteps();
+            renderCase();
+          }, 1800);
+        });
+        qs("caseReset").addEventListener("click", () => {
+          if (state.caseTimer) clearInterval(state.caseTimer);
+          state.caseTimer = null;
+          state.caseIndex = 0;
+          setCaseSteps();
+          renderCase();
+        });
+      }
+
+      function bindGuessDrag() {
+        if (!["cross", "downward", "solow"].includes(CONFIG.kind)) return;
+        let dragging = false;
+        const canvas = qs("practiceCanvas");
+        canvas.addEventListener("mousedown", (ev) => {
+          const rect = canvas.getBoundingClientRect();
+          const mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
+          if (!state.guess) return;
+          const scenario = CONFIG.practice_scenarios[state.practiceIndex];
+          const model = solveModel(scenario.params);
+          const targetModel = model.currentEq || model.currentPoint;
+          const gx = valueToX(state.guess.x, model.xMin, model.xMax, PLOT);
+          const gy = valueToY(state.guess.y, model.yMin, model.yMax, PLOT);
+          if (Math.hypot(mx - gx, my - gy) < 12) dragging = true;
+        });
+        window.addEventListener("mouseup", () => { dragging = false; });
+        canvas.addEventListener("mousemove", (ev) => {
+          if (!dragging || state.revealed) return;
+          const scenario = CONFIG.practice_scenarios[state.practiceIndex];
+          const model = solveModel(scenario.params);
+          const rect = canvas.getBoundingClientRect();
+          const mx = clamp(ev.clientX - rect.left, PLOT.left, PLOT.right);
+          const my = clamp(ev.clientY - rect.top, PLOT.top, PLOT.bottom);
+          state.guess = {
+            x: xToValue(mx, model.xMin, model.xMax, PLOT),
+            y: yToValue(my, model.yMin, model.yMax, PLOT)
+          };
+          renderPractice();
+        });
+      }
+
+      activateTabs();
+      setScenarioBank();
+      setCaseSteps();
+      initGuessForScenario();
+      bindExploreControls();
+      bindPracticeButtons();
+      bindCaseButtons();
+      bindGuessDrag();
+      updateExploreLabels();
+      renderExplore();
+      renderPractice();
+      renderCase();
+    })();
+  </script>
+
+</body>
+</html>

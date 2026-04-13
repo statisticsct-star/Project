@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G19_risk_aversion_expected_utility</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs,
+    .summary-strip,
+    .legend-row,
+    .button-row,
+    .scenario-bank,
+    .case-step-row,
+    .chart-grid,
+    .metric-grid,
+    .note-list,
+    .toggle-row,
+    .data-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .module-tabs,
+    .summary-strip,
+    .case-step-row,
+    .scenario-bank,
+    .chart-grid,
+    .toggle-row,
+    .data-pills {
+      margin-bottom: 16px;
+    }
+    .module-tab,
+    .case-step-btn,
+    .scenario-chip,
+    .toggle-chip,
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+      text-align: center;
+      line-height: 1.25;
+    }
+    .module-tab:hover,
+    .case-step-btn:hover,
+    .scenario-chip:hover,
+    .toggle-chip:hover,
+    .ghost-btn:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active,
+    .case-step-btn.active,
+    .scenario-chip.active,
+    .toggle-chip.active,
+    .ghost-btn.active {
+      background: #eef5ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-chip,
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 16px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 160px;
+    }
+    .control-inline.wide { min-width: 240px; }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    input[type="range"] { width: 210px; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.52fr) minmax(320px, 0.98fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .graph-card,
+    .panel-card,
+    .status-card,
+    .metric-card,
+    .data-card,
+    .table-card,
+    .feedback-card,
+    .source-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .panel-stack,
+    .metric-stack {
+      display: grid;
+      gap: 16px;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .metric-item {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .metric-label,
+    .table-wrap th,
+    .answer-grid label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .metric-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.3;
+    }
+
+    .card-title,
+    .status-title,
+    .data-title,
+    .chart-title,
+    .table-title,
+    .feedback-title,
+    .answer-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+    .small-muted,
+    .graph-note,
+    .status-copy,
+    .case-copy,
+    .source-copy,
+    .feedback-copy,
+    .table-note,
+    .answer-copy,
+    .metric-note,
+    .note-list li {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .small-muted strong,
+    .graph-note strong,
+    .status-copy strong,
+    .case-copy strong,
+    .source-copy strong,
+    .feedback-copy strong,
+    .answer-copy strong,
+    .metric-note strong {
+      color: var(--color-text);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.utility { border-color: var(--color-demand); }
+    .legend-line.uninsured { border-color: var(--color-supply); }
+    .legend-line.insured { border-color: var(--color-government); }
+    .legend-line.guide { border-color: var(--color-long-run); border-top-style: dashed; }
+    .legend-line.guess { border-color: var(--color-guess); border-top-style: dashed; }
+    .legend-dot,
+    .legend-square {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 2px solid var(--color-text);
+      background: white;
+      flex: 0 0 auto;
+    }
+    .legend-dot.ce { border-color: #111827; background: white; }
+    .legend-dot.guess { border-color: var(--color-guess); background: white; }
+    .legend-square.risk { border-radius: 4px; border-color: var(--color-baseline); background: rgba(120,120,120,0.24); }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      padding: 8px 8px;
+      border-bottom: 1px solid #e6eaf0;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--color-muted);
+      font-weight: 700;
+      background: rgba(249, 251, 255, 0.85);
+    }
+    td strong { color: var(--color-text); }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .answer-grid select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+    }
+    .feedback-card.success { border-left: 4px solid var(--color-government); }
+    .feedback-card.warning { border-left: 4px solid var(--color-inflation); }
+    .feedback-card.neutral { border-left: 4px solid var(--color-baseline); }
+    .result-correct { color: var(--color-government); font-weight: 700; }
+    .result-incorrect { color: var(--color-supply); font-weight: 700; }
+    .result-neutral { color: var(--color-muted); font-weight: 700; }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .chart-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .chart-card canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .note-list {
+      padding-left: 18px;
+      margin: 8px 0 0 0;
+    }
+    .note-list li + li { margin-top: 6px; }
+
+    @media (max-width: 1080px) {
+      .workspace,
+      .chart-grid,
+      .answer-grid {
+        grid-template-columns: 1fr;
+      }
+      .metric-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 760px) {
+      .metric-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Risk aversion, certainty equivalent, risk premium, insurance choice, and expected utility</h1>
+        <p class="diagram-subtitle">
+          Explore how a concave utility curve turns a risky wealth lottery into a certainty equivalent, why the risk premium is positive for a risk-averse household, and when insurance is worth buying. The Australian case study uses cyclone-related home-insurance affordability in north Queensland.
+        </p>
+      </div>
+
+      <div class="summary-strip">
+        <span class="summary-chip">Utility curve over wealth</span>
+        <span class="summary-chip">Expected wealth vs expected utility</span>
+        <span class="summary-chip">Certainty equivalent and risk premium</span>
+        <span class="summary-chip">Insurance choice and willingness to pay</span>
+        <span class="summary-chip">Practice and check-answer mode</span>
+        <span class="summary-chip">Australian cyclone-insurance case study</span>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Australian case study</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="exploreWealth">Initial wealth W<span id="exploreWealthLabel" class="inline-value"></span></label>
+            <input id="exploreWealth" type="range" min="150" max="320" step="5" value="220" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreLoss">Possible loss L <span id="exploreLossLabel" class="inline-value"></span></label>
+            <input id="exploreLoss" type="range" min="10" max="120" step="5" value="60" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreProb">Loss probability p <span id="exploreProbLabel" class="inline-value"></span></label>
+            <input id="exploreProb" type="range" min="0.01" max="0.20" step="0.01" value="0.05" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreA">Risk-aversion coefficient a <span id="exploreALabel" class="inline-value"></span></label>
+            <input id="exploreA" type="range" min="0.000" max="0.008" step="0.0005" value="0.0050" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreCoverage">Insurance coverage <span id="exploreCoverageLabel" class="inline-value"></span></label>
+            <input id="exploreCoverage" type="range" min="0" max="1" step="0.05" value="1.00" />
+          </div>
+          <div class="control-inline">
+            <label for="explorePremium">Insurance premium <span id="explorePremiumLabel" class="inline-value"></span></label>
+            <input id="explorePremium" type="range" min="0" max="20" step="0.05" value="3.15" />
+          </div>
+          <div class="control-inline wide">
+            <label>View options</label>
+            <div class="toggle-row">
+              <button id="toggleInsurance" class="toggle-chip active">Insurance lottery</button>
+              <button id="toggleGuides" class="toggle-chip active">CE and EV guides</button>
+              <button id="toggleRiskBand" class="toggle-chip active">Risk premium band</button>
+            </div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="exploreFairPremium">Set fair premium</button>
+              <button class="btn-secondary" id="exploreFullInsurance">Full insurance</button>
+              <button class="btn-secondary" id="exploreAusScenario">Australian scenario</button>
+              <button class="btn-secondary" id="exploreRandom">Random scenario</button>
+              <button class="btn-secondary" id="exploreReset">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line utility"></span>Utility curve u(W)</span>
+              <span class="legend-item"><span class="legend-line uninsured"></span>Uninsured lottery</span>
+              <span class="legend-item"><span class="legend-line insured"></span>Insurance-adjusted lottery</span>
+              <span class="legend-item"><span class="legend-line guide"></span>Expected-wealth / CE guides</span>
+              <span class="legend-item"><span class="legend-dot ce"></span>Certainty-equivalent point</span>
+              <span class="legend-item"><span class="legend-square risk"></span>Risk-premium band</span>
+            </div>
+            <div class="graph-note">
+              <strong>How to read the graph:</strong> the red chord links the loss and no-loss wealth states without insurance. Its probability-weighted point gives expected utility, while the black certainty-equivalent point shows the certain wealth level that the household values equally. The green chord shows what happens when insurance changes the two wealth states.
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="metric-card">
+              <div class="card-title">Live metrics</div>
+              <div class="metric-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Expected wealth without insurance</div>
+                  <div id="exploreMetricEV" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Certainty equivalent without insurance</div>
+                  <div id="exploreMetricCE" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Risk premium</div>
+                  <div id="exploreMetricRP" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Actuarially fair premium</div>
+                  <div id="exploreMetricFair" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Maximum premium willing to pay</div>
+                  <div id="exploreMetricMax" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Buy insurance at current premium?</div>
+                  <div id="exploreMetricBuy" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="exploreMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+            <div id="exploreStatus" class="status-card">
+              <div class="status-title">Economic reading</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="data-card">
+              <div class="data-title">Expected-utility logic in this graph</div>
+              <ul class="note-list">
+                <li><strong>Expected wealth:</strong> the probability-weighted average of the two wealth states, shown by the gray guide.</li>
+                <li><strong>Certainty equivalent:</strong> the certain wealth level that gives the same utility as the risky lottery.</li>
+                <li><strong>Risk premium:</strong> <em>expected wealth − certainty equivalent</em>. It is positive for a concave utility curve.</li>
+                <li><strong>Insurance choice:</strong> buy the contract when its premium is below the maximum willingness to pay implied by expected utility.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Scenario bank</label>
+            <div id="practiceScenarioBank" class="scenario-bank"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="practiceRandom">Random scenario</button>
+              <button class="btn-secondary" id="practiceResetGuess">Reset guess</button>
+              <button class="btn-primary" id="practiceCheck">Check answer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line utility"></span>Utility curve</span>
+              <span class="legend-item"><span class="legend-line uninsured"></span>Uninsured lottery</span>
+                            <span class="legend-item"><span class="legend-line guide"></span>Expected-wealth guide</span>
+              <span class="legend-item"><span class="legend-dot guess"></span>Your CE guess</span>
+              <span class="legend-item"><span class="legend-dot ce"></span>Correct CE (revealed)</span>
+            </div>
+            <div class="graph-note">
+              <strong>Student task:</strong> drag the purple point along the utility curve to the certainty equivalent of the uninsured lottery. Then answer the concept questions before checking.
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div id="practiceStatus" class="status-card">
+              <div class="status-title">Practice prompt</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="panel-card">
+              <div class="answer-title">Your answers</div>
+              <div class="answer-copy" style="margin-bottom: 10px;">Answer the concept questions for the current scenario.</div>
+              <div class="answer-grid">
+                <div>
+                  <label for="practiceAnswerCE">Relative to expected wealth, the certainty equivalent is:</label>
+                  <select id="practiceAnswerCE">
+                    <option value="">Choose</option>
+                    <option value="below">Below</option>
+                    <option value="equal">Equal</option>
+                    <option value="above">Above</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerRP">The risk premium is:</label>
+                  <select id="practiceAnswerRP">
+                    <option value="">Choose</option>
+                    <option value="positive">Positive</option>
+                    <option value="zero">Zero</option>
+                    <option value="negative">Negative</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerBuy">At the displayed premium, should the household buy insurance?</label>
+                  <select id="practiceAnswerBuy">
+                    <option value="">Choose</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="practiceFeedback" class="feedback-card neutral">
+              <div class="feedback-title">Feedback</div>
+              <div class="feedback-copy">Select a scenario, place your certainty-equivalent guess, and then check your answer.</div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Answer check</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Your answer</th>
+                      <th>Correct answer</th>
+                    </tr>
+                  </thead>
+                  <tbody id="practiceTableBody"></tbody>
+                </table>
+              </div>
+              <div id="practiceTableNote" class="table-note" style="margin-top: 10px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Case-study sequence</label>
+            <div id="caseStepRow" class="case-step-row"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="casePlay">Play sequence</button>
+              <button class="btn-secondary" id="caseReset">Reset to step 1</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line utility"></span>Utility curve</span>
+              <span class="legend-item"><span class="legend-line uninsured"></span>Uninsured lottery</span>
+              <span class="legend-item"><span class="legend-line insured"></span>Current insurance contract</span>
+              <span class="legend-item"><span class="legend-line guide"></span>Expected-wealth / CE guides</span>
+              <span class="legend-item"><span class="legend-dot ce"></span>Current CE point</span>
+            </div>
+            <div class="graph-note">
+              <strong>Case-study mapping:</strong> this is a stylized expected-utility translation of official north-Queensland cyclone-insurance data. Premiums come from ACCC data reported per $100,000 sum insured and are normalized to a teaching example with a $500,000 insured sum. The probability and loss values are high-risk teaching assumptions chosen to match the kind of households highlighted in the official flood-risk and affordability evidence.
+            </div>
+
+            <div class="chart-grid">
+              <div class="chart-card">
+                <div class="chart-title">Normalized annual premium for a $500k insured sum</div>
+                <canvas id="casePremiumCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">Built from ACCC premium-per-$100k data and the Townsville median reduction reported in July 2025.</div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">Flood-cover gap in the highest-risk homes</div>
+                <canvas id="caseCoverCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">Highest-risk homes: 23% with flood cover versus about 60% nationwide. Queensland accounts for 91,000 properties in the national high-risk group.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div id="caseStatus" class="status-card">
+              <div class="status-title">Current step</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="card-title">Case-study metrics</div>
+              <div class="metric-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Uninsured certainty equivalent</div>
+                  <div id="caseMetricCE0" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Maximum full-insurance premium</div>
+                  <div id="caseMetricMax" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Current quote</div>
+                  <div id="caseMetricQuote" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Quote relative to max willingness to pay</div>
+                  <div id="caseMetricGap" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Predicted choice</div>
+                  <div id="caseMetricChoice" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Certainty-equivalent gain from current contract</div>
+                  <div id="caseMetricGain" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="caseMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Observed Australian data used in the case</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Observed series</th>
+                      <th>Data point</th>
+                      <th>How the graph uses it</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Home-and-contents premium, medium/high cyclone risk</strong></td>
+                      <td>$701 → $627 per $100,000 sum insured before vs after pool pricing</td>
+                      <td>Scaled to a teaching example with a $500,000 insured sum, giving annual quotes of $3,505 and $3,135.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Townsville / Cairns / Mackay pass-through</strong></td>
+                      <td>Median premiums reduced by about 15%</td>
+                      <td>Creates a stronger premium-relief step with a normalized quote of about $2,979.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>High-risk flood exposure</strong></td>
+                      <td>298,000 properties nationally, including 91,000 in Queensland, face at least a 2% or 5% annual chance of flooding</td>
+                      <td>Motivates the case-study loss probability choice as a stylized high-risk household example.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Flood-cover gap</strong></td>
+                      <td>Only around 23% of the highest-risk homes have flood cover versus about 60% nationwide</td>
+                      <td>Motivates the protection-gap interpretation: affordability can leave risk-averse households uninsured.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Non-insurance in northern Australia</strong></td>
+                      <td>About 20% of properties lacked home building insurance in 2016 versus 11% in the rest of Australia</td>
+                      <td>Supports the narrative that premium relief can matter for take-up, not just for premiums themselves.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="source-card">
+              <div class="card-title">Interpretation note</div>
+              <div class="source-copy">
+                This case should be read as a <strong>stylized expected-utility calibration</strong>, not as a literal underwriting model for a named household. The official Australian data anchor the premium levels, flood-risk context, and coverage gap. The utility curve then translates those facts into a clean teaching sequence about certainty equivalents, risk premia, and insurance demand.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    (() => {
+      const theme = window.ECON_THEME;
+      const palette = {
+        utility: theme.color.demand,
+        uninsured: theme.color.supply,
+        insured: theme.color.government,
+        guide: theme.color.longRun,
+        guess: theme.color.guess,
+        baseline: theme.color.baseline,
+        fill: theme.color.dwlFill,
+        text: theme.color.text,
+        muted: theme.color.muted,
+        frame: theme.color.frame,
+        black: '#111827'
+      };
+
+      const GUESS_TOLERANCE = 2.5;
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function fmtWealth(value, digits = 1) {
+        return `$${Number(value).toFixed(digits).replace(/\.0$/, '')}k`;
+      }
+
+      function fmtPct(value, digits = 0) {
+        return `${(100 * value).toFixed(digits).replace(/\.0$/, '')}%`;
+      }
+
+      function fmtNum(value, digits = 3) {
+        return Number(value).toFixed(digits).replace(/0+$/, '').replace(/\.$/, '');
+      }
+
+      function utility(wealth, a) {
+        const w = Math.max(1, wealth);
+        if (a <= 1e-9) return w;
+        return 1 - Math.exp(-a * w);
+      }
+
+      function inverseUtility(value, a) {
+        if (a <= 1e-9) return value;
+        const bounded = Math.min(1 - 1e-12, Math.max(-1e12, value));
+        return -Math.log(Math.max(1e-12, 1 - bounded)) / a;
+      }
+
+      function cloneModel(model) {
+        return {
+          wealth: model.wealth,
+          loss: model.loss,
+          prob: model.prob,
+          a: model.a,
+          coverage: model.coverage,
+          premium: model.premium
+        };
+      }
+
+      function clampModel(model) {
+        model.wealth = clamp(model.wealth, 150, 320);
+        model.loss = clamp(model.loss, 10, Math.min(120, model.wealth - 20));
+        model.prob = clamp(model.prob, 0.01, 0.20);
+        model.a = clamp(model.a, 0, 0.008);
+        model.coverage = clamp(model.coverage, 0, 1);
+        const premiumMax = Math.min(20, model.wealth - (1 - model.coverage) * model.loss - 10);
+        model.premium = clamp(model.premium, 0, premiumMax);
+        model.premiumMax = premiumMax;
+        return model;
+      }
+
+      function expectedUtilityForModel(model, premium = model.premium, coverage = model.coverage) {
+        const insuredLossWealth = model.wealth - (1 - coverage) * model.loss - premium;
+        const insuredNoLossWealth = model.wealth - premium;
+        return model.prob * utility(insuredLossWealth, model.a) + (1 - model.prob) * utility(insuredNoLossWealth, model.a);
+      }
+
+      function maxWillingnessToPay(model) {
+        if (model.coverage <= 1e-9) return 0;
+        const baselineEU = model.prob * utility(model.wealth - model.loss, model.a) + (1 - model.prob) * utility(model.wealth, model.a);
+        const hi = Math.max(0, Math.min(model.premiumMax, model.wealth - (1 - model.coverage) * model.loss - 1e-3));
+        if (expectedUtilityForModel(model, 0, model.coverage) < baselineEU) return 0;
+        let low = 0;
+        let high = hi;
+        for (let i = 0; i < 80; i += 1) {
+          const mid = (low + high) / 2;
+          if (expectedUtilityForModel(model, mid, model.coverage) >= baselineEU) {
+            low = mid;
+          } else {
+            high = mid;
+          }
+        }
+        return low;
+      }
+
+      function calcModel(modelInput) {
+        const model = clampModel(cloneModel(modelInput));
+        const wealthHigh0 = model.wealth;
+        const wealthLow0 = model.wealth - model.loss;
+        const expectedWealth0 = model.wealth - model.prob * model.loss;
+        const expectedUtility0 = model.prob * utility(wealthLow0, model.a) + (1 - model.prob) * utility(wealthHigh0, model.a);
+        const ce0 = inverseUtility(expectedUtility0, model.a);
+        const riskPremium = expectedWealth0 - ce0;
+
+        const wealthHigh1 = model.wealth - model.premium;
+        const wealthLow1 = model.wealth - (1 - model.coverage) * model.loss - model.premium;
+        const expectedWealth1 = model.prob * wealthLow1 + (1 - model.prob) * wealthHigh1;
+        const expectedUtility1 = model.prob * utility(wealthLow1, model.a) + (1 - model.prob) * utility(wealthHigh1, model.a);
+        const ce1 = inverseUtility(expectedUtility1, model.a);
+        const fairPremium = model.prob * model.coverage * model.loss;
+        const maxPremium = maxWillingnessToPay(model);
+        const buyInsurance = model.coverage > 0 && model.premium <= maxPremium + 1e-6;
+        const ceGain = ce1 - ce0;
+
+        return {
+          model,
+          wealthHigh0,
+          wealthLow0,
+          expectedWealth0,
+          expectedUtility0,
+          ce0,
+          riskPremium,
+          wealthHigh1,
+          wealthLow1,
+          expectedWealth1,
+          expectedUtility1,
+          ce1,
+          fairPremium,
+          maxPremium,
+          buyInsurance,
+          ceGain
+        };
+      }
+
+      function riskTone(a) {
+        if (a <= 1e-9) return 'risk neutral';
+        if (a < 0.0025) return 'mildly risk averse';
+        if (a < 0.0055) return 'moderately risk averse';
+        return 'strongly risk averse';
+      }
+
+      function makeLinearTicks(min, max, count, axis, formatter) {
+        const ticks = [];
+        for (let i = 0; i <= count; i += 1) {
+          const value = min + (i / count) * (max - min);
+          ticks.push({
+            label: formatter ? formatter(value) : value.toFixed(0),
+            x: axis === 'x' ? EconDraw.valueToX(value, min, max) : undefined,
+            y: axis === 'y' ? EconDraw.valueToY(value, min, max) : undefined
+          });
+        }
+        return ticks;
+      }
+
+      function drawGuideVertical(ctx, xValue, yMin, yMax, xScale, yScale, options = {}) {
+        ctx.save();
+        ctx.strokeStyle = options.color || palette.guide;
+        ctx.lineWidth = options.lineWidth || 1.5;
+        ctx.setLineDash(options.dash || theme.dash.policy);
+        ctx.beginPath();
+        ctx.moveTo(EconDraw.valueToX(xValue, xScale.min, xScale.max), EconDraw.valueToY(yMin, yScale.min, yScale.max));
+        ctx.lineTo(EconDraw.valueToX(xValue, xScale.min, xScale.max), EconDraw.valueToY(yMax, yScale.min, yScale.max));
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawGuideHorizontal(ctx, yValue, xMin, xMax, xScale, yScale, options = {}) {
+        ctx.save();
+        ctx.strokeStyle = options.color || palette.guide;
+        ctx.lineWidth = options.lineWidth || 1.5;
+        ctx.setLineDash(options.dash || theme.dash.policy);
+        ctx.beginPath();
+        ctx.moveTo(EconDraw.valueToX(xMin, xScale.min, xScale.max), EconDraw.valueToY(yValue, yScale.min, yScale.max));
+        ctx.lineTo(EconDraw.valueToX(xMax, xScale.min, xScale.max), EconDraw.valueToY(yValue, yScale.min, yScale.max));
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawPoint(ctx, x, y, xScale, yScale, options = {}) {
+        const px = EconDraw.valueToX(x, xScale.min, xScale.max);
+        const py = EconDraw.valueToY(y, yScale.min, yScale.max);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(px, py, options.radius || 5.5, 0, Math.PI * 2);
+        ctx.fillStyle = options.fill || 'white';
+        ctx.fill();
+        ctx.lineWidth = options.lineWidth || 2;
+        ctx.strokeStyle = options.stroke || palette.black;
+        if (options.dash) ctx.setLineDash(options.dash);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        if (options.label) {
+          ctx.font = `700 13px ${theme.font.family}`;
+          ctx.fillStyle = options.text || options.stroke || palette.text;
+          ctx.fillText(options.label, px + 8, py - 10);
+        }
+        ctx.restore();
+        return { px, py };
+      }
+
+      function drawChord(ctx, x1, y1, x2, y2, xScale, yScale, options = {}) {
+        const p1 = { x: EconDraw.valueToX(x1, xScale.min, xScale.max), y: EconDraw.valueToY(y1, yScale.min, yScale.max) };
+        const p2 = { x: EconDraw.valueToX(x2, xScale.min, xScale.max), y: EconDraw.valueToY(y2, yScale.min, yScale.max) };
+        ctx.save();
+        ctx.strokeStyle = options.color || palette.uninsured;
+        ctx.lineWidth = options.lineWidth || 2.5;
+        if (options.dash) ctx.setLineDash(options.dash);
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawRiskChart(ctx, modelInput, config = {}) {
+        const calc = calcModel(modelInput);
+        const model = calc.model;
+
+        const wealths = [
+          calc.wealthLow0, calc.wealthHigh0, calc.expectedWealth0, calc.ce0,
+          calc.wealthLow1, calc.wealthHigh1, calc.expectedWealth1, calc.ce1
+        ].filter((v) => Number.isFinite(v));
+        let xMin = Math.max(0, Math.min(...wealths) - 25);
+        let xMax = Math.max(...wealths) + 25;
+        if (xMax - xMin < 80) {
+          const mid = (xMin + xMax) / 2;
+          xMin = Math.max(0, mid - 40);
+          xMax = mid + 40;
+        }
+
+        const ySamples = [];
+        for (let w = xMin; w <= xMax; w += (xMax - xMin) / 70) {
+          ySamples.push(utility(w, model.a));
+        }
+        ySamples.push(
+          calc.expectedUtility0,
+          utility(calc.expectedWealth0, model.a),
+          calc.expectedUtility1,
+          utility(calc.expectedWealth1, model.a)
+        );
+        let yMin = Math.min(...ySamples);
+        let yMax = Math.max(...ySamples);
+        const yPad = (yMax - yMin) * 0.18 || 1;
+        yMin -= yPad;
+        yMax += yPad;
+
+        EconDraw.clearCanvas(ctx);
+        EconDraw.drawFrame(ctx);
+
+        const xTicks = makeLinearTicks(xMin, xMax, 5, 'x', (v) => `$${Math.round(v)}`);
+        const yTicks = makeLinearTicks(yMin, yMax, 5, 'y', (v) => Number(v).toFixed(model.a <= 1e-9 ? 0 : 2));
+
+        EconDraw.drawAxes(ctx, {
+          xLabel: 'Wealth after premium and loss ($000)',
+          yLabel: 'Utility',
+          xTicks,
+          yTicks
+        });
+
+        const xScale = { min: xMin, max: xMax };
+        const yScale = { min: yMin, max: yMax };
+
+        if (config.showRiskBand !== false && calc.riskPremium > 0.01) {
+          const x1 = EconDraw.valueToX(calc.ce0, xScale.min, xScale.max);
+          const x2 = EconDraw.valueToX(calc.expectedWealth0, xScale.min, xScale.max);
+          const y1 = EconDraw.valueToY(yScale.min, yScale.min, yScale.max);
+          const y2 = y1 - 16;
+          ctx.save();
+          ctx.fillStyle = palette.fill;
+          ctx.fillRect(Math.min(x1, x2), y2, Math.abs(x2 - x1), 16);
+          ctx.strokeStyle = palette.baseline;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(Math.min(x1, x2), y2, Math.abs(x2 - x1), 16);
+          ctx.restore();
+          EconDraw.drawText(ctx, 'Risk premium', Math.min(x1, x2) + 4, y2 - 6, { size: 12, color: palette.muted });
+        }
+
+        const utilityCurve = [];
+        for (let w = xMin; w <= xMax; w += (xMax - xMin) / 120) {
+          utilityCurve.push({
+            x: EconDraw.valueToX(w, xScale.min, xScale.max),
+            y: EconDraw.valueToY(utility(w, model.a), yScale.min, yScale.max)
+          });
+        }
+        EconDraw.drawLine(ctx, utilityCurve, { color: palette.utility, lineWidth: 3 });
+        EconDraw.drawText(ctx, 'u(W)', EconDraw.valueToX(xMax - 18, xScale.min, xScale.max), EconDraw.valueToY(utility(xMax - 18, model.a), yScale.min, yScale.max) - 12, {
+          size: 13,
+          color: palette.utility,
+          weight: '700'
+        });
+
+        if (config.showGuides !== false) {
+          drawGuideVertical(ctx, calc.expectedWealth0, yScale.min, utility(calc.expectedWealth0, model.a), xScale, yScale, { color: palette.guide });
+          drawGuideHorizontal(ctx, calc.expectedUtility0, calc.ce0, calc.expectedWealth0, xScale, yScale, { color: palette.guide });
+          drawGuideVertical(ctx, calc.ce0, yScale.min, calc.expectedUtility0, xScale, yScale, { color: palette.guide });
+        }
+
+        const yLow0 = utility(calc.wealthLow0, model.a);
+        const yHigh0 = utility(calc.wealthHigh0, model.a);
+        drawChord(ctx, calc.wealthLow0, yLow0, calc.wealthHigh0, yHigh0, xScale, yScale, { color: palette.uninsured, lineWidth: 2.5 });
+        drawPoint(ctx, calc.wealthLow0, yLow0, xScale, yScale, { stroke: palette.uninsured, fill: 'white', label: 'L0', text: palette.uninsured });
+        drawPoint(ctx, calc.wealthHigh0, yHigh0, xScale, yScale, { stroke: palette.uninsured, fill: 'white', label: 'N0', text: palette.uninsured });
+        drawPoint(ctx, calc.expectedWealth0, calc.expectedUtility0, xScale, yScale, { stroke: palette.uninsured, fill: palette.uninsured, radius: 5, label: 'EU0', text: palette.uninsured });
+
+        if (config.showInsurance !== false) {
+          const yLow1 = utility(calc.wealthLow1, model.a);
+          const yHigh1 = utility(calc.wealthHigh1, model.a);
+          if (Math.abs(calc.wealthLow1 - calc.wealthHigh1) > 0.5) {
+            drawChord(ctx, calc.wealthLow1, yLow1, calc.wealthHigh1, yHigh1, xScale, yScale, { color: palette.insured, lineWidth: 2.5 });
+          }
+          drawPoint(ctx, calc.wealthLow1, yLow1, xScale, yScale, { stroke: palette.insured, fill: 'white', label: 'L1', text: palette.insured });
+          drawPoint(ctx, calc.wealthHigh1, yHigh1, xScale, yScale, { stroke: palette.insured, fill: 'white', label: 'N1', text: palette.insured });
+          drawPoint(ctx, calc.expectedWealth1, calc.expectedUtility1, xScale, yScale, { stroke: palette.insured, fill: palette.insured, radius: 5, label: 'EU1', text: palette.insured });
+        }
+
+        if (config.showCE !== false) {
+          drawPoint(ctx, calc.ce0, calc.expectedUtility0, xScale, yScale, { stroke: palette.black, fill: 'white', label: 'CE', text: palette.black, radius: 7 });
+        }
+        if (config.showInsuranceCE) {
+          drawPoint(ctx, calc.ce1, calc.expectedUtility1, xScale, yScale, { stroke: palette.insured, fill: 'white', label: 'CE1', text: palette.insured, radius: 6 });
+        }
+        if (config.guessWealth !== undefined) {
+          const guessY = utility(config.guessWealth, model.a);
+          drawPoint(ctx, config.guessWealth, guessY, xScale, yScale, { stroke: palette.guess, fill: 'white', label: 'G', text: palette.guess, radius: 7, dash: theme.dash.guess });
+        }
+
+        if (config.titleText) {
+          EconDraw.drawText(ctx, config.titleText, 104, 34, { size: 13, color: palette.muted });
+        }
+        if (config.footText) {
+          EconDraw.drawText(ctx, config.footText, 104, 560, { size: 12, color: palette.muted });
+        }
+
+        return { calc, xScale, yScale };
+      }
+
+      function drawSimpleBarChart(canvas, config) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = palette.frame;
+        ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+        const margin = { left: 52, right: 20, top: 18, bottom: 44 };
+        const plotW = w - margin.left - margin.right;
+        const plotH = h - margin.top - margin.bottom;
+        const maxY = config.maxY;
+
+        ctx.strokeStyle = palette.frame;
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i += 1) {
+          const y = margin.top + (plotH * i) / 4;
+          ctx.beginPath();
+          ctx.moveTo(margin.left, y);
+          ctx.lineTo(w - margin.right, y);
+          ctx.stroke();
+          const label = maxY - (maxY * i) / 4;
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(config.tickFormat ? config.tickFormat(label) : fmtNum(label, 0), margin.left - 8, y);
+        }
+        ctx.strokeStyle = palette.text;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, margin.top);
+        ctx.lineTo(margin.left, h - margin.bottom);
+        ctx.lineTo(w - margin.right, h - margin.bottom);
+        ctx.stroke();
+
+        const slot = plotW / config.values.length;
+        const barWidth = Math.min(42, slot * 0.55);
+        config.values.forEach((value, index) => {
+          const x = margin.left + index * slot + (slot - barWidth) / 2;
+          const barH = (value / maxY) * plotH;
+          const y = margin.top + plotH - barH;
+          ctx.fillStyle = config.colors[index] || palette.utility;
+          ctx.fillRect(x, y, barWidth, barH);
+          ctx.fillStyle = palette.text;
+          ctx.font = `600 11px ${theme.font.family}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(config.valueFormat ? config.valueFormat(value) : fmtNum(value, 1), x + barWidth / 2, y - 4);
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textBaseline = 'top';
+          const lines = String(config.labels[index]).split('\n');
+          lines.forEach((line, li) => {
+            ctx.fillText(line, x + barWidth / 2, h - margin.bottom + 10 + li * 13);
+          });
+        });
+      }
+
+      const explore = {
+        canvas: document.getElementById('exploreCanvas'),
+        ctx: document.getElementById('exploreCanvas').getContext('2d'),
+        wealth: document.getElementById('exploreWealth'),
+        loss: document.getElementById('exploreLoss'),
+        prob: document.getElementById('exploreProb'),
+        a: document.getElementById('exploreA'),
+        coverage: document.getElementById('exploreCoverage'),
+        premium: document.getElementById('explorePremium'),
+        labels: {
+          wealth: document.getElementById('exploreWealthLabel'),
+          loss: document.getElementById('exploreLossLabel'),
+          prob: document.getElementById('exploreProbLabel'),
+          a: document.getElementById('exploreALabel'),
+          coverage: document.getElementById('exploreCoverageLabel'),
+          premium: document.getElementById('explorePremiumLabel')
+        },
+        metricEV: document.getElementById('exploreMetricEV'),
+        metricCE: document.getElementById('exploreMetricCE'),
+        metricRP: document.getElementById('exploreMetricRP'),
+        metricFair: document.getElementById('exploreMetricFair'),
+        metricMax: document.getElementById('exploreMetricMax'),
+        metricBuy: document.getElementById('exploreMetricBuy'),
+        metricNote: document.getElementById('exploreMetricNote'),
+        status: document.querySelector('#exploreStatus .status-copy'),
+        state: {
+          model: { wealth: 220, loss: 60, prob: 0.05, a: 0.005, coverage: 1.0, premium: 3.15 },
+          showInsurance: true,
+          showGuides: true,
+          showRiskBand: true
+        }
+      };
+
+      function setAustralianScenario(targetModel) {
+        targetModel.wealth = 220;
+        targetModel.loss = 60;
+        targetModel.prob = 0.05;
+        targetModel.a = 0.005;
+        targetModel.coverage = 1.00;
+        targetModel.premium = 3.135;
+      }
+
+      function syncExploreControls() {
+        const model = clampModel(explore.state.model);
+        explore.wealth.value = String(model.wealth);
+        explore.loss.max = String(Math.min(120, model.wealth - 20));
+        if (model.loss > Number(explore.loss.max)) model.loss = Number(explore.loss.max);
+        explore.loss.value = String(model.loss);
+        explore.prob.value = model.prob.toFixed(2);
+        explore.a.value = model.a.toFixed(4);
+        explore.coverage.value = model.coverage.toFixed(2);
+        explore.premium.max = model.premiumMax.toFixed(2);
+        if (model.premium > Number(explore.premium.max)) model.premium = Number(explore.premium.max);
+        explore.premium.value = model.premium.toFixed(2);
+      }
+
+      function updateExploreLabels() {
+        const model = clampModel(explore.state.model);
+        explore.labels.wealth.textContent = fmtWealth(model.wealth, 0);
+        explore.labels.loss.textContent = fmtWealth(model.loss, 0);
+        explore.labels.prob.textContent = fmtPct(model.prob, 0);
+        explore.labels.a.textContent = fmtNum(model.a, 4);
+        explore.labels.coverage.textContent = fmtPct(model.coverage, 0);
+        explore.labels.premium.textContent = fmtWealth(model.premium, 2);
+      }
+
+      function renderExplore() {
+        syncExploreControls();
+        updateExploreLabels();
+
+        const renderState = drawRiskChart(explore.ctx, explore.state.model, {
+          showInsurance: explore.state.showInsurance,
+          showGuides: explore.state.showGuides,
+          showRiskBand: explore.state.showRiskBand,
+          showCE: true,
+          showInsuranceCE: explore.state.showInsurance,
+          titleText: 'The black point CE lies to the left of expected wealth whenever the utility curve is concave.',
+          footText: 'Insurance is chosen when the current premium is below the maximum willingness to pay implied by expected utility.'
+        });
+
+        const calc = renderState.calc;
+        explore.metricEV.textContent = fmtWealth(calc.expectedWealth0, 1);
+        explore.metricCE.textContent = fmtWealth(calc.ce0, 1);
+        explore.metricRP.textContent = fmtWealth(calc.riskPremium, 2);
+        explore.metricFair.textContent = fmtWealth(calc.fairPremium, 2);
+        explore.metricMax.textContent = fmtWealth(calc.maxPremium, 2);
+        explore.metricBuy.textContent = calc.buyInsurance ? 'Yes' : 'No';
+
+        const premiumGap = calc.maxPremium - calc.model.premium;
+        explore.metricNote.textContent = calc.model.a <= 1e-9
+          ? 'With a linear utility curve, certainty equivalent equals expected wealth and the most the household will pay for insurance equals the actuarially fair premium.'
+          : `With ${riskTone(calc.model.a)} preferences, the household would pay ${fmtWealth(calc.maxPremium, 2)} for this contract, which is ${premiumGap >= 0 ? fmtWealth(premiumGap, 2) + ' above' : fmtWealth(Math.abs(premiumGap), 2) + ' below'} the current premium threshold.`;
+
+        const paragraphs = [];
+        paragraphs.push(`The current utility curve is ${riskTone(calc.model.a)}. Without insurance, the household faces wealth ${fmtWealth(calc.wealthLow0, 0)} in the loss state and ${fmtWealth(calc.wealthHigh0, 0)} in the no-loss state.`);
+        paragraphs.push(`Expected wealth is ${fmtWealth(calc.expectedWealth0, 1)}, but the certainty equivalent is only ${fmtWealth(calc.ce0, 1)}, so the risk premium is ${fmtWealth(calc.riskPremium, 2)}.`);
+        paragraphs.push(`The actuarially fair premium for ${fmtPct(calc.model.coverage, 0)} coverage is ${fmtWealth(calc.fairPremium, 2)}. The maximum premium this household would pay is ${fmtWealth(calc.maxPremium, 2)}.`);
+        if (calc.model.coverage <= 0.001) {
+          paragraphs.push('Coverage is currently zero, so the green insured lottery collapses back to the uninsured one and insurance provides no risk smoothing.');
+        } else if (calc.buyInsurance) {
+          paragraphs.push(`At the current premium of ${fmtWealth(calc.model.premium, 2)}, insurance raises expected utility. The contract narrows the gap between the two wealth states enough that a risk-averse household buys it.`);
+        } else {
+          paragraphs.push(`At the current premium of ${fmtWealth(calc.model.premium, 2)}, insurance lowers expected utility. The contract is too expensive relative to the household’s willingness to pay.`);
+        }
+        explore.status.innerHTML = paragraphs.map((p) => `<p style="margin:0 0 8px 0;">${p}</p>`).join('');
+      }
+
+      function attachExploreInputs() {
+        explore.wealth.addEventListener('input', () => {
+          explore.state.model.wealth = Number(explore.wealth.value);
+          clampModel(explore.state.model);
+          renderExplore();
+        });
+        explore.loss.addEventListener('input', () => {
+          explore.state.model.loss = Number(explore.loss.value);
+          clampModel(explore.state.model);
+          renderExplore();
+        });
+        explore.prob.addEventListener('input', () => {
+          explore.state.model.prob = Number(explore.prob.value);
+          renderExplore();
+        });
+        explore.a.addEventListener('input', () => {
+          explore.state.model.a = Number(explore.a.value);
+          renderExplore();
+        });
+        explore.coverage.addEventListener('input', () => {
+          explore.state.model.coverage = Number(explore.coverage.value);
+          clampModel(explore.state.model);
+          renderExplore();
+        });
+        explore.premium.addEventListener('input', () => {
+          explore.state.model.premium = Number(explore.premium.value);
+          renderExplore();
+        });
+        document.getElementById('exploreFairPremium').addEventListener('click', () => {
+          const calc = calcModel(explore.state.model);
+          explore.state.model.premium = calc.fairPremium;
+          renderExplore();
+        });
+        document.getElementById('exploreFullInsurance').addEventListener('click', () => {
+          explore.state.model.coverage = 1;
+          clampModel(explore.state.model);
+          renderExplore();
+        });
+        document.getElementById('exploreAusScenario').addEventListener('click', () => {
+          setAustralianScenario(explore.state.model);
+          renderExplore();
+        });
+        document.getElementById('exploreRandom').addEventListener('click', () => {
+          const m = explore.state.model;
+          m.wealth = 170 + 5 * Math.round(Math.random() * 24);
+          m.loss = 15 + 5 * Math.round(Math.random() * 18);
+          if (m.loss > m.wealth - 20) m.loss = m.wealth - 20;
+          m.prob = Number((0.01 + Math.random() * 0.17).toFixed(2));
+          m.a = Number((Math.random() * 0.008).toFixed(4));
+          m.coverage = Number((0.4 + Math.random() * 0.6).toFixed(2));
+          const fair = m.prob * m.coverage * m.loss;
+          m.premium = clamp(Number((fair * (0.75 + Math.random() * 0.7)).toFixed(2)), 0, 20);
+          clampModel(m);
+          renderExplore();
+        });
+        document.getElementById('exploreReset').addEventListener('click', () => {
+          setAustralianScenario(explore.state.model);
+          explore.state.showInsurance = true;
+          explore.state.showGuides = true;
+          explore.state.showRiskBand = true;
+          document.getElementById('toggleInsurance').classList.add('active');
+          document.getElementById('toggleGuides').classList.add('active');
+          document.getElementById('toggleRiskBand').classList.add('active');
+          renderExplore();
+        });
+        document.getElementById('toggleInsurance').addEventListener('click', (event) => {
+          explore.state.showInsurance = !explore.state.showInsurance;
+          event.currentTarget.classList.toggle('active', explore.state.showInsurance);
+          renderExplore();
+        });
+        document.getElementById('toggleGuides').addEventListener('click', (event) => {
+          explore.state.showGuides = !explore.state.showGuides;
+          event.currentTarget.classList.toggle('active', explore.state.showGuides);
+          renderExplore();
+        });
+        document.getElementById('toggleRiskBand').addEventListener('click', (event) => {
+          explore.state.showRiskBand = !explore.state.showRiskBand;
+          event.currentTarget.classList.toggle('active', explore.state.showRiskBand);
+          renderExplore();
+        });
+      }
+
+      const practiceScenarios = [
+        {
+          id: 'p1',
+          title: 'Fair full insurance',
+          model: { wealth: 200, loss: 50, prob: 0.10, a: 0.004, coverage: 1.0, premium: 5.00 }
+        },
+        {
+          id: 'p2',
+          title: 'Loaded premium, mild loss',
+          model: { wealth: 220, loss: 25, prob: 0.05, a: 0.003, coverage: 1.0, premium: 2.50 }
+        },
+        {
+          id: 'p3',
+          title: 'Australian cyclone-pool style',
+          model: { wealth: 220, loss: 60, prob: 0.05, a: 0.005, coverage: 1.0, premium: 3.135 }
+        },
+        {
+          id: 'p4',
+          title: 'Catastrophic low-probability loss',
+          model: { wealth: 260, loss: 110, prob: 0.02, a: 0.0045, coverage: 0.80, premium: 4.00 }
+        },
+        {
+          id: 'p5',
+          title: 'Risk-neutral benchmark',
+          model: { wealth: 200, loss: 60, prob: 0.05, a: 0.000, coverage: 1.0, premium: 3.50 }
+        }
+      ];
+
+      const practice = {
+        canvas: document.getElementById('practiceCanvas'),
+        ctx: document.getElementById('practiceCanvas').getContext('2d'),
+        status: document.querySelector('#practiceStatus .status-copy'),
+        scenarioBank: document.getElementById('practiceScenarioBank'),
+        feedback: document.querySelector('#practiceFeedback .feedback-copy'),
+        feedbackCard: document.getElementById('practiceFeedback'),
+        tableBody: document.getElementById('practiceTableBody'),
+        tableNote: document.getElementById('practiceTableNote'),
+        answerCE: document.getElementById('practiceAnswerCE'),
+        answerRP: document.getElementById('practiceAnswerRP'),
+        answerBuy: document.getElementById('practiceAnswerBuy'),
+        state: {
+          scenarioIndex: 2,
+          guessWealth: 217,
+          revealed: false,
+          dragging: false,
+          lastScale: null
+        }
+      };
+
+      function currentPracticeModel() {
+        return cloneModel(practiceScenarios[practice.state.scenarioIndex].model);
+      }
+
+      function resetPracticeGuess() {
+        const model = currentPracticeModel();
+        const calc = calcModel(model);
+        practice.state.guessWealth = calc.expectedWealth0;
+        practice.state.revealed = false;
+        practice.answerCE.value = '';
+        practice.answerRP.value = '';
+        practice.answerBuy.value = '';
+        practice.feedbackCard.className = 'feedback-card neutral';
+        practice.feedback.textContent = 'Place your certainty-equivalent guess and then check your answer.';
+      }
+
+      function renderPracticeScenarioBank() {
+        practice.scenarioBank.innerHTML = '';
+        practiceScenarios.forEach((scenario, index) => {
+          const button = document.createElement('button');
+          button.className = `scenario-chip${index === practice.state.scenarioIndex ? ' active' : ''}`;
+          button.textContent = scenario.title;
+          button.addEventListener('click', () => {
+            practice.state.scenarioIndex = index;
+            resetPracticeGuess();
+            renderPracticeScenarioBank();
+            renderPractice();
+          });
+          practice.scenarioBank.appendChild(button);
+        });
+      }
+
+      function renderPractice() {
+        const model = currentPracticeModel();
+        const calc = calcModel(model);
+        practice.state.guessWealth = clamp(practice.state.guessWealth, calc.ce0 - 50, calc.wealthHigh0 + 20);
+
+        const renderState = drawRiskChart(practice.ctx, model, {
+          showInsurance: practice.state.revealed,
+          showGuides: true,
+          showRiskBand: practice.state.revealed,
+          showCE: practice.state.revealed,
+          showInsuranceCE: practice.state.revealed,
+          guessWealth: practice.state.guessWealth,
+          titleText: 'Drag G along the utility curve to where you think the uninsured lottery becomes equivalent to a certain wealth level.',
+          footText: `Displayed contract: coverage ${fmtPct(model.coverage, 0)}, premium ${fmtWealth(model.premium, 2)}.`
+        });
+
+        practice.state.lastScale = renderState;
+
+        practice.status.innerHTML = `
+          <p style="margin:0 0 8px 0;"><strong>${practiceScenarios[practice.state.scenarioIndex].title}.</strong> The household starts with wealth ${fmtWealth(model.wealth, 0)}, faces possible loss ${fmtWealth(model.loss, 0)}, and the loss probability is ${fmtPct(model.prob, 0)}.</p>
+          <p style="margin:0 0 8px 0;">The utility parameter is a = ${fmtNum(model.a, 4)} (${riskTone(model.a)}). The insurance contract covers ${fmtPct(model.coverage, 0)} of the loss and charges premium ${fmtWealth(model.premium, 2)}.</p>
+          <p style="margin:0;">Find the certainty equivalent of the <strong>uninsured</strong> lottery, then answer the concept questions.</p>
+        `;
+
+        const correctCE = Math.abs(calc.ce0 - calc.expectedWealth0) < 0.05 ? 'equal' : (calc.ce0 < calc.expectedWealth0 ? 'below' : 'above');
+        const correctRP = Math.abs(calc.riskPremium) < 0.05 ? 'zero' : (calc.riskPremium > 0 ? 'positive' : 'negative');
+        const correctBuy = calc.buyInsurance ? 'yes' : 'no';
+
+        const rows = [
+          { label: 'CE relative to expected wealth', user: practice.answerCE.value, actual: correctCE },
+          { label: 'Risk premium sign', user: practice.answerRP.value, actual: correctRP },
+          { label: 'Buy insurance?', user: practice.answerBuy.value, actual: correctBuy }
+        ];
+
+        practice.tableBody.innerHTML = rows.map((row) => `
+          <tr>
+            <td>${row.label}</td>
+            <td class="${!practice.state.revealed ? 'result-neutral' : (row.user === row.actual ? 'result-correct' : 'result-incorrect')}">${row.user ? row.user[0].toUpperCase() + row.user.slice(1) : '—'}</td>
+            <td class="${practice.state.revealed ? 'result-correct' : 'result-neutral'}">${practice.state.revealed ? row.actual[0].toUpperCase() + row.actual.slice(1) : 'Check answer'}</td>
+          </tr>
+        `).join('');
+
+        const guessDistance = Math.abs(practice.state.guessWealth - calc.ce0);
+        practice.tableNote.textContent = practice.state.revealed
+          ? `Your certainty-equivalent guess is ${fmtWealth(guessDistance, 2)} away from the correct CE. The maximum premium this household would pay for the displayed contract is ${fmtWealth(calc.maxPremium, 2)}.`
+          : 'After checking, the correct CE, risk premium band, and insurance comparison are revealed.';
+      }
+
+      document.getElementById('practiceRandom').addEventListener('click', () => {
+        practice.state.scenarioIndex = Math.floor(Math.random() * practiceScenarios.length);
+        resetPracticeGuess();
+        renderPracticeScenarioBank();
+        renderPractice();
+      });
+      document.getElementById('practiceResetGuess').addEventListener('click', () => {
+        resetPracticeGuess();
+        renderPractice();
+      });
+      document.getElementById('practiceCheck').addEventListener('click', () => {
+        const calc = calcModel(currentPracticeModel());
+        const guessDistance = Math.abs(practice.state.guessWealth - calc.ce0);
+        const correctCE = Math.abs(calc.ce0 - calc.expectedWealth0) < 0.05 ? 'equal' : (calc.ce0 < calc.expectedWealth0 ? 'below' : 'above');
+        const correctRP = Math.abs(calc.riskPremium) < 0.05 ? 'zero' : (calc.riskPremium > 0 ? 'positive' : 'negative');
+        const correctBuy = calc.buyInsurance ? 'yes' : 'no';
+
+        const ceCorrect = guessDistance <= GUESS_TOLERANCE;
+        const relCorrect = practice.answerCE.value === correctCE;
+        const rpCorrect = practice.answerRP.value === correctRP;
+        const buyCorrect = practice.answerBuy.value === correctBuy;
+        practice.state.revealed = true;
+        renderPractice();
+
+        const errors = [];
+        if (!ceCorrect) errors.push(`your CE guess is ${fmtWealth(guessDistance, 2)} away from the correct point`);
+        if (!relCorrect) errors.push('the CE-versus-EW comparison is not correct');
+        if (!rpCorrect) errors.push('the risk-premium sign is not correct');
+        if (!buyCorrect) errors.push('the insurance-choice answer is not correct');
+
+        if (errors.length === 0) {
+          practice.feedbackCard.className = 'feedback-card success';
+          practice.feedback.textContent = 'Correct. The certainty equivalent lies where the utility curve reaches the lottery’s expected utility, and for a risk-averse household it lies below expected wealth. Insurance is chosen when the premium is below the maximum willingness to pay.';
+        } else {
+          practice.feedbackCard.className = 'feedback-card warning';
+          practice.feedback.textContent = `Not quite. Review ${errors.join('; ')}. The revealed CE point and insured lottery show the correct expected-utility comparison.`;
+        }
+      });
+
+      practice.canvas.addEventListener('mousedown', (event) => {
+        if (practice.state.revealed || !practice.state.lastScale) return;
+        const rect = practice.canvas.getBoundingClientRect();
+        const mouse = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+        const model = currentPracticeModel();
+        const guessY = utility(practice.state.guessWealth, model.a);
+        const gx = EconDraw.valueToX(practice.state.guessWealth, practice.state.lastScale.xScale.min, practice.state.lastScale.xScale.max);
+        const gy = EconDraw.valueToY(guessY, practice.state.lastScale.yScale.min, practice.state.lastScale.yScale.max);
+        if (Math.hypot(mouse.x - gx, mouse.y - gy) < 14) {
+          practice.state.dragging = true;
+        }
+      });
+      window.addEventListener('mouseup', () => { practice.state.dragging = false; });
+      practice.canvas.addEventListener('mousemove', (event) => {
+        if (!practice.state.dragging || practice.state.revealed || !practice.state.lastScale) return;
+        const rect = practice.canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const wealth = EconDraw.xToValue(mouseX, practice.state.lastScale.xScale.min, practice.state.lastScale.xScale.max);
+        practice.state.guessWealth = clamp(wealth, practice.state.lastScale.xScale.min + 2, practice.state.lastScale.xScale.max - 2);
+        renderPractice();
+      });
+
+      const caseSteps = [
+        {
+          title: 'Step 1 — High-risk household without insurance',
+          coverage: 0,
+          premium: 0,
+          copy: 'The household faces a stylized 5% annual chance of a large cyclone-related loss. This mirrors the upper end of the high-risk group in the Insurance Council evidence on properties facing at least a 2% or 5% annual flood chance.',
+          observed: 'Queensland accounts for 91,000 of the 298,000 properties in the national high-risk flood group.'
+        },
+        {
+          title: 'Step 2 — Pre-pool quote: still too expensive',
+          coverage: 1,
+          premium: 3.505,
+          copy: 'Using the ACCC’s pre-pool average premium of $701 per $100,000 sum insured in medium-to-high cyclone-risk areas, a normalized $500,000 insured sum implies an annual quote of $3,505. In this stylized household, that sits just above the maximum willingness to pay.',
+          observed: '$701 per $100,000 sum insured before pool pricing.'
+        },
+        {
+          title: 'Step 3 — Post-pool average quote: insurance becomes attractive',
+          coverage: 1,
+          premium: 3.135,
+          copy: 'The ACCC found the average premium in medium-to-high cyclone-risk areas fell by 11% to $627 per $100,000 sum insured after pool pricing. Scaled to the same $500,000 insured sum, the quote falls to $3,135 and now lies below the household’s willingness to pay.',
+          observed: '$627 per $100,000 sum insured after pool pricing.'
+        },
+        {
+          title: 'Step 4 — Townsville-style stronger premium relief',
+          coverage: 1,
+          premium: 2.979,
+          copy: 'In Townsville, Cairns, and Mackay, the ACCC reported median premium reductions of about 15%. That stronger pass-through lowers the normalized quote to about $2,979 and increases the certainty-equivalent gain from being insured. But the broader protection gap remains: only about 23% of the highest-risk homes have flood cover.',
+          observed: 'Townsville / Cairns / Mackay median premiums down about 15%; only ~23% of highest-risk homes have flood cover.'
+        }
+      ];
+
+      const caseModule = {
+        canvas: document.getElementById('caseCanvas'),
+        ctx: document.getElementById('caseCanvas').getContext('2d'),
+        stepRow: document.getElementById('caseStepRow'),
+        status: document.querySelector('#caseStatus .status-copy'),
+        metricCE0: document.getElementById('caseMetricCE0'),
+        metricMax: document.getElementById('caseMetricMax'),
+        metricQuote: document.getElementById('caseMetricQuote'),
+        metricGap: document.getElementById('caseMetricGap'),
+        metricChoice: document.getElementById('caseMetricChoice'),
+        metricGain: document.getElementById('caseMetricGain'),
+        metricNote: document.getElementById('caseMetricNote'),
+        premiumCanvas: document.getElementById('casePremiumCanvas'),
+        coverCanvas: document.getElementById('caseCoverCanvas'),
+        state: {
+          model: { wealth: 220, loss: 60, prob: 0.05, a: 0.005, coverage: 0, premium: 0 },
+          stepIndex: 0,
+          timer: null
+        }
+      };
+
+      function renderCaseStepButtons() {
+        caseModule.stepRow.innerHTML = '';
+        caseSteps.forEach((step, index) => {
+          const btn = document.createElement('button');
+          btn.className = `case-step-btn${index === caseModule.state.stepIndex ? ' active' : ''}`;
+          btn.textContent = `Step ${index + 1}`;
+          btn.addEventListener('click', () => {
+            caseModule.state.stepIndex = index;
+            if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+            renderCaseStepButtons();
+            renderCase();
+          });
+          caseModule.stepRow.appendChild(btn);
+        });
+      }
+
+      function renderCaseCharts() {
+        drawSimpleBarChart(caseModule.premiumCanvas, {
+          labels: ['Pre-pool', 'Post-pool\navg', 'Townsville-\nstyle'],
+          values: [3.505, 3.135, 2.979],
+          colors: [palette.baseline, palette.insured, palette.utility],
+          maxY: 4.2,
+          tickFormat: (v) => `$${fmtNum(v, 1)}`,
+          valueFormat: (v) => fmtWealth(v, 3)
+        });
+        drawSimpleBarChart(caseModule.coverCanvas, {
+          labels: ['Highest-risk\nhomes', 'Nationwide'],
+          values: [23, 60],
+          colors: [palette.uninsured, palette.insured],
+          maxY: 70,
+          tickFormat: (v) => `${fmtNum(v, 0)}%`,
+          valueFormat: (v) => `${fmtNum(v, 0)}%`
+        });
+      }
+
+      function renderCase() {
+        const step = caseSteps[caseModule.state.stepIndex];
+        caseModule.state.model.coverage = step.coverage;
+        caseModule.state.model.premium = step.premium;
+
+        const calc = calcModel(caseModule.state.model);
+
+        drawRiskChart(caseModule.ctx, caseModule.state.model, {
+          showInsurance: true,
+          showGuides: true,
+          showRiskBand: true,
+          showCE: true,
+          showInsuranceCE: true,
+          titleText: 'North-Queensland insurance case: premium relief matters because risk-averse households compare quotes with willingness to pay, not just with expected loss.',
+          footText: step.observed
+        });
+
+        caseModule.status.innerHTML = `
+          <p style="margin:0 0 8px 0;"><strong>${step.title}</strong></p>
+          <p style="margin:0 0 8px 0;">${step.copy}</p>
+          <p style="margin:0; color: var(--color-muted);"><strong>Observed anchor:</strong> ${step.observed}</p>
+        `;
+
+        caseModule.metricCE0.textContent = fmtWealth(calc.ce0, 2);
+        caseModule.metricMax.textContent = fmtWealth(calc.maxPremium, 2);
+        caseModule.metricQuote.textContent = step.coverage > 0 ? fmtWealth(step.premium, 3) : 'No contract';
+        const gap = calc.maxPremium - step.premium;
+        caseModule.metricGap.textContent = step.coverage > 0 ? `${gap >= 0 ? '+' : '−'}${fmtWealth(Math.abs(gap), 2)}` : '—';
+        caseModule.metricChoice.textContent = step.coverage > 0 ? (calc.buyInsurance ? 'Buy' : 'Do not buy') : 'Uninsured benchmark';
+        caseModule.metricGain.textContent = fmtWealth(calc.ceGain, 3);
+        caseModule.metricNote.textContent = step.coverage === 0
+          ? 'Step 1 shows the uninsured benchmark. The certainty equivalent summarizes how much the household dislikes the risk itself.'
+          : (calc.buyInsurance
+            ? 'At this quote, full insurance raises the household’s certainty equivalent above the uninsured benchmark.'
+            : 'At this quote, insurance is still too expensive for this stylized household, so the certainty-equivalent gain is negative.');
+
+        renderCaseCharts();
+      }
+
+      document.getElementById('casePlay').addEventListener('click', () => {
+        if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+        caseModule.state.stepIndex = 0;
+        renderCaseStepButtons();
+        renderCase();
+        caseModule.state.timer = setInterval(() => {
+          caseModule.state.stepIndex += 1;
+          if (caseModule.state.stepIndex >= caseSteps.length) {
+            clearInterval(caseModule.state.timer);
+            caseModule.state.timer = null;
+            caseModule.state.stepIndex = caseSteps.length - 1;
+          }
+          renderCaseStepButtons();
+          renderCase();
+        }, 1800);
+      });
+      document.getElementById('caseReset').addEventListener('click', () => {
+        if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+        caseModule.state.timer = null;
+        caseModule.state.stepIndex = 0;
+        renderCaseStepButtons();
+        renderCase();
+      });
+
+      const moduleTabs = Array.from(document.querySelectorAll('.module-tab'));
+      const moduleSections = Array.from(document.querySelectorAll('.module-section'));
+      moduleTabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          moduleTabs.forEach((t) => t.classList.toggle('active', t === tab));
+          moduleSections.forEach((section) => section.classList.toggle('active', section.id === tab.dataset.target));
+          if (tab.dataset.target === 'exploreSection') renderExplore();
+          if (tab.dataset.target === 'practiceSection') renderPractice();
+          if (tab.dataset.target === 'caseSection') renderCase();
+        });
+      });
+
+      attachExploreInputs();
+      setAustralianScenario(explore.state.model);
+      renderExplore();
+      renderPracticeScenarioBank();
+      resetPracticeGuess();
+      renderPractice();
+      renderCaseStepButtons();
+      renderCase();
+    })();
+  </script>
+</body>
+</html>

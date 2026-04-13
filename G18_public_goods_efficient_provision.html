@@ -1,0 +1,1798 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G18_public_goods_efficient_provision</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs,
+    .summary-strip,
+    .legend-row,
+    .button-row,
+    .scenario-bank,
+    .case-step-row,
+    .chart-grid,
+    .mini-list,
+    .metric-grid,
+    .note-list,
+    .toggle-row,
+    .data-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .module-tabs,
+    .summary-strip,
+    .case-step-row,
+    .scenario-bank,
+    .chart-grid,
+    .toggle-row,
+    .data-pills {
+      margin-bottom: 16px;
+    }
+    .module-tab,
+    .case-step-btn,
+    .scenario-chip,
+    .toggle-chip,
+    .sequence-btn,
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+      text-align: center;
+      line-height: 1.25;
+    }
+    .module-tab:hover,
+    .case-step-btn:hover,
+    .scenario-chip:hover,
+    .toggle-chip:hover,
+    .sequence-btn:hover,
+    .ghost-btn:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active,
+    .case-step-btn.active,
+    .scenario-chip.active,
+    .toggle-chip.active,
+    .sequence-btn.active,
+    .ghost-btn.active {
+      background: #eef5ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+    .module-section {
+      display: none;
+    }
+    .module-section.active {
+      display: block;
+    }
+
+    .summary-chip,
+    .mini-badge,
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 16px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 160px;
+    }
+    .control-inline.wide {
+      min-width: 240px;
+    }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    input[type="range"] {
+      width: 210px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.52fr) minmax(320px, 0.98fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .graph-card,
+    .panel-card,
+    .status-card,
+    .metric-card,
+    .data-card,
+    .table-card,
+    .feedback-card,
+    .source-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .panel-stack,
+    .metric-stack {
+      display: grid;
+      gap: 16px;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .metric-item {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .metric-label,
+    .table-wrap th,
+    .answer-grid label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .metric-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.3;
+    }
+
+    .card-title,
+    .status-title,
+    .data-title,
+    .chart-title,
+    .table-title,
+    .feedback-title,
+    .answer-title,
+    .legend-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+    .small-muted,
+    .graph-note,
+    .status-copy,
+    .case-copy,
+    .source-copy,
+    .feedback-copy,
+    .table-note,
+    .answer-copy,
+    .metric-note,
+    .note-list li {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .small-muted strong,
+    .graph-note strong,
+    .status-copy strong,
+    .case-copy strong,
+    .source-copy strong,
+    .feedback-copy strong,
+    .answer-copy strong,
+    .metric-note strong {
+      color: var(--color-text);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.households { border-color: var(--color-demand); }
+    .legend-line.business { border-color: var(--color-supply); }
+    .legend-line.emergency { border-color: var(--color-external); }
+    .legend-line.social { border-color: var(--color-government); }
+    .legend-line.mc { border-color: var(--color-long-run); border-top-style: dashed; }
+    .legend-line.voluntary { border-color: var(--color-baseline); border-top-style: dashed; }
+    .legend-line.guess { border-color: var(--color-guess); border-top-style: dashed; }
+    .legend-square,
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      flex: 0 0 auto;
+      border: 2px solid var(--color-text);
+      background: white;
+    }
+    .legend-dot {
+      border-radius: 999px;
+    }
+    .legend-square {
+      border-radius: 4px;
+    }
+    .legend-dot.efficient { border-color: var(--color-government); background: white; }
+    .legend-dot.current { border-color: #111827; background: #111827; }
+    .legend-dot.guess { border-color: var(--color-guess); background: white; }
+    .legend-square.dwl { border-color: #7a7a7a; background: rgba(120, 120, 120, 0.24); }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      padding: 8px 8px;
+      border-bottom: 1px solid #e6eaf0;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--color-muted);
+      font-weight: 700;
+      background: rgba(249, 251, 255, 0.85);
+    }
+    td strong {
+      color: var(--color-text);
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .answer-grid select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+    }
+    .feedback-card.success {
+      border-left: 4px solid var(--color-government);
+    }
+    .feedback-card.warning {
+      border-left: 4px solid var(--color-inflation);
+    }
+    .feedback-card.neutral {
+      border-left: 4px solid var(--color-baseline);
+    }
+    .result-correct { color: var(--color-government); font-weight: 700; }
+    .result-incorrect { color: var(--color-supply); font-weight: 700; }
+    .result-neutral { color: var(--color-muted); font-weight: 700; }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .chart-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .chart-card canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .note-list {
+      padding-left: 18px;
+      margin: 8px 0 0 0;
+    }
+    .note-list li + li {
+      margin-top: 6px;
+    }
+
+    @media (max-width: 1080px) {
+      .workspace,
+      .chart-grid,
+      .answer-grid {
+        grid-template-columns: 1fr;
+      }
+      .metric-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 760px) {
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Public goods, efficient provision, and the free-rider problem</h1>
+        <p class="diagram-subtitle">
+          Compare individual marginal-benefit curves with the vertically summed social marginal-benefit curve. Drag quantity choices, see the free-rider gap, and use the Australian flood-warning network as a real-world case study in under-provision and collective financing.
+        </p>
+      </div>
+
+      <div class="summary-strip">
+        <span class="summary-chip">Three beneficiary groups</span>
+        <span class="summary-chip">Vertical summation at the chosen quantity</span>
+        <span class="summary-chip">Voluntary benchmark vs efficient quantity</span>
+        <span class="summary-chip">Free-rider deadweight-loss area</span>
+        <span class="summary-chip">Practice and check-answer mode</span>
+        <span class="summary-chip">Australian flood-warning network case</span>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Australian case study</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="exploreHouseholds">Households MB intercept <span id="exploreHouseholdsLabel" class="inline-value"></span></label>
+            <input id="exploreHouseholds" type="range" min="12" max="70" step="1" value="42" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreBusiness">Business / farm MB intercept <span id="exploreBusinessLabel" class="inline-value"></span></label>
+            <input id="exploreBusiness" type="range" min="8" max="60" step="1" value="34" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreEmergency">Emergency-services MB intercept <span id="exploreEmergencyLabel" class="inline-value"></span></label>
+            <input id="exploreEmergency" type="range" min="6" max="50" step="1" value="26" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreSlope">Common MB slope <span id="exploreSlopeLabel" class="inline-value"></span></label>
+            <input id="exploreSlope" type="range" min="0.8" max="5.5" step="0.1" value="3.0" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreMC">Marginal cost <span id="exploreMCLabel" class="inline-value"></span></label>
+            <input id="exploreMC" type="range" min="6" max="42" step="1" value="24" />
+          </div>
+          <div class="control-inline wide">
+            <label>View options</label>
+            <div class="toggle-row">
+              <button id="toggleExploreSocial" class="toggle-chip active">Social MB</button>
+              <button id="toggleExploreBenchmarks" class="toggle-chip active">Benchmarks</button>
+              <button id="toggleExploreDWL" class="toggle-chip active">Free-rider loss</button>
+            </div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="exploreToVoluntary">Move to voluntary quantity</button>
+              <button class="btn-primary" id="exploreSolveEfficient">Solve efficient quantity</button>
+              <button class="btn-secondary" id="exploreRandom">Random scenario</button>
+              <button class="btn-secondary" id="exploreReset">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line households"></span>Households MB</span>
+              <span class="legend-item"><span class="legend-line business"></span>Business / farm MB</span>
+              <span class="legend-item"><span class="legend-line emergency"></span>Emergency-services MB</span>
+              <span class="legend-item"><span class="legend-line social"></span>Social MB (vertical sum)</span>
+              <span class="legend-item"><span class="legend-line mc"></span>Marginal cost</span>
+              <span class="legend-item"><span class="legend-line voluntary"></span>Voluntary quantity Q<sub>v</sub></span>
+              <span class="legend-item"><span class="legend-dot efficient"></span>Efficient quantity Q*</span>
+              <span class="legend-item"><span class="legend-dot current"></span>Current quantity Q</span>
+              <span class="legend-item"><span class="legend-square dwl"></span>Free-rider deadweight loss</span>
+            </div>
+            <div class="graph-note">
+              <strong>How to use the graph:</strong> drag the black quantity marker along the x-axis. At each quantity, the colored stacked bar shows the vertical sum of the three individual marginal-benefit curves. Efficient provision occurs where the green social marginal-benefit curve intersects marginal cost. The light-gray benchmark Q<sub>v</sub> shows the stylized voluntary-provision quantity when each group compares only its own willingness to pay with the full marginal cost.
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="metric-card">
+              <div class="card-title">Live metrics</div>
+              <div class="metric-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Households MB at Q</div>
+                  <div id="exploreMetricHouseholds" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Business / farm MB at Q</div>
+                  <div id="exploreMetricBusiness" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Emergency-services MB at Q</div>
+                  <div id="exploreMetricEmergency" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">SMB − MC at Q</div>
+                  <div id="exploreMetricGap" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Voluntary quantity Q<sub>v</sub></div>
+                  <div id="exploreMetricVoluntary" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Efficient quantity Q*</div>
+                  <div id="exploreMetricEfficient" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="exploreMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+            <div id="exploreStatus" class="status-card">
+              <div class="status-title">Economic reading</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="data-card">
+              <div class="data-title">What the diagram is teaching</div>
+              <ul class="note-list">
+                <li><strong>Efficient provision:</strong> for a public good, compare the <strong>vertically summed</strong> marginal-benefit curve with marginal cost.</li>
+                <li><strong>Free-rider problem:</strong> if each person reveals only their own willingness to pay, provision can stop at Q<sub>v</sub>, below the efficient quantity Q*.</li>
+                <li><strong>Why vertical summation matters:</strong> all beneficiaries consume the same quantity, so society adds willingness to pay at each quantity rather than adding quantities at one price.</li>
+                <li><strong>Deadweight loss from under-provision:</strong> the shaded region between Q<sub>v</sub> and Q* captures forgone net benefits when socially valuable units are not provided.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Scenario bank</label>
+            <div id="practiceScenarioBank" class="scenario-bank"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="practiceRandom">Random scenario</button>
+              <button class="btn-secondary" id="practiceResetGuess">Reset guess</button>
+              <button class="btn-primary" id="practiceCheck">Check answer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line households"></span>Households MB</span>
+              <span class="legend-item"><span class="legend-line business"></span>Business / farm MB</span>
+              <span class="legend-item"><span class="legend-line emergency"></span>Emergency-services MB</span>
+              <span class="legend-item"><span class="legend-line mc"></span>Marginal cost</span>
+              <span class="legend-item"><span class="legend-dot guess"></span>Your guess G</span>
+              <span class="legend-item"><span class="legend-line social"></span>Social MB (revealed after checking)</span>
+              <span class="legend-item"><span class="legend-line voluntary"></span>Voluntary quantity Q<sub>v</sub> (revealed after checking)</span>
+              <span class="legend-item"><span class="legend-dot efficient"></span>Efficient quantity Q*</span>
+            </div>
+            <div class="graph-note">
+              <strong>Student task:</strong> drag the purple quantity guess to where you think the <strong>social marginal-benefit</strong> curve intersects marginal cost. The stacked bar at your chosen quantity helps you add individual willingness to pay vertically before you check.
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div id="practiceStatus" class="status-card">
+              <div class="status-title">Practice prompt</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="panel-card">
+              <div class="answer-title">Your answers</div>
+              <div class="answer-copy" style="margin-bottom: 10px;">Answer the concept questions for the current scenario before you check.</div>
+              <div class="answer-grid">
+                <div>
+                  <label for="practiceAnswerCurve">Which curve should intersect MC at the efficient quantity?</label>
+                  <select id="practiceAnswerCurve">
+                    <option value="">Choose</option>
+                    <option value="social">Social MB</option>
+                    <option value="highest">Highest individual MB</option>
+                    <option value="households">Households MB</option>
+                    <option value="business">Business / farm MB</option>
+                    <option value="emergency">Emergency-services MB</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerGap">Relative to Q*, voluntary provision Q<sub>v</sub> is usually:</label>
+                  <select id="practiceAnswerGap">
+                    <option value="">Choose</option>
+                    <option value="lower">Lower</option>
+                    <option value="same">The same</option>
+                    <option value="higher">Higher</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerDWL">If Q<sub>v</sub> &lt; Q*, does the gap represent unrealized net benefits?</label>
+                  <select id="practiceAnswerDWL">
+                    <option value="">Choose</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="practiceFeedback" class="feedback-card neutral">
+              <div class="feedback-title">Feedback</div>
+              <div class="feedback-copy">Select a scenario, make a guess, and then check your answer.</div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Answer check</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Your answer</th>
+                      <th>Correct answer</th>
+                    </tr>
+                  </thead>
+                  <tbody id="practiceTableBody"></tbody>
+                </table>
+              </div>
+              <div id="practiceTableNote" class="table-note" style="margin-top: 10px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Case-study sequence</label>
+            <div id="caseStepRow" class="case-step-row"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="casePlay">Play sequence</button>
+              <button class="btn-secondary" id="caseReset">Reset to step 1</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line households"></span>Households and farms MB</span>
+              <span class="legend-item"><span class="legend-line business"></span>Local-council MB</span>
+              <span class="legend-item"><span class="legend-line emergency"></span>Emergency services / state MB</span>
+              <span class="legend-item"><span class="legend-line social"></span>Social MB</span>
+              <span class="legend-item"><span class="legend-line mc"></span>Average program-cost benchmark</span>
+              <span class="legend-item"><span class="legend-line voluntary"></span>Patchwork local quantity Q<sub>v</sub></span>
+              <span class="legend-item"><span class="legend-dot efficient"></span>National benchmark Q*</span>
+              <span class="legend-item"><span class="legend-dot current"></span>Current case quantity</span>
+            </div>
+            <div class="graph-note">
+              <strong>Case-study mapping:</strong> the x-axis measures high-priority flood-warning-site upgrades in <strong>hundreds of sites</strong>. The cost line uses the program average implied by <strong>$236 million over 1,600 priority sites</strong>. The three beneficiary curves are a stylized translation of the different groups that gain from reliable flood warnings, not literal estimated demand curves.
+            </div>
+
+            <div class="chart-grid">
+              <div class="chart-card">
+                <div class="chart-title">Before the program: ownership fragmentation</div>
+                <canvas id="caseOwnershipCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">Bureau-owned share versus other owners of the gauge network relied upon for forecasts and warnings.</div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">Queensland rollout milestones</div>
+                <canvas id="caseSitesCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">Total Queensland program scope, initially agreed sites, completed assessments, and confirmed remediation scopes.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div id="caseStatus" class="status-card">
+              <div class="status-title">Current step</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="card-title">Case-study metrics</div>
+              <div class="metric-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Local-council MB at current quantity</div>
+                  <div id="caseMetricCouncil" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Spillover MB from other users</div>
+                  <div id="caseMetricSpillover" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Current quantity</div>
+                  <div id="caseMetricQuantity" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Gap to efficient benchmark</div>
+                  <div id="caseMetricGap" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="caseMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Observed Australian data used in the case</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Observed series</th>
+                      <th>Data point</th>
+                      <th>How the graph uses it</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>National remediation budget</strong></td>
+                      <td>$236 million over 10 years</td>
+                      <td>Used to anchor the stylized average marginal-cost benchmark for additional flood-warning-site upgrades.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Priority national upgrade scope</strong></td>
+                      <td>About 1,600 priority sites</td>
+                      <td>Sets the broad x-axis scale for the national benchmark quantity.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Ownership fragmentation before reform</strong></td>
+                      <td>The Bureau owned about one-third of the gauges it relied on; the remainder sat with other owners</td>
+                      <td>Motivates the free-rider and coordination problem: local owners bore costs while benefits spilled much more widely.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Queensland program scope</strong></td>
+                      <td>About 1,100 sites across 47 flood-watch catchments and 55 local-government asset owners</td>
+                      <td>Shows why bilateral local decisions are too narrow for a national public-good problem.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Queensland rollout progress</strong></td>
+                      <td>More than 800 sites initially agreed; 705 site assessments completed; 388 scopes confirmed</td>
+                      <td>Used as the empirical sequence moving the case-study quantity from patchwork provision toward the national benchmark.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="source-card">
+              <div class="card-title">Interpretation note</div>
+              <div class="source-copy">
+                This case is a <strong>stylized public-goods translation</strong> of Australia’s Flood Warning Infrastructure Network program. The observed data tell us that flood-warning infrastructure was fragmented across many owners, while benefits spilled to households, emergency services, farms, businesses and governments. The diagram turns that coordination problem into a clean teaching sequence about vertical summation, efficient provision, and why higher-level public finance can reduce free-riding.
+                <br /><br />
+                <strong>Named sources used for the case:</strong> Bureau of Meteorology, <em>Flood warning network upgrades</em>; Australian Government joint media releases on 15 May 2023 and 24 September 2024 about the National Flood Warning Infrastructure Network and the Queensland rollout.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    (() => {
+      const theme = window.ECON_THEME;
+      const plot = EconDraw.getPlotArea(theme);
+      const DRAG_RADIUS = 12;
+      const QUANTITY_MAX = 20;
+      const QUANTITY_STEP = 0.02;
+
+      const palette = {
+        households: theme.color.demand,
+        business: theme.color.supply,
+        emergency: theme.color.external,
+        social: theme.color.government,
+        mc: theme.color.longRun,
+        guess: theme.color.guess,
+        baseline: theme.color.baseline,
+        point: '#111827',
+        dwlFill: theme.color.dwlFill,
+        householdsFill: 'rgba(47,107,255,0.20)',
+        businessFill: 'rgba(216,74,58,0.20)',
+        emergencyFill: 'rgba(201,123,0,0.20)'
+      };
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function fmt(value, digits = 1) {
+        return Number(value).toFixed(digits).replace(/\.0$/, '');
+      }
+
+      function niceStep(maxValue) {
+        const rough = maxValue / 5;
+        const power = Math.pow(10, Math.floor(Math.log10(Math.max(rough, 1))));
+        const candidates = [1, 2, 2.5, 5, 10].map((c) => c * power);
+        return candidates.find((c) => c >= rough) || power * 10;
+      }
+
+      function niceMax(maxValue) {
+        const step = niceStep(maxValue);
+        return Math.ceil(maxValue / step) * step;
+      }
+
+      function quantityToX(q, qMax) {
+        return EconDraw.valueToX(q, 0, qMax, theme);
+      }
+
+      function valueToY(v, yMax) {
+        return EconDraw.valueToY(v, 0, yMax, theme);
+      }
+
+      function xToQuantity(x, qMax) {
+        return clamp(EconDraw.xToValue(x, 0, qMax, theme), 0, qMax);
+      }
+
+      function linePoints(fn, qMax, yMax, step = 0.1) {
+        const pts = [];
+        for (let q = 0; q <= qMax + 1e-9; q += step) {
+          pts.push({
+            x: quantityToX(q, qMax),
+            y: valueToY(fn(q), yMax)
+          });
+        }
+        return pts;
+      }
+
+      function quantityLine(ctx, q, yMax, options = {}) {
+        const x = quantityToX(q, options.qMax || QUANTITY_MAX);
+        ctx.save();
+        ctx.strokeStyle = options.color || palette.point;
+        ctx.lineWidth = options.lineWidth || 2;
+        if (options.dash) ctx.setLineDash(options.dash);
+        ctx.beginPath();
+        ctx.moveTo(x, plot.top);
+        ctx.lineTo(x, plot.bottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const handleY = plot.bottom;
+        ctx.beginPath();
+        ctx.arc(x, handleY, options.radius || 7, 0, Math.PI * 2);
+        ctx.fillStyle = options.fill || '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = options.handleLineWidth || 2;
+        ctx.strokeStyle = options.handleStroke || options.color || palette.point;
+        if (options.handleDash) ctx.setLineDash(options.handleDash);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        if (options.label) {
+          ctx.font = `700 13px ${theme.font.family}`;
+          ctx.fillStyle = options.labelColor || options.color || palette.point;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(options.label, x, plot.top - 6);
+        }
+        ctx.restore();
+      }
+
+      function drawHorizontalLine(ctx, value, yMax, color, label, dash = theme.dash.policy) {
+        const y = valueToY(value, yMax);
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.2;
+        if (dash) ctx.setLineDash(dash);
+        ctx.beginPath();
+        ctx.moveTo(plot.left, y);
+        ctx.lineTo(plot.right, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        if (label) {
+          ctx.font = `700 13px ${theme.font.family}`;
+          ctx.fillStyle = color;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(label, plot.left + 10, y - 6);
+        }
+        ctx.restore();
+      }
+
+      function areaBetweenSMBandMC(ctx, model, q0, q1, yMax, qMax) {
+        if (q1 <= q0 + 1e-6) return;
+        const pts = [];
+        for (let q = q0; q <= q1 + 1e-9; q += 0.05) {
+          pts.push({ x: quantityToX(q, qMax), y: valueToY(socialMB(model, q), yMax) });
+        }
+        pts.push({ x: quantityToX(q1, qMax), y: valueToY(model.mc, yMax) });
+        for (let q = q1; q >= q0 - 1e-9; q -= 0.05) {
+          pts.push({ x: quantityToX(q, qMax), y: valueToY(model.mc, yMax) });
+        }
+        EconDraw.fillPolygon(ctx, pts, { fill: palette.dwlFill });
+      }
+
+      function stackedValuationBar(ctx, model, q, yMax, qMax, options = {}) {
+        const x = quantityToX(q, qMax);
+        const width = 14;
+        const offset = q < qMax * 0.78 ? 18 : -28;
+        const barX = x + offset;
+        const values = [
+          { label: 'H', value: marginalBenefit(model.groups[0], q), color: palette.households, fill: palette.householdsFill },
+          { label: 'B', value: marginalBenefit(model.groups[1], q), color: palette.business, fill: palette.businessFill },
+          { label: 'E', value: marginalBenefit(model.groups[2], q), color: palette.emergency, fill: palette.emergencyFill }
+        ];
+
+        let running = 0;
+        ctx.save();
+        values.forEach((entry) => {
+          if (entry.value <= 0) return;
+          const yTop = valueToY(running + entry.value, yMax);
+          const yBottom = valueToY(running, yMax);
+          ctx.fillStyle = entry.fill;
+          ctx.fillRect(barX, yTop, width, yBottom - yTop);
+          ctx.strokeStyle = entry.color;
+          ctx.lineWidth = 1.4;
+          ctx.strokeRect(barX, yTop, width, yBottom - yTop);
+          ctx.font = `700 11px ${theme.font.family}`;
+          ctx.fillStyle = entry.color;
+          ctx.textAlign = offset > 0 ? 'left' : 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(entry.label, offset > 0 ? barX + width + 6 : barX - 6, (yTop + yBottom) / 2);
+          running += entry.value;
+        });
+
+        const socialY = valueToY(running, yMax);
+        ctx.strokeStyle = palette.social;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(barX - 5, socialY);
+        ctx.lineTo(barX + width + 5, socialY);
+        ctx.stroke();
+        ctx.font = `700 11px ${theme.font.family}`;
+        ctx.fillStyle = palette.social;
+        ctx.textAlign = offset > 0 ? 'left' : 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('SMB', offset > 0 ? barX + width + 8 : barX - 8, socialY - 3);
+
+        ctx.font = `600 11px ${theme.font.family}`;
+        ctx.fillStyle = theme.color.muted;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText('vertical sum', barX + width / 2, plot.bottom + 12);
+        ctx.restore();
+      }
+
+      function makeLinearTicks(maxValue, axis, formatter = (v) => fmt(v, 0), qMax = QUANTITY_MAX) {
+        const ticks = [];
+        const step = axis === 'x'
+          ? (qMax <= 10 ? 1 : qMax <= 20 ? 2 : 4)
+          : niceStep(maxValue);
+        const limit = axis === 'x' ? qMax : maxValue;
+        for (let value = 0; value <= limit + 1e-9; value += step) {
+          ticks.push({
+            label: formatter(value),
+            x: axis === 'x' ? quantityToX(value, qMax) : undefined,
+            y: axis === 'y' ? valueToY(value, maxValue) : undefined
+          });
+        }
+        if (ticks[ticks.length - 1].label !== formatter(limit)) {
+          ticks.push({
+            label: formatter(limit),
+            x: axis === 'x' ? quantityToX(limit, qMax) : undefined,
+            y: axis === 'y' ? valueToY(limit, maxValue) : undefined
+          });
+        }
+        return ticks;
+      }
+
+      function marginalBenefit(group, q) {
+        return Math.max(0, group.intercept - group.slope * q);
+      }
+
+      function socialMB(model, q) {
+        return model.groups.reduce((sum, group) => sum + marginalBenefit(group, q), 0);
+      }
+
+      function individualIntersection(group, mc, qMax) {
+        if (group.intercept <= mc) return 0;
+        return clamp((group.intercept - mc) / group.slope, 0, qMax);
+      }
+
+      function voluntaryQuantity(model) {
+        return model.groups.reduce((maxQ, group) => Math.max(maxQ, individualIntersection(group, model.mc, model.qMax || QUANTITY_MAX)), 0);
+      }
+
+      function efficientQuantity(model) {
+        const qMax = model.qMax || QUANTITY_MAX;
+        if (socialMB(model, 0) <= model.mc + 1e-9) return 0;
+        if (socialMB(model, qMax) >= model.mc - 1e-9) return qMax;
+        let prevQ = 0;
+        let prevGap = socialMB(model, 0) - model.mc;
+        for (let q = QUANTITY_STEP; q <= qMax + 1e-9; q += QUANTITY_STEP) {
+          const gap = socialMB(model, q) - model.mc;
+          if (gap <= 0) {
+            const weight = prevGap / (prevGap - gap);
+            return prevQ + weight * (q - prevQ);
+          }
+          prevQ = q;
+          prevGap = gap;
+        }
+        return qMax;
+      }
+
+      function totalBenefit(model, q) {
+        const steps = 250;
+        let area = 0;
+        let prevQ = 0;
+        let prevVal = socialMB(model, 0);
+        for (let i = 1; i <= steps; i += 1) {
+          const currentQ = (q * i) / steps;
+          const currentVal = socialMB(model, currentQ);
+          area += 0.5 * (currentVal + prevVal) * (currentQ - prevQ);
+          prevQ = currentQ;
+          prevVal = currentVal;
+        }
+        return area;
+      }
+
+      function totalNetBenefit(model, q) {
+        return totalBenefit(model, q) - model.mc * q;
+      }
+
+      function underProvisionLoss(model) {
+        const qv = voluntaryQuantity(model);
+        const qStar = efficientQuantity(model);
+        return Math.max(0, totalNetBenefit(model, qStar) - totalNetBenefit(model, qv));
+      }
+
+      function classifyQuantity(model, q) {
+        const gap = socialMB(model, q) - model.mc;
+        if (Math.abs(gap) < 0.6) return 'efficient';
+        return gap > 0 ? 'under' : 'over';
+      }
+
+      function drawCurve(ctx, fn, yMax, qMax, color, dash = null, width = theme.line.main) {
+        EconDraw.drawLine(ctx, linePoints(fn, qMax, yMax, 0.1), {
+          color,
+          dash,
+          lineWidth: width
+        });
+      }
+
+      function labelCurve(ctx, text, q, value, yMax, qMax, color) {
+        if (value <= 1) return;
+        ctx.save();
+        ctx.font = `700 12px ${theme.font.family}`;
+        ctx.fillStyle = color;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(text, quantityToX(q, qMax) + 8, valueToY(value, yMax) - 3);
+        ctx.restore();
+      }
+
+      function graphYMax(model) {
+        const maxValue = Math.max(
+          model.mc,
+          ...model.groups.map((g) => g.intercept),
+          socialMB(model, 0)
+        );
+        return niceMax(maxValue * 1.05);
+      }
+
+      function drawPublicGoodsGraph(ctx, config) {
+        const model = config.model;
+        const qMax = model.qMax || QUANTITY_MAX;
+        const yMax = config.yMax || graphYMax(model);
+
+        EconDraw.clearCanvas(ctx);
+        EconDraw.drawFrame(ctx);
+
+        const xTicks = makeLinearTicks(qMax, 'x', config.xTickFormatter || ((v) => fmt(v, 0)), qMax);
+        const yTicks = makeLinearTicks(yMax, 'y', config.yTickFormatter || ((v) => fmt(v, 0)), qMax);
+
+        EconDraw.drawAxes(ctx, {
+          xLabel: config.xLabel || 'Quantity of public good',
+          yLabel: config.yLabel || 'Marginal benefit / marginal cost',
+          xTicks,
+          yTicks
+        });
+
+        if (config.showDWL) {
+          const qv = voluntaryQuantity(model);
+          const qStar = efficientQuantity(model);
+          if (qStar > qv + 0.05) {
+            areaBetweenSMBandMC(ctx, model, qv, qStar, yMax, qMax);
+          }
+        }
+
+        drawCurve(ctx, (q) => marginalBenefit(model.groups[0], q), yMax, qMax, palette.households);
+        drawCurve(ctx, (q) => marginalBenefit(model.groups[1], q), yMax, qMax, palette.business);
+        drawCurve(ctx, (q) => marginalBenefit(model.groups[2], q), yMax, qMax, palette.emergency);
+
+        if (config.showSocial !== false) {
+          drawCurve(ctx, (q) => socialMB(model, q), yMax, qMax, palette.social, null, 2.8);
+        }
+
+        drawHorizontalLine(ctx, model.mc, yMax, palette.mc, 'MC');
+
+        if (config.showBenchmarks) {
+          const qv = voluntaryQuantity(model);
+          const qStar = efficientQuantity(model);
+          quantityLine(ctx, qv, yMax, {
+            qMax,
+            color: palette.baseline,
+            dash: theme.dash.baseline,
+            fill: '#ffffff',
+            handleStroke: palette.baseline,
+            label: 'Qv'
+          });
+          quantityLine(ctx, qStar, yMax, {
+            qMax,
+            color: palette.social,
+            dash: null,
+            fill: '#ffffff',
+            handleStroke: palette.social,
+            label: 'Q*'
+          });
+        }
+
+        if (config.currentQ !== undefined) {
+          quantityLine(ctx, config.currentQ, yMax, {
+            qMax,
+            color: config.currentColor || palette.point,
+            dash: config.currentDash || null,
+            fill: config.currentFill || (config.currentColor || palette.point),
+            handleStroke: config.currentColor || palette.point,
+            label: config.currentLabel || 'Q'
+          });
+          stackedValuationBar(ctx, model, config.currentQ, yMax, qMax);
+        }
+
+        if (config.guessQ !== undefined) {
+          quantityLine(ctx, config.guessQ, yMax, {
+            qMax,
+            color: palette.guess,
+            dash: theme.dash.guess,
+            fill: '#ffffff',
+            handleStroke: palette.guess,
+            label: 'G'
+          });
+          stackedValuationBar(ctx, model, config.guessQ, yMax, qMax);
+        }
+
+        labelCurve(ctx, 'H', 0.8, marginalBenefit(model.groups[0], 0.8), yMax, qMax, palette.households);
+        labelCurve(ctx, 'B', 0.8, marginalBenefit(model.groups[1], 0.8), yMax, qMax, palette.business);
+        labelCurve(ctx, 'E', 0.8, marginalBenefit(model.groups[2], 0.8), yMax, qMax, palette.emergency);
+        if (config.showSocial !== false) {
+          labelCurve(ctx, 'SMB', qMax * 0.58, socialMB(model, qMax * 0.58), yMax, qMax, palette.social);
+        }
+
+        if (config.titleText) {
+          EconDraw.drawText(ctx, config.titleText, 100, 34, { size: 13, color: theme.color.muted });
+        }
+        if (config.footText) {
+          EconDraw.drawText(ctx, config.footText, 100, 560, { size: 12, color: theme.color.muted });
+        }
+      }
+
+      function drawBarChart(canvas, config) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = theme.color.frame;
+        ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+        const margin = { left: 52, right: 18, top: 18, bottom: 54 };
+        const plotW = w - margin.left - margin.right;
+        const plotH = h - margin.top - margin.bottom;
+        const maxY = config.maxY;
+
+        const gridStep = niceStep(maxY);
+        for (let value = 0; value <= maxY + 1e-9; value += gridStep) {
+          const y = margin.top + plotH - (value / maxY) * plotH;
+          ctx.strokeStyle = theme.color.grid;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(margin.left, y);
+          ctx.lineTo(w - margin.right, y);
+          ctx.stroke();
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.fillStyle = theme.color.muted;
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(config.tickFormat ? config.tickFormat(value) : fmt(value, 0), margin.left - 8, y);
+        }
+
+        ctx.strokeStyle = theme.color.axis;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, margin.top);
+        ctx.lineTo(margin.left, h - margin.bottom);
+        ctx.lineTo(w - margin.right, h - margin.bottom);
+        ctx.stroke();
+
+        const slot = plotW / config.values.length;
+        const barWidth = Math.min(38, slot * 0.55);
+
+        config.values.forEach((entry, index) => {
+          const x = margin.left + index * slot + (slot - barWidth) / 2;
+          const barH = (entry.value / maxY) * plotH;
+          const y = margin.top + plotH - barH;
+          ctx.fillStyle = entry.color;
+          ctx.fillRect(x, y, barWidth, barH);
+          ctx.fillStyle = theme.color.text;
+          ctx.font = `600 11px ${theme.font.family}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(entry.valueLabel || fmt(entry.value, 0), x + barWidth / 2, y - 4);
+
+          ctx.fillStyle = theme.color.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textBaseline = 'top';
+          const labelLines = entry.label.split('\n');
+          labelLines.forEach((line, lineIndex) => {
+            ctx.fillText(line, x + barWidth / 2, h - margin.bottom + 8 + lineIndex * 13);
+          });
+        });
+      }
+
+      const explore = {
+        canvas: document.getElementById('exploreCanvas'),
+        ctx: document.getElementById('exploreCanvas').getContext('2d'),
+        households: document.getElementById('exploreHouseholds'),
+        business: document.getElementById('exploreBusiness'),
+        emergency: document.getElementById('exploreEmergency'),
+        slope: document.getElementById('exploreSlope'),
+        mc: document.getElementById('exploreMC'),
+        labels: {
+          households: document.getElementById('exploreHouseholdsLabel'),
+          business: document.getElementById('exploreBusinessLabel'),
+          emergency: document.getElementById('exploreEmergencyLabel'),
+          slope: document.getElementById('exploreSlopeLabel'),
+          mc: document.getElementById('exploreMCLabel')
+        },
+        metrics: {
+          households: document.getElementById('exploreMetricHouseholds'),
+          business: document.getElementById('exploreMetricBusiness'),
+          emergency: document.getElementById('exploreMetricEmergency'),
+          gap: document.getElementById('exploreMetricGap'),
+          voluntary: document.getElementById('exploreMetricVoluntary'),
+          efficient: document.getElementById('exploreMetricEfficient'),
+          note: document.getElementById('exploreMetricNote')
+        },
+        status: document.querySelector('#exploreStatus .status-copy'),
+        state: {
+          model: {
+            qMax: QUANTITY_MAX,
+            mc: 24,
+            groups: [
+              { key: 'households', label: 'Households', intercept: 42, slope: 3.0 },
+              { key: 'business', label: 'Business / farm', intercept: 34, slope: 3.0 },
+              { key: 'emergency', label: 'Emergency services', intercept: 26, slope: 3.0 }
+            ]
+          },
+          q: 5.0,
+          showSocial: true,
+          showBenchmarks: true,
+          showDWL: true,
+          dragging: false
+        }
+      };
+
+      function syncExploreControls() {
+        const model = explore.state.model;
+        explore.households.value = String(model.groups[0].intercept);
+        explore.business.value = String(model.groups[1].intercept);
+        explore.emergency.value = String(model.groups[2].intercept);
+        explore.slope.value = model.groups[0].slope.toFixed(1);
+        explore.mc.value = String(model.mc);
+      }
+
+      function updateExploreLabels() {
+        const model = explore.state.model;
+        explore.labels.households.textContent = fmt(model.groups[0].intercept, 0);
+        explore.labels.business.textContent = fmt(model.groups[1].intercept, 0);
+        explore.labels.emergency.textContent = fmt(model.groups[2].intercept, 0);
+        explore.labels.slope.textContent = fmt(model.groups[0].slope, 1);
+        explore.labels.mc.textContent = fmt(model.mc, 0);
+      }
+
+      function renderExplore() {
+        updateExploreLabels();
+        const model = explore.state.model;
+        const q = explore.state.q;
+        const qv = voluntaryQuantity(model);
+        const qStar = efficientQuantity(model);
+        const smb = socialMB(model, q);
+        const mbH = marginalBenefit(model.groups[0], q);
+        const mbB = marginalBenefit(model.groups[1], q);
+        const mbE = marginalBenefit(model.groups[2], q);
+        const net = totalNetBenefit(model, q);
+        const loss = underProvisionLoss(model);
+        const status = classifyQuantity(model, q);
+
+        drawPublicGoodsGraph(explore.ctx, {
+          model,
+          currentQ: q,
+          showSocial: explore.state.showSocial,
+          showBenchmarks: explore.state.showBenchmarks,
+          showDWL: explore.state.showDWL,
+          titleText: 'The stacked bar at Q shows the vertical sum of the three marginal-benefit curves at the chosen quantity.',
+          footText: `Qv = ${fmt(qv, 1)}, Q* = ${fmt(qStar, 1)}. Free-rider loss at Qv = ${fmt(loss, 1)} benefit-units.`
+        });
+
+        explore.metrics.households.textContent = fmt(mbH, 1);
+        explore.metrics.business.textContent = fmt(mbB, 1);
+        explore.metrics.emergency.textContent = fmt(mbE, 1);
+        explore.metrics.gap.textContent = `${smb - model.mc >= 0 ? '+' : ''}${fmt(smb - model.mc, 1)}`;
+        explore.metrics.voluntary.textContent = fmt(qv, 1);
+        explore.metrics.efficient.textContent = fmt(qStar, 1);
+        explore.metrics.note.textContent = status === 'under'
+          ? `At Q = ${fmt(q, 1)}, social marginal benefit exceeds marginal cost, so the public good is under-provided. Additional units would still raise total surplus.`
+          : status === 'over'
+            ? `At Q = ${fmt(q, 1)}, marginal cost is above social marginal benefit, so provision is too high. Reducing quantity would save resources worth more than the benefits forgone.`
+            : `At Q = ${fmt(q, 1)}, the graph is very close to the efficient condition SMB = MC.`;
+
+        const paragraphs = [];
+        paragraphs.push(`At the current quantity, the three groups value the next unit at ${fmt(mbH, 1)}, ${fmt(mbB, 1)}, and ${fmt(mbE, 1)}. Vertically summing them gives a social marginal benefit of ${fmt(smb, 1)}.`);
+        paragraphs.push(status === 'efficient'
+          ? 'Because social marginal benefit is approximately equal to marginal cost, the current quantity is efficient.'
+          : status === 'under'
+            ? 'Because social marginal benefit is still above marginal cost, society would gain from more provision.'
+            : 'Because social marginal benefit is below marginal cost, the current quantity is beyond the efficient point.'
+        );
+        paragraphs.push(`If provision were left to voluntary financing by whichever group has the highest own willingness to pay, quantity would stop at Qv = ${fmt(qv, 1)}. The efficient benchmark is Q* = ${fmt(qStar, 1)}.`);
+        paragraphs.push(`Total net benefit at the current quantity is ${fmt(net, 1)} benefit-units. The deadweight loss from stopping at the voluntary benchmark is ${fmt(loss, 1)} benefit-units.`);
+        explore.status.innerHTML = paragraphs.map((p) => `<p style="margin:0 0 8px 0;">${p}</p>`).join('');
+      }
+
+      function resetExplore() {
+        explore.state.model.groups[0].intercept = 42;
+        explore.state.model.groups[1].intercept = 34;
+        explore.state.model.groups[2].intercept = 26;
+        explore.state.model.groups.forEach((group) => { group.slope = 3.0; });
+        explore.state.model.mc = 24;
+        explore.state.q = 5.0;
+        explore.state.showSocial = true;
+        explore.state.showBenchmarks = true;
+        explore.state.showDWL = true;
+        document.getElementById('toggleExploreSocial').classList.add('active');
+        document.getElementById('toggleExploreBenchmarks').classList.add('active');
+        document.getElementById('toggleExploreDWL').classList.add('active');
+        syncExploreControls();
+        renderExplore();
+      }
+
+      function updateExploreSlope(value) {
+        explore.state.model.groups.forEach((group) => {
+          group.slope = value;
+        });
+      }
+
+      explore.households.addEventListener('input', () => {
+        explore.state.model.groups[0].intercept = Number(explore.households.value);
+        renderExplore();
+      });
+      explore.business.addEventListener('input', () => {
+        explore.state.model.groups[1].intercept = Number(explore.business.value);
+        renderExplore();
+      });
+      explore.emergency.addEventListener('input', () => {
+        explore.state.model.groups[2].intercept = Number(explore.emergency.value);
+        renderExplore();
+      });
+      explore.slope.addEventListener('input', () => {
+        updateExploreSlope(Number(explore.slope.value));
+        renderExplore();
+      });
+      explore.mc.addEventListener('input', () => {
+        explore.state.model.mc = Number(explore.mc.value);
+        renderExplore();
+      });
+
+      document.getElementById('toggleExploreSocial').addEventListener('click', (event) => {
+        explore.state.showSocial = !explore.state.showSocial;
+        event.currentTarget.classList.toggle('active', explore.state.showSocial);
+        renderExplore();
+      });
+      document.getElementById('toggleExploreBenchmarks').addEventListener('click', (event) => {
+        explore.state.showBenchmarks = !explore.state.showBenchmarks;
+        event.currentTarget.classList.toggle('active', explore.state.showBenchmarks);
+        renderExplore();
+      });
+      document.getElementById('toggleExploreDWL').addEventListener('click', (event) => {
+        explore.state.showDWL = !explore.state.showDWL;
+        event.currentTarget.classList.toggle('active', explore.state.showDWL);
+        renderExplore();
+      });
+
+      document.getElementById('exploreToVoluntary').addEventListener('click', () => {
+        explore.state.q = voluntaryQuantity(explore.state.model);
+        renderExplore();
+      });
+      document.getElementById('exploreSolveEfficient').addEventListener('click', () => {
+        explore.state.q = efficientQuantity(explore.state.model);
+        renderExplore();
+      });
+      document.getElementById('exploreRandom').addEventListener('click', () => {
+        explore.state.model.groups[0].intercept = Math.round(18 + Math.random() * 38);
+        explore.state.model.groups[1].intercept = Math.round(12 + Math.random() * 30);
+        explore.state.model.groups[2].intercept = Math.round(10 + Math.random() * 24);
+        const slope = Math.round((1.0 + Math.random() * 3.8) * 10) / 10;
+        updateExploreSlope(slope);
+        explore.state.model.mc = Math.round(8 + Math.random() * 24);
+        explore.state.q = 3 + Math.random() * 10;
+        syncExploreControls();
+        renderExplore();
+      });
+      document.getElementById('exploreReset').addEventListener('click', resetExplore);
+
+      explore.canvas.addEventListener('mousedown', (event) => {
+        const rect = explore.canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const x = quantityToX(explore.state.q, explore.state.model.qMax);
+        if (Math.abs(mouseX - x) <= DRAG_RADIUS + 6) {
+          explore.state.dragging = true;
+        }
+      });
+      window.addEventListener('mouseup', () => {
+        explore.state.dragging = false;
+        practice.state.dragging = false;
+      });
+      explore.canvas.addEventListener('mousemove', (event) => {
+        if (!explore.state.dragging) return;
+        const rect = explore.canvas.getBoundingClientRect();
+        explore.state.q = xToQuantity(event.clientX - rect.left, explore.state.model.qMax);
+        renderExplore();
+      });
+
+      const practiceScenarios = [
+        {
+          id: 'p1',
+          title: 'Local flood-warning gauges',
+          description: 'Three groups benefit from flood-warning upgrades: households, farms and businesses, and emergency services.',
+          model: {
+            qMax: QUANTITY_MAX,
+            mc: 18,
+            groups: [
+              { key: 'households', label: 'Households', intercept: 26, slope: 1.6 },
+              { key: 'business', label: 'Business / farm', intercept: 22, slope: 1.3 },
+              { key: 'emergency', label: 'Emergency services', intercept: 16, slope: 1.1 }
+            ]
+          }
+        },
+        {
+          id: 'p2',
+          title: 'CBD street lighting',
+          description: 'Shoppers, nearby businesses, and local police all benefit from better street lighting.',
+          model: {
+            qMax: QUANTITY_MAX,
+            mc: 11,
+            groups: [
+              { key: 'households', label: 'Shoppers', intercept: 16, slope: 1.0 },
+              { key: 'business', label: 'Businesses', intercept: 14, slope: 0.8 },
+              { key: 'emergency', label: 'Police / council', intercept: 8, slope: 0.5 }
+            ]
+          }
+        },
+        {
+          id: 'p3',
+          title: 'Bushfire alert network',
+          description: 'Residents, insurers, and emergency responders all gain from a broader alert network.',
+          model: {
+            qMax: QUANTITY_MAX,
+            mc: 15,
+            groups: [
+              { key: 'households', label: 'Residents', intercept: 24, slope: 1.4 },
+              { key: 'business', label: 'Insurers / firms', intercept: 18, slope: 1.0 },
+              { key: 'emergency', label: 'Responders', intercept: 20, slope: 1.2 }
+            ]
+          }
+        },
+        {
+          id: 'p4',
+          title: 'One dominant beneficiary',
+          description: 'A public good with one very high-valuation group and two smaller spillover groups.',
+          model: {
+            qMax: QUANTITY_MAX,
+            mc: 20,
+            groups: [
+              { key: 'households', label: 'Lead beneficiary', intercept: 38, slope: 2.2 },
+              { key: 'business', label: 'Group 2', intercept: 12, slope: 0.7 },
+              { key: 'emergency', label: 'Group 3', intercept: 10, slope: 0.6 }
+            ]
+          }
+        },
+        {
+          id: 'p5',
+          title: 'No-provision benchmark',
+          description: 'All three groups value the public good too little for any positive quantity to be efficient.',
+          model: {
+            qMax: QUANTITY_MAX,
+            mc: 18,
+            groups: [
+              { key: 'households', label: 'Group 1', intercept: 6, slope: 0.5 },
+              { key: 'business', label: 'Group 2', intercept: 4, slope: 0.3 },
+              { key: 'emergency', label: 'Group 3', intercept: 3, slope: 0.2 }
+            ]
+          }
+        }
+      ];
+
+      const practice = {
+        canvas: document.getElementById('practiceCanvas'),
+        ctx: document.getElementById('practiceCanvas').getContext('2d'),
+        status: document.querySelector('#practiceStatus .status-copy'),
+        scenarioBank: document.getElementById('practiceScenarioBank'),
+        feedback: document.querySelector('#practiceFeedback .feedback-copy'),
+        feedbackCard: document.getElementById('practiceFeedback'),
+        tableBody: document.getElementById('practiceTableBody'),
+        tableNote: document.getElementById('practiceTableNote'),
+        answerCurve: document.getElementById('practiceAnswerCurve'),
+        answerGap: document.getElementById('practiceAnswerGap'),
+        answerDWL: document.getElementById('practiceAnswerDWL'),
+        state: {
+          scenarioIndex: 0,
+          guessQ: 4,
+          revealed: false,
+          dragging: false
+        }
+      };
+
+      function currentPracticeScenario() {
+        return practiceScenarios[practice.state.scenarioIndex];
+      }
+
+      function resetPracticeGuess() {
+        const model = currentPracticeScenario().model;
+        practice.state.guessQ = Math.max(1.5, voluntaryQuantity(model));
+        practice.state.revealed = false;
+        practice.answerCurve.value = '';
+        practice.answerGap.value = '';
+        practice.answerDWL.value = '';
+      }
+
+      function renderPracticeScenarioBank() {
+        practice.scenarioBank.innerHTML = '';
+        practiceScenarios.forEach((scenario, index) => {
+          const button = document.createElement('button');
+          button.className = `scenario-chip${index === practice.state.scenarioIndex ? ' active' : ''}`;
+          button.textContent = scenario.title;
+          button.addEventListener('click', () => {
+            practice.state.scenarioIndex = index;
+            resetPracticeGuess();
+            renderPracticeScenarioBank();
+            renderPractice();
+          });
+          practice.scenarioBank.appendChild(button);
+        });
+      }
+
+      function renderPractice() {
+        const scenario = currentPracticeScenario();
+        const model = scenario.model;
+        const qStar = efficientQuantity(model);
+        const qv = voluntaryQuantity(model);
+        const guessDistance = Math.abs(practice.state.guessQ - qStar);
+
+        drawPublicGoodsGraph(practice.ctx, {
+          model,
+          guessQ: practice.state.guessQ,
+          showSocial: practice.state.revealed,
+          showBenchmarks: practice.state.revealed,
+          showDWL: practice.state.revealed,
+          titleText: 'Infer the efficient quantity by adding marginal benefits vertically, then compare your guess with the revealed social MB curve.',
+          footText: `If no one internalises the spillovers, voluntary provision stops near Qv = ${fmt(qv, 1)}.`
+        });
+
+        practice.status.innerHTML = `
+          <p style="margin:0 0 8px 0;"><strong>${scenario.title}.</strong> ${scenario.description}</p>
+          <p style="margin:0 0 8px 0;">Marginal cost is ${fmt(model.mc, 1)}. Your task is to place G where the social marginal-benefit curve intersects MC.</p>
+          <p style="margin:0;">Check whether voluntary provision is below, equal to, or above the efficient benchmark.</p>
+        `;
+
+        const rows = [
+          { label: 'Curve that should intersect MC at Q*', user: practice.answerCurve.value, actual: 'social' },
+          { label: 'Relative position of Qv compared with Q*', user: practice.answerGap.value, actual: qv < qStar - 0.2 ? 'lower' : Math.abs(qv - qStar) <= 0.2 ? 'same' : 'higher' },
+          { label: 'Does the gap represent unrealized net benefits?', user: practice.answerDWL.value, actual: qv < qStar - 0.2 ? 'yes' : 'no' }
+        ];
+
+        practice.tableBody.innerHTML = rows.map((row) => `
+          <tr>
+            <td>${row.label}</td>
+            <td class="${!practice.state.revealed ? 'result-neutral' : (row.user === row.actual ? 'result-correct' : 'result-incorrect')}">${row.user ? row.user[0].toUpperCase() + row.user.slice(1) : '—'}</td>
+            <td class="${practice.state.revealed ? 'result-correct' : 'result-neutral'}">${practice.state.revealed ? row.actual[0].toUpperCase() + row.actual.slice(1) : 'Check answer'}</td>
+          </tr>
+        `).join('');
+
+        practice.tableNote.textContent = practice.state.revealed
+          ? `Your quantity guess is ${fmt(guessDistance, 1)} units away from the efficient quantity Q*.`
+          : 'After checking, the graph reveals the social MB curve, the voluntary quantity, the efficient quantity, and the deadweight-loss area when relevant.';
+      }
+
+      document.getElementById('practiceRandom').addEventListener('click', () => {
+        practice.state.scenarioIndex = Math.floor(Math.random() * practiceScenarios.length);
+        resetPracticeGuess();
+        renderPracticeScenarioBank();
+        renderPractice();
+      });
+
+      document.getElementById('practiceResetGuess').addEventListener('click', () => {
+        resetPracticeGuess();
+        practice.feedbackCard.className = 'feedback-card neutral';
+        practice.feedback.textContent = 'Guess reset. Drag the purple quantity marker again and then check your answer.';
+        renderPractice();
+      });
+
+      document.getElementById('practiceCheck').addEventListener('click', () => {
+        const scenario = currentPracticeScenario();
+        const model = scenario.model;
+        const qStar = efficientQuantity(model);
+        const qv = voluntaryQuantity(model);
+        const gapAnswer = qv < qStar - 0.2 ? 'lower' : Math.abs(qv - qStar) <= 0.2 ? 'same' : 'higher';
+        const dwlAnswer = qv < qStar - 0.2 ? 'yes' : 'no';
+        const quantityCorrect = Math.abs(practice.state.guessQ - qStar) < 0.7;
+        const curveCorrect = practice.answerCurve.value === 'social';
+        const gapCorrect = practice.answerGap.value === gapAnswer;
+        const dwlCorrect = practice.answerDWL.value === dwlAnswer;
+        practice.state.revealed = true;
+        renderPractice();
+
+        const errors = [];
+        if (!quantityCorrect) errors.push(`your quantity guess is ${fmt(Math.abs(practice.state.guessQ - qStar), 1)} units away from Q*`);
+        if (!curveCorrect) errors.push('the curve that determines efficiency is not correct');
+        if (!gapCorrect) errors.push('the Qv versus Q* comparison is not correct');
+        if (!dwlCorrect) errors.push('the unrealized-net-benefit interpretation is not correct');
+
+        if (errors.length === 0) {
+          practice.feedbackCard.className = 'feedback-card success';
+          practice.feedback.textContent = 'Correct. Efficient provision is found where the social marginal-benefit curve intersects marginal cost. The revealed graph shows how voluntary provision can stop earlier because no single group internalises the full social gain.';
+        } else {
+          practice.feedbackCard.className = 'feedback-card warning';
+          practice.feedback.textContent = `Not quite. Review ${errors.join('; ')}. After checking, the green social MB curve and the efficient quantity Q* are revealed.`;
+        }
+      });
+
+      practice.canvas.addEventListener('mousedown', (event) => {
+        const rect = practice.canvas.getBoundingClientRect();
+        const mouseX = event.clientX - rect.left;
+        const x = quantityToX(practice.state.guessQ, currentPracticeScenario().model.qMax);
+        if (Math.abs(mouseX - x) <= DRAG_RADIUS + 6 && !practice.state.revealed) {
+          practice.state.dragging = true;
+        }
+      });
+      practice.canvas.addEventListener('mousemove', (event) => {
+        if (!practice.state.dragging || practice.state.revealed) return;
+        const rect = practice.canvas.getBoundingClientRect();
+        practice.state.guessQ = xToQuantity(event.clientX - rect.left, currentPracticeScenario().model.qMax);
+        renderPractice();
+      });
+
+      const CASE_AVG_COST_PER_100 = 236 / 16;
+      const caseModel = {
+        qMax: 18,
+        mc: CASE_AVG_COST_PER_100,
+        groups: [
+          { key: 'households', label: 'Households and farms', intercept: 14, slope: 0.6 },
+          { key: 'business', label: 'Local councils', intercept: 20, slope: 1.0 },
+          { key: 'emergency', label: 'Emergency services / states', intercept: 12, slope: 0.4 }
+        ]
+      };
+
+      const caseSteps = [
+        {
+          title: 'Step 1 — Patchwork local ownership',
+          q: voluntaryQuantity(caseModel),
+          copy: 'Before national remediation, local councils carried much of the maintenance burden even though households, farms, insurers, transport operators and emergency services also benefited from more reliable flood warnings. The chosen quantity therefore sits near the local voluntary benchmark Qv.',
+          observed: 'Before reform, the Bureau owned about one-third of the gauges it relied on; the rest sat with other owners.'
+        },
+        {
+          title: 'Step 2 — Queensland is prioritised',
+          q: 8.0,
+          copy: 'Queensland was prioritised because of high flood risk and the willingness to share future operating costs. Consultation across many councils and catchments starts to aggregate more of the wider benefits than a single local budget would recognise.',
+          observed: 'Queensland program: about 1,100 sites across 47 flood-watch catchments and 55 local-government asset owners.'
+        },
+        {
+          title: 'Step 3 — Rollout and coordination deepen',
+          q: 11.2,
+          copy: 'As site agreements, technical assessments and remediation scopes accumulate, the provision decision moves beyond the patchwork local benchmark. Collective financing and coordination begin to internalise more of the spillovers from better warnings.',
+          observed: 'More than 800 sites initially agreed; 705 site assessments completed; 388 scopes confirmed.'
+        },
+        {
+          title: 'Step 4 — National benchmark quantity',
+          q: efficientQuantity(caseModel),
+          copy: 'The national Flood Warning Infrastructure Network can be read as the federal attempt to move provision closer to the efficient public-good benchmark by pooling costs and benefits across jurisdictions and user groups.',
+          observed: '$236 million over 10 years for about 1,600 priority sites; acquisition work scheduled through 2033.'
+        }
+      ];
+
+      const caseModule = {
+        canvas: document.getElementById('caseCanvas'),
+        ctx: document.getElementById('caseCanvas').getContext('2d'),
+        stepRow: document.getElementById('caseStepRow'),
+        status: document.querySelector('#caseStatus .status-copy'),
+        metricCouncil: document.getElementById('caseMetricCouncil'),
+        metricSpillover: document.getElementById('caseMetricSpillover'),
+        metricQuantity: document.getElementById('caseMetricQuantity'),
+        metricGap: document.getElementById('caseMetricGap'),
+        metricNote: document.getElementById('caseMetricNote'),
+        ownershipCanvas: document.getElementById('caseOwnershipCanvas'),
+        sitesCanvas: document.getElementById('caseSitesCanvas'),
+        state: {
+          stepIndex: 0,
+          timer: null
+        }
+      };
+
+      function renderCaseStepButtons() {
+        caseModule.stepRow.innerHTML = '';
+        caseSteps.forEach((step, index) => {
+          const button = document.createElement('button');
+          button.className = `case-step-btn${index === caseModule.state.stepIndex ? ' active' : ''}`;
+          button.textContent = `Step ${index + 1}`;
+          button.addEventListener('click', () => {
+            caseModule.state.stepIndex = index;
+            if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+            caseModule.state.timer = null;
+            renderCaseStepButtons();
+            renderCase();
+          });
+          caseModule.stepRow.appendChild(button);
+        });
+      }
+
+      function renderCaseCharts() {
+        drawBarChart(caseModule.ownershipCanvas, {
+          maxY: 100,
+          tickFormat: (v) => `${fmt(v, 0)}%`,
+          values: [
+            { label: 'Bureau\nowned', value: 33, valueLabel: '33%', color: palette.business },
+            { label: 'Other\nowners', value: 67, valueLabel: '67%', color: palette.baseline }
+          ]
+        });
+
+        drawBarChart(caseModule.sitesCanvas, {
+          maxY: 1200,
+          values: [
+            { label: 'QLD\nprogram', value: 1100, valueLabel: '1,100', color: palette.social },
+            { label: 'Initially\nagreed', value: 800, valueLabel: '>800', color: palette.business },
+            { label: 'Sites\nassessed', value: 705, valueLabel: '705', color: palette.households },
+            { label: 'Scopes\nconfirmed', value: 388, valueLabel: '388', color: palette.emergency }
+          ]
+        });
+      }
+
+      function renderCase() {
+        const step = caseSteps[caseModule.state.stepIndex];
+        const qStar = efficientQuantity(caseModel);
+        const qv = voluntaryQuantity(caseModel);
+        const councilMB = marginalBenefit(caseModel.groups[1], step.q);
+        const spilloverMB = marginalBenefit(caseModel.groups[0], step.q) + marginalBenefit(caseModel.groups[2], step.q);
+
+        drawPublicGoodsGraph(caseModule.ctx, {
+          model: caseModel,
+          currentQ: step.q,
+          showSocial: true,
+          showBenchmarks: true,
+          showDWL: true,
+          currentColor: palette.point,
+          currentLabel: `C${caseModule.state.stepIndex + 1}`,
+          xLabel: 'Upgraded flood-warning sites (hundreds)',
+          yLabel: 'Marginal benefit / cost ($m per 100-site block)',
+          xTickFormatter: (v) => fmt(v * 100, 0),
+          yTickFormatter: (v) => fmt(v, 0),
+          titleText: 'Australian flood-warning case: federal coordination moves provision from a patchwork local benchmark toward the broader social optimum.',
+          footText: step.observed
+        });
+
+        caseModule.status.innerHTML = `
+          <p style="margin:0 0 8px 0;"><strong>${step.title}</strong></p>
+          <p style="margin:0 0 8px 0;">${step.copy}</p>
+          <p style="margin:0; color: var(--color-muted);"><strong>Observed anchor:</strong> ${step.observed}</p>
+        `;
+
+        caseModule.metricCouncil.textContent = `${fmt(councilMB, 1)} $m`;
+        caseModule.metricSpillover.textContent = `${fmt(spilloverMB, 1)} $m`;
+        caseModule.metricQuantity.textContent = `${fmt(step.q * 100, 0)} sites`;
+        caseModule.metricGap.textContent = `${step.q >= qStar - 0.1 ? 'At benchmark' : `${fmt((qStar - step.q) * 100, 0)} sites short`}`;
+        caseModule.metricNote.textContent = caseModule.state.stepIndex === caseSteps.length - 1
+          ? `The final step intentionally lands at Q* ≈ ${fmt(qStar * 100, 0)} sites. Using the average program cost, this is the stylized efficient benchmark for the 1,600-site remediation scale.`
+          : `At this step, local-council willingness to pay alone is too small to justify the full benchmark. The missing spillover benefits from households, farms, emergency services and governments explain why higher-level coordination can raise provision.`;
+
+        renderCaseCharts();
+      }
+
+      document.getElementById('casePlay').addEventListener('click', () => {
+        if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+        caseModule.state.stepIndex = 0;
+        renderCaseStepButtons();
+        renderCase();
+        caseModule.state.timer = setInterval(() => {
+          caseModule.state.stepIndex += 1;
+          if (caseModule.state.stepIndex >= caseSteps.length) {
+            clearInterval(caseModule.state.timer);
+            caseModule.state.timer = null;
+            caseModule.state.stepIndex = caseSteps.length - 1;
+          }
+          renderCaseStepButtons();
+          renderCase();
+        }, 1800);
+      });
+
+      document.getElementById('caseReset').addEventListener('click', () => {
+        if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+        caseModule.state.timer = null;
+        caseModule.state.stepIndex = 0;
+        renderCaseStepButtons();
+        renderCase();
+      });
+
+      const moduleTabs = Array.from(document.querySelectorAll('.module-tab'));
+      const moduleSections = Array.from(document.querySelectorAll('.module-section'));
+      moduleTabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          moduleTabs.forEach((item) => item.classList.toggle('active', item === tab));
+          moduleSections.forEach((section) => section.classList.toggle('active', section.id === tab.dataset.target));
+          if (tab.dataset.target === 'exploreSection') renderExplore();
+          if (tab.dataset.target === 'practiceSection') renderPractice();
+          if (tab.dataset.target === 'caseSection') renderCase();
+        });
+      });
+
+      renderPracticeScenarioBank();
+      resetPracticeGuess();
+      resetExplore();
+      renderPractice();
+      renderCaseStepButtons();
+      renderCase();
+    })();
+  </script>
+</body>
+</html>
