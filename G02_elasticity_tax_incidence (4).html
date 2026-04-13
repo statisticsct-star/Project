@@ -1,0 +1,2297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G02_elasticity_tax_incidence</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .module-tab {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .module-tab:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+
+    .module-tab.active {
+      background: #eef4ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+
+    .module-section {
+      display: none;
+    }
+
+    .module-section.active {
+      display: block;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.85fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .graph-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.3;
+    }
+
+    .legend-line {
+      width: 28px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+
+    .legend-line.demand {
+      border-color: var(--color-demand);
+    }
+
+    .legend-line.supply {
+      border-color: var(--color-supply);
+    }
+
+    .legend-line.baseline {
+      border-color: var(--color-baseline);
+      border-top-style: dashed;
+      border-top-width: 2px;
+    }
+
+    .legend-line.policy {
+      border-color: var(--color-government);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+
+    .legend-line.guess {
+      border-color: var(--color-guess);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+
+    .legend-fill {
+      width: 18px;
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid rgba(31, 41, 55, 0.14);
+      display: inline-block;
+    }
+
+    .legend-fill.buyer-tax {
+      background: var(--fill-buyer-tax);
+    }
+
+    .legend-fill.seller-tax {
+      background: var(--fill-seller-tax);
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--color-text);
+      background: white;
+      display: inline-block;
+    }
+
+    .legend-dot.current {
+      background: var(--color-text);
+      border-color: var(--color-text);
+    }
+
+    .legend-dot.baseline {
+      border-color: var(--color-baseline);
+    }
+
+    .small-muted {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.5;
+    }
+
+    .tight-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+
+    .control-group.compact {
+      min-width: 150px;
+    }
+
+    .pill-row,
+    .case-controls,
+    .timeline-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .preset-btn,
+    .timeline-btn,
+    .mini-chip {
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .preset-btn:hover,
+    .timeline-btn:hover,
+    .mini-chip:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+
+    .preset-btn.active,
+    .timeline-btn.active,
+    .mini-chip.active {
+      background: #eef4ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+
+    .mini-chip.static {
+      cursor: default;
+    }
+
+    .value-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #f6f8fb;
+      border: 1px solid var(--color-frame);
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+
+    .metric-item.emphasis {
+      border-left: 3px solid var(--color-government);
+    }
+
+    .metric-label strong {
+      color: var(--color-text);
+    }
+
+    .status-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .info-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .info-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--color-text);
+    }
+
+    .info-card strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .practice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 12px;
+    }
+
+    .answer-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      padding: 10px 12px;
+    }
+
+    .answer-card label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--color-text);
+      line-height: 1.35;
+    }
+
+    .answer-card select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      font-size: 13px;
+      color: var(--color-text);
+      font-family: var(--font-family-base);
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+      border-bottom: 1px solid #e8edf4;
+      padding: 8px 6px;
+      text-align: left;
+      vertical-align: top;
+      line-height: 1.4;
+    }
+
+    .comparison-table th {
+      color: var(--color-muted);
+      font-weight: 600;
+      background: #fbfcfe;
+    }
+
+    .answer-correct {
+      color: var(--color-government);
+      font-weight: 700;
+    }
+
+    .answer-incorrect {
+      color: var(--color-supply);
+      font-weight: 700;
+    }
+
+    .answer-pending {
+      color: var(--color-muted);
+      font-weight: 600;
+    }
+
+    .case-step-list {
+      display: grid;
+      gap: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .case-step {
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      background: white;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .case-step:hover {
+      transform: translateY(-1px);
+      background: #fbfcff;
+      border-color: #90a6c4;
+    }
+
+    .case-step.active {
+      border-color: var(--color-demand);
+      background: #f5f8ff;
+    }
+
+    .case-step-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--color-text);
+      line-height: 1.35;
+    }
+
+    .case-step-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.4;
+    }
+
+    .series-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .chart-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      background: white;
+      padding: 12px;
+    }
+
+    .chart-card canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+
+    .chart-note {
+      font-size: 11px;
+      color: var(--color-muted);
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+
+    .sources-list {
+      display: grid;
+      gap: 6px;
+      padding-left: 16px;
+      margin: 0;
+      font-size: 12px;
+      color: var(--color-text);
+      line-height: 1.45;
+    }
+
+    .note-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .note-strip .mini-chip {
+      cursor: default;
+    }
+
+    .inline-kpi {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .inline-kpi .metric-item {
+      padding: 8px 10px;
+    }
+
+    .case-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .case-table th,
+    .case-table td {
+      border-bottom: 1px solid #e8edf4;
+      padding: 8px 6px;
+      vertical-align: top;
+      text-align: left;
+      line-height: 1.4;
+    }
+
+    .case-table th {
+      color: var(--color-muted);
+      font-weight: 600;
+      background: #fbfcfe;
+    }
+
+    .callout-success {
+      border-left: 4px solid var(--color-government);
+    }
+
+    .callout-warning {
+      border-left: 4px solid var(--color-inflation);
+    }
+
+    .callout-neutral {
+      border-left: 4px solid var(--color-baseline);
+    }
+
+    @media (max-width: 1040px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .practice-grid,
+      .inline-kpi {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Elasticity, tax incidence, pass-through, and responsiveness to shocks</h1>
+        <p class="diagram-subtitle">
+          Graph G02 rotates demand and supply around a fixed benchmark equilibrium so students can isolate how elasticity changes the split of a tax or cost shock, the pass-through into price, and the responsiveness of quantity. The case-study tab then connects the same logic to the OPEC oil market over 1970–1985, using annual price and production data.
+        </p>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreModule">Explore and measure</button>
+        <button class="module-tab" data-target="practiceModule">Practice and check</button>
+        <button class="module-tab" data-target="caseModule">Real-world case study</button>
+      </div>
+
+      <section id="exploreModule" class="module-section active">
+        <div class="control-panel">
+          <div class="control-group compact">
+            <label>Demand preset</label>
+            <div class="pill-row" id="exploreDemandPresets"></div>
+          </div>
+          <div class="control-group compact">
+            <label>Supply preset</label>
+            <div class="pill-row" id="exploreSupplyPresets"></div>
+          </div>
+          <div class="control-group compact">
+            <label for="exploreShockType">Shock type</label>
+            <select id="exploreShockType">
+              <option value="tax">Per-unit tax on sellers</option>
+              <option value="cost">Producer cost shock</option>
+              <option value="demand">Demand increase</option>
+            </select>
+          </div>
+          <div class="control-group compact">
+            <label for="exploreShockMag">Shock magnitude <span class="small-muted" id="exploreShockLabel"></span></label>
+            <input id="exploreShockMag" type="range" min="0" max="6" step="0.25" value="3" />
+          </div>
+          <div class="control-group compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="exploreReset">Reset</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line baseline"></span><span>Benchmark curves through E₀</span></span>
+                <span class="legend-item"><span class="legend-line demand"></span><span>Current demand</span></span>
+                <span class="legend-item"><span class="legend-line supply"></span><span>Current supply</span></span>
+                <span class="legend-item"><span class="legend-line policy"></span><span>Shock-adjusted curve or wedge</span></span>
+                <span class="legend-item"><span class="legend-fill buyer-tax"></span><span>Buyer tax burden</span></span>
+                <span class="legend-item"><span class="legend-fill seller-tax"></span><span>Seller tax burden</span></span>
+                <span class="legend-item"><span class="legend-dot baseline"></span><span>Benchmark equilibrium E₀</span></span>
+                <span class="legend-item"><span class="legend-dot current"></span><span>New equilibrium E₁</span></span>
+              </div>
+              <div class="small-muted">
+                Drag the blue demand handle or red supply handle vertically to rotate the curves around the benchmark equilibrium. At the common benchmark equilibrium E₀, a flatter line implies a larger elasticity and a steeper line implies a smaller elasticity. Along any straight-line demand curve, however, elasticity still changes from elastic in the upper region to inelastic in the lower region, with unit elasticity at the midpoint. Light-gray benchmark curves are shown only when they differ from the current curves, so the benchmark case stays uncluttered.
+              </div>
+            </div>
+            <div class="feedback-panel feedback-neutral" id="exploreFeedback"></div>
+          </div>
+
+          <div class="stack">
+            <div class="metrics-panel">
+              <div class="metric-grid" id="exploreMetrics"></div>
+            </div>
+
+            <div class="notes-panel" id="exploreInterpretation"></div>
+
+            <div class="notes-panel">
+              <div class="status-title">How to read this graph</div>
+              <div class="info-list">
+                <div class="info-card"><strong>Tax incidence</strong> In a tax case, the orange buyer block and purple seller block show how the burden is split. The more inelastic side bears more.</div>
+                <div class="info-card"><strong>Pass-through</strong> Buyer pass-through equals the fraction of the cost shock that shows up in the buyer price.</div>
+                <div class="info-card"><strong>Quantity response</strong> At a common benchmark equilibrium, flatter curves allow larger quantity adjustment. Steeper curves push more of the adjustment into price.</div>
+                <div class="info-card"><strong>Linear-demand reminder</strong> On a straight-line demand curve, the upper part is elastic, the midpoint is unit elastic, and the lower part is inelastic. This graph compares point elasticities at E₀.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceModule" class="module-section">
+        <div class="control-panel">
+          <div class="control-group compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceRandom">Random tax scenario</button>
+          </div>
+          <div class="control-group compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceReset">Reset answers</button>
+          </div>
+          <div class="control-group compact">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="practiceCheck">Check answer</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line baseline"></span><span>Benchmark curves through E₀</span></span>
+                <span class="legend-item"><span class="legend-line demand"></span><span>Scenario demand</span></span>
+                <span class="legend-item"><span class="legend-line supply"></span><span>Scenario supply</span></span>
+                <span class="legend-item"><span class="legend-line policy"></span><span>Tax-inclusive supply</span></span>
+                <span class="legend-item"><span class="legend-fill buyer-tax"></span><span>Buyer tax burden</span></span>
+                <span class="legend-item"><span class="legend-fill seller-tax"></span><span>Seller tax burden</span></span>
+              </div>
+              <div class="small-muted">Read the visible graph and answer the four interpretation questions. The check button reveals exact tax shares, the buyer and seller burden blocks, and the quantity effect.</div>
+            </div>
+            <div class="feedback-panel feedback-neutral" id="practiceFeedback"></div>
+          </div>
+
+          <div class="stack">
+            <div class="notes-panel" id="practiceScenarioCard"></div>
+
+            <div class="metrics-panel">
+              <div class="practice-grid">
+                <div class="answer-card">
+                  <label for="answerElastic">Which side is more elastic at E₀?</label>
+                  <select id="answerElastic">
+                    <option value="">Choose</option>
+                    <option value="demand">Demand</option>
+                    <option value="supply">Supply</option>
+                    <option value="same">About the same</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="answerBurden">Who bears more of the tax burden?</label>
+                  <select id="answerBurden">
+                    <option value="">Choose</option>
+                    <option value="buyers">Buyers</option>
+                    <option value="sellers">Sellers</option>
+                    <option value="even">About evenly</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="answerPass">Buyer pass-through of the tax</label>
+                  <select id="answerPass">
+                    <option value="">Choose</option>
+                    <option value="high">High (&gt; 66%)</option>
+                    <option value="mixed">Mixed (34%–66%)</option>
+                    <option value="low">Low (&lt; 34%)</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="answerQuantity">Quantity response to the tax</label>
+                  <select id="answerQuantity">
+                    <option value="">Choose</option>
+                    <option value="large">Large</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="small">Small</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="notes-panel">
+              <div class="status-title">Answer check table</div>
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Question</th>
+                    <th>Your answer</th>
+                    <th>Correct answer</th>
+                  </tr>
+                </thead>
+                <tbody id="practiceTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseModule" class="module-section">
+        <div class="control-panel">
+          <div class="control-group compact">
+            <label for="caseSelect">Case study</label>
+            <select id="caseSelect">
+              <option value="opec">OPEC and long-run oil price control, 1970–1985</option>
+            </select>
+          </div>
+          <div class="control-group compact">
+            <label>&nbsp;</label>
+            <div class="case-controls">
+              <button class="btn-secondary" id="casePrev">Previous step</button>
+              <button class="btn-secondary" id="caseNext">Next step</button>
+              <button class="btn-secondary" id="casePlay">Play steps</button>
+              <button class="btn-secondary" id="caseReset">Reset case</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line baseline"></span><span>Case starting point</span></span>
+                <span class="legend-item"><span class="legend-line demand"></span><span>Current demand</span></span>
+                <span class="legend-item"><span class="legend-line supply"></span><span>Current supply</span></span>
+                <span class="legend-item"><span class="legend-line policy"></span><span>Current shock curve</span></span>
+              </div>
+              <div class="small-muted">These are stylized structural diagrams calibrated to official annual 1970–1985 price and production anchors. The highlighted band in each chart marks the active step. The lesson is that cartel restriction works much better when short-run demand and rival supply are inelastic than when both have become more elastic over time.</div>
+            </div>
+            <div class="notes-panel">
+              <div class="status-title">Case data charts</div>
+              <div class="series-grid" id="caseChartGrid">
+                <div class="chart-card">
+                  <canvas id="caseChartA" width="420" height="240"></canvas>
+                  <div class="chart-note" id="caseChartANote"></div>
+                </div>
+                <div class="chart-card">
+                  <canvas id="caseChartB" width="420" height="240"></canvas>
+                  <div class="chart-note" id="caseChartBNote"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="notes-panel" id="caseSummary"></div>
+
+            <div class="notes-panel">
+              <div class="status-title">Step timeline</div>
+              <div class="case-step-list" id="caseStepList"></div>
+            </div>
+
+            <div class="notes-panel">
+              <div class="status-title">Real-world anchor facts used in this case</div>
+              <table class="case-table">
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                    <th>Source family</th>
+                  </tr>
+                </thead>
+                <tbody id="caseFactTable"></tbody>
+              </table>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="caseSources"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const MODEL = {
+      qMin: 0,
+      qMax: 18,
+      pMin: 0,
+      pMax: 24,
+      q0: 9,
+      p0: 12,
+      baselineAlpha: 1,
+      baselineBeta: 1,
+      demandHandleQ: 5,
+      supplyHandleQ: 13,
+      minSlope: 0.35,
+      maxSlope: 3.0
+    };
+
+    const PRESETS = [
+      {
+            "id": "more_elastic",
+            "label": "More elastic at E₀",
+            "slope": 0.45
+      },
+      {
+            "id": "benchmark",
+            "label": "Benchmark",
+            "slope": 1.0
+      },
+      {
+            "id": "less_elastic",
+            "label": "Less elastic at E₀",
+            "slope": 3.0
+      }
+];
+
+
+    const CASES = {
+      "opec": {
+            "title": "OPEC failed to keep the oil price high in the long run",
+            "intro": "This case study focuses on one core lesson: short-run oil demand and rival supply were relatively inelastic, so OPEC could raise price and revenue for a while by restricting output. Over time, however, conservation, fuel switching, and expanding non-OPEC production made both demand and supply more elastic, so restricting output no longer protected revenue in the same way.",
+            "chartA": {
+                  "title": "Imported crude oil acquisition cost, annual $/barrel, 1970–1985",
+                  "note": "Official EIA annual imported-crude refiner acquisition cost series. The light band marks the active structural step.",
+                  "points": [
+                        {
+                              "x": 1970,
+                              "y": 2.96
+                        },
+                        {
+                              "x": 1971,
+                              "y": 3.17
+                        },
+                        {
+                              "x": 1972,
+                              "y": 3.22
+                        },
+                        {
+                              "x": 1973,
+                              "y": 4.08
+                        },
+                        {
+                              "x": 1974,
+                              "y": 12.52
+                        },
+                        {
+                              "x": 1975,
+                              "y": 13.93
+                        },
+                        {
+                              "x": 1976,
+                              "y": 13.48
+                        },
+                        {
+                              "x": 1977,
+                              "y": 14.53
+                        },
+                        {
+                              "x": 1978,
+                              "y": 14.57
+                        },
+                        {
+                              "x": 1979,
+                              "y": 21.67
+                        },
+                        {
+                              "x": 1980,
+                              "y": 33.89
+                        },
+                        {
+                              "x": 1981,
+                              "y": 37.05
+                        },
+                        {
+                              "x": 1982,
+                              "y": 33.55
+                        },
+                        {
+                              "x": 1983,
+                              "y": 29.3
+                        },
+                        {
+                              "x": 1984,
+                              "y": 28.88
+                        },
+                        {
+                              "x": 1985,
+                              "y": 26.99
+                        }
+                  ]
+            },
+            "chartB": {
+                  "title": "Crude oil production, annual mb/d, 1970–1985",
+                  "note": "Official annual crude oil production anchors. OPEC output falls sharply in the early 1980s while non-OPEC production keeps rising.",
+                  "series": [
+                        {
+                              "label": "OPEC",
+                              "color": "#D84A3A",
+                              "points": [
+                                    {
+                                          "x": 1970,
+                                          "y": 22.56
+                                    },
+                                    {
+                                          "x": 1971,
+                                          "y": 24.41
+                                    },
+                                    {
+                                          "x": 1972,
+                                          "y": 26.03
+                                    },
+                                    {
+                                          "x": 1973,
+                                          "y": 29.66
+                                    },
+                                    {
+                                          "x": 1974,
+                                          "y": 29.32
+                                    },
+                                    {
+                                          "x": 1975,
+                                          "y": 25.79
+                                    },
+                                    {
+                                          "x": 1976,
+                                          "y": 29.12
+                                    },
+                                    {
+                                          "x": 1977,
+                                          "y": 29.58
+                                    },
+                                    {
+                                          "x": 1978,
+                                          "y": 28.16
+                                    },
+                                    {
+                                          "x": 1979,
+                                          "y": 29.35
+                                    },
+                                    {
+                                          "x": 1980,
+                                          "y": 25.38
+                                    },
+                                    {
+                                          "x": 1981,
+                                          "y": 21.22
+                                    },
+                                    {
+                                          "x": 1982,
+                                          "y": 17.77
+                                    },
+                                    {
+                                          "x": 1983,
+                                          "y": 16.57
+                                    },
+                                    {
+                                          "x": 1984,
+                                          "y": 16.5
+                                    },
+                                    {
+                                          "x": 1985,
+                                          "y": 15.37
+                                    }
+                              ]
+                        },
+                        {
+                              "label": "Non-OPEC",
+                              "color": "#2E8B57",
+                              "points": [
+                                    {
+                                          "x": 1970,
+                                          "y": 23.32
+                                    },
+                                    {
+                                          "x": 1971,
+                                          "y": 24.1
+                                    },
+                                    {
+                                          "x": 1972,
+                                          "y": 25.11
+                                    },
+                                    {
+                                          "x": 1973,
+                                          "y": 26.02
+                                    },
+                                    {
+                                          "x": 1974,
+                                          "y": 26.39
+                                    },
+                                    {
+                                          "x": 1975,
+                                          "y": 27.04
+                                    },
+                                    {
+                                          "x": 1976,
+                                          "y": 28.23
+                                    },
+                                    {
+                                          "x": 1977,
+                                          "y": 30.12
+                                    },
+                                    {
+                                          "x": 1978,
+                                          "y": 32.0
+                                    },
+                                    {
+                                          "x": 1979,
+                                          "y": 33.32
+                                    },
+                                    {
+                                          "x": 1980,
+                                          "y": 34.17
+                                    },
+                                    {
+                                          "x": 1981,
+                                          "y": 34.83
+                                    },
+                                    {
+                                          "x": 1982,
+                                          "y": 35.68
+                                    },
+                                    {
+                                          "x": 1983,
+                                          "y": 36.69
+                                    },
+                                    {
+                                          "x": 1984,
+                                          "y": 38.0
+                                    },
+                                    {
+                                          "x": 1985,
+                                          "y": 38.6
+                                    }
+                              ]
+                        }
+                  ]
+            },
+            "facts": [
+                  [
+                        "Imported crude acquisition cost, 1970",
+                        "$2.96 per barrel",
+                        "EIA Annual Energy Review 2011, Table 5.21"
+                  ],
+                  [
+                        "Imported crude acquisition cost, 1980",
+                        "$33.89 per barrel",
+                        "EIA Annual Energy Review 2011, Table 5.21"
+                  ],
+                  [
+                        "Imported crude acquisition cost, 1985",
+                        "$26.99 per barrel",
+                        "EIA Annual Energy Review 2011, Table 5.21"
+                  ],
+                  [
+                        "Total OPEC crude production, 1970 to 1985",
+                        "22.56 to 15.37 mb/d",
+                        "EIA table of world crude oil production by country"
+                  ],
+                  [
+                        "Total non-OPEC crude production, 1970 to 1985",
+                        "23.32 to 38.60 mb/d",
+                        "Same EIA production table"
+                  ],
+                  [
+                        "Saudi crude production, 1980 to 1985",
+                        "9.90 to 3.39 mb/d",
+                        "Same EIA production table"
+                  ],
+                  [
+                        "EIA demand-side reading in 1985",
+                        "continued substitution of other fuels for oil offset the effect of lower real oil prices",
+                        "EIA Short-Term Energy Outlook, 4Q 1985"
+                  ],
+                  [
+                        "EIA supply-side reading in 1985",
+                        "non-OPEC production expected to increase by about 700,000 b/d in 1985",
+                        "EIA Short-Term Energy Outlook, 4Q 1985"
+                  ]
+            ],
+            "sources": [
+                  "U.S. Energy Information Administration (EIA), Annual Energy Review 2011, Table 5.21 for annual imported crude acquisition costs.",
+                  "EIA Table 11.5, World Crude Oil Production, for annual OPEC, Saudi, and non-OPEC production anchors.",
+                  "EIA Short-Term Energy Outlook, 4Q 1985, for the narrative that fuel substitution reduced oil demand while non-OPEC production continued to expand."
+            ],
+            "steps": [
+                  {
+                        "title": "1970–1972: baseline before the big price shocks",
+                        "policyFocus": "Short-run starting structure",
+                        "range": [
+                              1970,
+                              1972
+                        ],
+                        "note": "Oil was cheap and OPEC output was still rising. The structural teaching point is that short-run demand and rival supply were fairly steep, so a future restriction would have substantial leverage over price.",
+                        "alpha": 2.1,
+                        "beta": 1.9,
+                        "shockType": "supply",
+                        "shockMag": 0.0,
+                        "callout": "This starting point gives OPEC a market in which a supply cut can move price a lot because buyers and rival suppliers cannot adjust quickly.",
+                        "realWorld": "Imported crude acquisition cost stayed near $3 per barrel while total OPEC crude production rose from 22.56 to 26.03 mb/d between 1970 and 1972."
+                  },
+                  {
+                        "title": "1973–1974: short-run restriction sends price sharply higher",
+                        "policyFocus": "Supply restriction with steep short-run curves",
+                        "range": [
+                              1973,
+                              1974
+                        ],
+                        "note": "A leftward supply shift hits a market with inelastic short-run demand and limited outside-supply response, so price jumps far more than quantity falls.",
+                        "alpha": 2.4,
+                        "beta": 2.0,
+                        "shockType": "supply",
+                        "shockMag": 5.5,
+                        "callout": "When both sides are steep, a cartel can raise price and revenue with only a modest loss of quantity.",
+                        "realWorld": "Imported crude acquisition cost rose from $4.08 in 1973 to $12.52 in 1974 while total OPEC production only slipped from 29.66 to 29.32 mb/d."
+                  },
+                  {
+                        "title": "1979–1980: a second spike again raises revenue in the short run",
+                        "policyFocus": "Another short-run supply squeeze",
+                        "range": [
+                              1979,
+                              1980
+                        ],
+                        "note": "The late-1970s disruption again hits a market that is still short-run inelastic, so price surges and OPEC revenue rises even though output falls.",
+                        "alpha": 2.7,
+                        "beta": 2.2,
+                        "shockType": "supply",
+                        "shockMag": 6.25,
+                        "callout": "This is the classic case where restricting quantity can still increase cartel revenue because demand has not yet become very elastic.",
+                        "realWorld": "Imported crude acquisition cost jumped from $21.67 in 1979 to $33.89 in 1980 while total OPEC production fell from 29.35 to 25.38 mb/d."
+                  },
+                  {
+                        "title": "1981–1985: long-run adjustment flattens demand and rival supply",
+                        "policyFocus": "Restriction loses power in the long run",
+                        "range": [
+                              1981,
+                              1985
+                        ],
+                        "note": "Conservation, fuel switching, and new non-OPEC production make both demand and rival supply more elastic. A restriction now loses too much quantity and market share to keep revenue rising.",
+                        "alpha": 0.8,
+                        "beta": 0.7,
+                        "shockType": "supply",
+                        "shockMag": 5.5,
+                        "callout": "Once both sides are flatter, the same restrictive strategy causes a large quantity loss and much weaker revenue performance.",
+                        "realWorld": "From 1980 to 1985 imported crude acquisition cost eased from $33.89 to $26.99, total OPEC production fell from 25.38 to 15.37 mb/d, and total non-OPEC production rose from 34.17 to 38.60 mb/d."
+                  }
+            ]
+      }
+};
+
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function fmt(value, digits = 2) {
+      const rounded = Number(value);
+      if (!Number.isFinite(rounded)) return '—';
+      return rounded.toFixed(digits).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
+    }
+
+    function makeTicks(min, max, step, axis) {
+      const ticks = [];
+      for (let value = min; value <= max + 1e-9; value += step) {
+        ticks.push({
+          label: fmt(value, 0),
+          x: axis === 'x' ? EconDraw.valueToX(value, min, max) : undefined,
+          y: axis === 'y' ? EconDraw.valueToY(value, min, max) : undefined
+        });
+      }
+      return ticks;
+    }
+
+    function demandPrice(q, alpha, demandShift = 0) {
+      return MODEL.p0 - alpha * (q - MODEL.q0) + demandShift;
+    }
+
+    function supplyPrice(q, beta, supplyShift = 0) {
+      return MODEL.p0 + beta * (q - MODEL.q0) + supplyShift;
+    }
+
+    function elasticityMagnitude(slope) {
+      return MODEL.p0 / (MODEL.q0 * slope);
+    }
+
+    function moreElasticSide(alpha, beta) {
+      if (Math.abs(alpha - beta) < 0.08) return 'same';
+      return alpha < beta ? 'demand' : 'supply';
+    }
+
+    function quantityClass(absChange) {
+      if (absChange >= 2.5) return 'large';
+      if (absChange >= 1.2) return 'moderate';
+      return 'small';
+    }
+
+    function passThroughClass(share) {
+      if (share > 0.66) return 'high';
+      if (share < 0.34) return 'low';
+      return 'mixed';
+    }
+
+    function computeOutcome(alpha, beta, shockType, shockMag) {
+      const result = {
+        alpha,
+        beta,
+        shockType,
+        shockMag,
+        q1: MODEL.q0,
+        p1: MODEL.p0,
+        buyerPrice: MODEL.p0,
+        sellerPrice: MODEL.p0,
+        demandShift: 0,
+        supplyShift: 0,
+        buyerShare: 0.5,
+        sellerShare: 0.5,
+        quantityChange: 0,
+        priceChange: 0,
+        moreElastic: moreElasticSide(alpha, beta),
+        baselineRevenue: MODEL.p0 * MODEL.q0,
+        buyerSpend0: MODEL.p0 * MODEL.q0,
+        sellerRevenue0: MODEL.p0 * MODEL.q0,
+        buyerSpend1: MODEL.p0 * MODEL.q0,
+        sellerRevenue1: MODEL.p0 * MODEL.q0,
+        revenueChange: 0
+      };
+
+      if (shockType === 'tax' || shockType === 'cost') {
+        result.supplyShift = shockMag;
+        result.q1 = MODEL.q0 - shockMag / (alpha + beta);
+        result.buyerPrice = MODEL.p0 + alpha * shockMag / (alpha + beta);
+        result.sellerPrice = MODEL.p0 - beta * shockMag / (alpha + beta);
+        result.p1 = result.buyerPrice;
+        result.buyerShare = (alpha + beta === 0) ? 0.5 : alpha / (alpha + beta);
+        result.sellerShare = (alpha + beta === 0) ? 0.5 : beta / (alpha + beta);
+        result.quantityChange = result.q1 - MODEL.q0;
+        result.priceChange = result.buyerPrice - MODEL.p0;
+      } else if (shockType === 'demand') {
+        result.demandShift = shockMag;
+        result.q1 = MODEL.q0 + shockMag / (alpha + beta);
+        result.p1 = MODEL.p0 + beta * shockMag / (alpha + beta);
+        result.buyerPrice = result.p1;
+        result.sellerPrice = result.p1;
+        result.buyerShare = (alpha + beta === 0) ? 0.5 : beta / (alpha + beta);
+        result.sellerShare = (alpha + beta === 0) ? 0.5 : alpha / (alpha + beta);
+        result.quantityChange = result.q1 - MODEL.q0;
+        result.priceChange = result.p1 - MODEL.p0;
+      } else if (shockType === 'supply') {
+        result.supplyShift = shockMag;
+        result.q1 = MODEL.q0 - shockMag / (alpha + beta);
+        result.p1 = MODEL.p0 + alpha * shockMag / (alpha + beta);
+        result.buyerPrice = result.p1;
+        result.sellerPrice = result.p1;
+        result.buyerShare = (alpha + beta === 0) ? 0.5 : alpha / (alpha + beta);
+        result.sellerShare = (alpha + beta === 0) ? 0.5 : beta / (alpha + beta);
+        result.quantityChange = result.q1 - MODEL.q0;
+        result.priceChange = result.p1 - MODEL.p0;
+      }
+
+      result.q1 = clamp(result.q1, MODEL.qMin, MODEL.qMax);
+      result.buyerSpend1 = result.buyerPrice * result.q1;
+      result.sellerRevenue1 = result.sellerPrice * result.q1;
+      result.revenueChange = result.sellerRevenue1 - result.sellerRevenue0;
+      return result;
+    }
+
+    function pathPoints(fn) {
+      const points = [];
+      for (let q = MODEL.qMin; q <= MODEL.qMax + 1e-9; q += 0.1) {
+        points.push({
+          x: EconDraw.valueToX(q, MODEL.qMin, MODEL.qMax),
+          y: EconDraw.valueToY(fn(q), MODEL.pMin, MODEL.pMax)
+        });
+      }
+      return points;
+    }
+
+    function clipToPlot(ctx) {
+      const plot = EconDraw.getPlotArea();
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(plot.left, plot.top, plot.width, plot.height);
+      ctx.clip();
+    }
+
+    function restoreClip(ctx) {
+      ctx.restore();
+    }
+
+    function drawGuides(ctx, q, prices, quantityLabel, priceLabels) {
+      const x = EconDraw.valueToX(q, MODEL.qMin, MODEL.qMax);
+      ctx.save();
+      ctx.strokeStyle = ECON_THEME.color.longRun;
+      ctx.globalAlpha = 0.45;
+      ctx.setLineDash(ECON_THEME.dash.guide);
+      ctx.lineWidth = 1.4;
+
+      const plot = EconDraw.getPlotArea();
+      ctx.beginPath();
+      ctx.moveTo(x, plot.bottom);
+      ctx.lineTo(x, plot.top);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      EconDraw.drawText(ctx, quantityLabel, x, plot.bottom + 18, {
+        align: 'center',
+        size: 12,
+        color: ECON_THEME.color.muted
+      });
+
+      prices.forEach((price, index) => {
+        const y = EconDraw.valueToY(price, MODEL.pMin, MODEL.pMax);
+        ctx.setLineDash(ECON_THEME.dash.guide);
+        ctx.beginPath();
+        ctx.moveTo(plot.left, y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        EconDraw.drawText(ctx, priceLabels[index], plot.left - 12, y, {
+          align: 'right',
+          baseline: 'middle',
+          size: 12,
+          color: ECON_THEME.color.muted
+        });
+      });
+
+      ctx.restore();
+    }
+
+    function drawWedge(ctx, q, buyerPrice, sellerPrice, label) {
+      const x = EconDraw.valueToX(q, MODEL.qMin, MODEL.qMax);
+      const yBuyer = EconDraw.valueToY(buyerPrice, MODEL.pMin, MODEL.pMax);
+      const ySeller = EconDraw.valueToY(sellerPrice, MODEL.pMin, MODEL.pMax);
+      ctx.save();
+      ctx.strokeStyle = ECON_THEME.color.government;
+      ctx.setLineDash(ECON_THEME.dash.policy);
+      ctx.lineWidth = ECON_THEME.line.policy;
+      ctx.beginPath();
+      ctx.moveTo(x + 12, yBuyer);
+      ctx.lineTo(x + 12, ySeller);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      EconDraw.drawText(ctx, label, x + 22, (yBuyer + ySeller) / 2 - 3, {
+        size: 12,
+        color: ECON_THEME.color.government,
+        weight: '600'
+      });
+      ctx.restore();
+    }
+
+    function drawHandle(ctx, x, y, color, label) {
+      EconDraw.drawCircle(ctx, x, y, {
+        radius: ECON_THEME.radius.handle,
+        fill: '#ffffff',
+        stroke: color,
+        lineWidth: ECON_THEME.line.handleStroke
+      });
+      EconDraw.drawText(ctx, label, x + 10, y - 10, {
+        size: 12,
+        color,
+        weight: '600'
+      });
+    }
+
+    function shouldDrawBaselineCurve(currentSlope, baselineSlope) {
+      return Math.abs(currentSlope - baselineSlope) >= 0.06;
+    }
+
+    function drawTaxBurdenBlocks(ctx, q, baselinePrice, buyerPrice, sellerPrice) {
+      if (q <= MODEL.qMin + 1e-6) return;
+      const x0 = EconDraw.valueToX(MODEL.qMin, MODEL.qMin, MODEL.qMax);
+      const x1 = EconDraw.valueToX(q, MODEL.qMin, MODEL.qMax);
+
+      function labelBlock(text, yTop, yBottom) {
+        const midY = (yTop + yBottom) / 2;
+        const blockHeight = Math.abs(yBottom - yTop);
+        const inside = blockHeight >= 18 && (x1 - x0) >= 90;
+        EconDraw.drawText(ctx, text, inside ? x0 + (x1 - x0) * 0.52 : x1 + 12, midY, {
+          align: inside ? 'center' : 'left',
+          baseline: 'middle',
+          size: 12,
+          color: ECON_THEME.color.text,
+          weight: '600'
+        });
+      }
+
+      if (buyerPrice > baselinePrice + 0.03) {
+        const yTop = EconDraw.valueToY(buyerPrice, MODEL.pMin, MODEL.pMax);
+        const yBottom = EconDraw.valueToY(baselinePrice, MODEL.pMin, MODEL.pMax);
+        EconDraw.fillPolygon(ctx, [
+          { x: x0, y: yTop },
+          { x: x1, y: yTop },
+          { x: x1, y: yBottom },
+          { x: x0, y: yBottom }
+        ], {
+          fill: ECON_THEME.color.buyerTaxFill
+        });
+        labelBlock('buyers', yTop, yBottom);
+      }
+
+      if (baselinePrice > sellerPrice + 0.03) {
+        const yTop = EconDraw.valueToY(baselinePrice, MODEL.pMin, MODEL.pMax);
+        const yBottom = EconDraw.valueToY(sellerPrice, MODEL.pMin, MODEL.pMax);
+        EconDraw.fillPolygon(ctx, [
+          { x: x0, y: yTop },
+          { x: x1, y: yTop },
+          { x: x1, y: yBottom },
+          { x: x0, y: yBottom }
+        ], {
+          fill: ECON_THEME.color.sellerTaxFill
+        });
+        labelBlock('sellers', yTop, yBottom);
+      }
+    }
+
+    function drawElasticityGraph(ctx, config) {
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+
+      const xTicks = makeTicks(MODEL.qMin, MODEL.qMax, 3, 'x');
+      const yTicks = makeTicks(MODEL.pMin, MODEL.pMax, 4, 'y');
+      EconDraw.drawAxes(ctx, {
+        xLabel: 'Quantity',
+        yLabel: 'Price',
+        xTicks,
+        yTicks,
+        theme: ECON_THEME
+      });
+
+      const baselineAlpha = config.baselineAlpha ?? MODEL.baselineAlpha;
+      const baselineBeta = config.baselineBeta ?? MODEL.baselineBeta;
+      const outcome = computeOutcome(config.alpha, config.beta, config.shockType, config.shockMag);
+
+      const baselineDemand = pathPoints((q) => demandPrice(q, baselineAlpha, 0));
+      const baselineSupply = pathPoints((q) => supplyPrice(q, baselineBeta, 0));
+      const currentDemand = pathPoints((q) => demandPrice(q, config.alpha, 0));
+      const currentSupply = pathPoints((q) => supplyPrice(q, config.beta, 0));
+      const shiftedDemand = pathPoints((q) => demandPrice(q, config.alpha, outcome.demandShift));
+      const shiftedSupply = pathPoints((q) => supplyPrice(q, config.beta, outcome.supplyShift));
+      const showBaselineDemand = config.showBaseline !== false && shouldDrawBaselineCurve(config.alpha, baselineAlpha);
+      const showBaselineSupply = config.showBaseline !== false && shouldDrawBaselineCurve(config.beta, baselineBeta);
+      const hasDemandShift = Math.abs(outcome.demandShift) > 0.04;
+      const hasSupplyShift = Math.abs(outcome.supplyShift) > 0.04;
+
+      clipToPlot(ctx);
+      if (config.showIncidenceBlocks && config.shockType === 'tax') {
+        drawTaxBurdenBlocks(ctx, outcome.q1, MODEL.p0, outcome.buyerPrice, outcome.sellerPrice);
+      }
+      if (showBaselineDemand) {
+        EconDraw.drawLine(ctx, baselineDemand, {
+          color: ECON_THEME.color.baseline,
+          dash: ECON_THEME.dash.baseline,
+          lineWidth: ECON_THEME.line.baseline
+        });
+      }
+      if (showBaselineSupply) {
+        EconDraw.drawLine(ctx, baselineSupply, {
+          color: ECON_THEME.color.baseline,
+          dash: ECON_THEME.dash.baseline,
+          lineWidth: ECON_THEME.line.baseline
+        });
+      }
+
+      EconDraw.drawLine(ctx, currentDemand, {
+        color: ECON_THEME.color.demand,
+        lineWidth: ECON_THEME.line.main
+      });
+      EconDraw.drawLine(ctx, currentSupply, {
+        color: ECON_THEME.color.supply,
+        lineWidth: ECON_THEME.line.main
+      });
+
+      if ((config.shockType === 'tax' || config.shockType === 'cost' || config.shockType === 'supply') && hasSupplyShift) {
+        EconDraw.drawLine(ctx, shiftedSupply, {
+          color: ECON_THEME.color.government,
+          dash: ECON_THEME.dash.policy,
+          lineWidth: ECON_THEME.line.policy
+        });
+      }
+      if (config.shockType === 'demand' && hasDemandShift) {
+        EconDraw.drawLine(ctx, shiftedDemand, {
+          color: ECON_THEME.color.government,
+          dash: ECON_THEME.dash.policy,
+          lineWidth: ECON_THEME.line.policy
+        });
+      }
+      restoreClip(ctx);
+
+      const plot = EconDraw.getPlotArea();
+      const demandLabelY = clamp(EconDraw.valueToY(demandPrice(2, config.alpha, 0), MODEL.pMin, MODEL.pMax), plot.top + 12, plot.bottom - 8);
+      const supplyLabelY = clamp(EconDraw.valueToY(supplyPrice(15.5, config.beta, 0), MODEL.pMin, MODEL.pMax), plot.top + 12, plot.bottom - 8);
+      EconDraw.drawText(ctx, 'D', EconDraw.valueToX(1.3, MODEL.qMin, MODEL.qMax), demandLabelY, {
+        size: 14,
+        color: ECON_THEME.color.demand,
+        weight: '600'
+      });
+      EconDraw.drawText(ctx, 'S', EconDraw.valueToX(15.4, MODEL.qMin, MODEL.qMax), supplyLabelY, {
+        size: 14,
+        color: ECON_THEME.color.supply,
+        weight: '600'
+      });
+      if (showBaselineDemand) {
+        EconDraw.drawText(ctx, 'D₀', EconDraw.valueToX(2.4, MODEL.qMin, MODEL.qMax), clamp(EconDraw.valueToY(demandPrice(2.4, baselineAlpha, 0), MODEL.pMin, MODEL.pMax), plot.top + 12, plot.bottom - 8), {
+          size: 12,
+          color: ECON_THEME.color.baseline,
+          weight: '600'
+        });
+      }
+      if (showBaselineSupply) {
+        EconDraw.drawText(ctx, 'S₀', EconDraw.valueToX(14.4, MODEL.qMin, MODEL.qMax), clamp(EconDraw.valueToY(supplyPrice(14.4, baselineBeta, 0), MODEL.pMin, MODEL.pMax), plot.top + 12, plot.bottom - 8), {
+          size: 12,
+          color: ECON_THEME.color.baseline,
+          weight: '600'
+        });
+      }
+
+      if (config.shockType === 'tax' && hasSupplyShift) {
+        EconDraw.drawText(ctx, 'S + tax', EconDraw.valueToX(15.1, MODEL.qMin, MODEL.qMax), clamp(EconDraw.valueToY(supplyPrice(15.1, config.beta, outcome.supplyShift), MODEL.pMin, MODEL.pMax), plot.top + 12, plot.bottom - 8), {
+          size: 12,
+          color: ECON_THEME.color.government,
+          weight: '600'
+        });
+      } else if (config.shockType === 'cost' && hasSupplyShift) {
+        EconDraw.drawText(ctx, outcome.shockMag >= 0 ? 'S + cost' : 'S − cost', EconDraw.valueToX(14.8, MODEL.qMin, MODEL.qMax), clamp(EconDraw.valueToY(supplyPrice(14.8, config.beta, outcome.supplyShift), MODEL.pMin, MODEL.pMax), plot.top + 12, plot.bottom - 8), {
+          size: 12,
+          color: ECON_THEME.color.government,
+          weight: '600'
+        });
+      } else if (config.shockType === 'supply' && hasSupplyShift) {
+        EconDraw.drawText(ctx, outcome.shockMag >= 0 ? 'S left' : 'S right', EconDraw.valueToX(14.8, MODEL.qMin, MODEL.qMax), clamp(EconDraw.valueToY(supplyPrice(14.8, config.beta, outcome.supplyShift), MODEL.pMin, MODEL.pMax), plot.top + 12, plot.bottom - 8), {
+          size: 12,
+          color: ECON_THEME.color.government,
+          weight: '600'
+        });
+      } else if (config.shockType === 'demand' && hasDemandShift) {
+        EconDraw.drawText(ctx, outcome.shockMag >= 0 ? 'D right' : 'D left', EconDraw.valueToX(2.3, MODEL.qMin, MODEL.qMax), clamp(EconDraw.valueToY(demandPrice(2.3, config.alpha, outcome.demandShift), MODEL.pMin, MODEL.pMax), plot.top + 12, plot.bottom - 8), {
+          size: 12,
+          color: ECON_THEME.color.government,
+          weight: '600'
+        });
+      }
+
+      drawGuides(ctx, MODEL.q0, [MODEL.p0], 'Q₀', ['P₀']);
+      EconDraw.drawCircle(ctx, EconDraw.valueToX(MODEL.q0, MODEL.qMin, MODEL.qMax), EconDraw.valueToY(MODEL.p0, MODEL.pMin, MODEL.pMax), {
+        fill: '#ffffff',
+        stroke: ECON_THEME.color.baseline,
+        lineWidth: 2
+      });
+      EconDraw.drawText(ctx, 'E₀', EconDraw.valueToX(MODEL.q0, MODEL.qMin, MODEL.qMax) + 10, EconDraw.valueToY(MODEL.p0, MODEL.pMin, MODEL.pMax) - 10, {
+        size: 13,
+        color: ECON_THEME.color.baseline,
+        weight: '600'
+      });
+
+      if (config.shockType === 'tax' || config.shockType === 'cost') {
+        drawGuides(ctx, outcome.q1, [outcome.buyerPrice, outcome.sellerPrice], 'Q₁', ['Pᵦ', 'Pₛ']);
+        drawWedge(ctx, outcome.q1, outcome.buyerPrice, outcome.sellerPrice, config.shockType === 'tax' ? 'Tax' : 'Cost');
+        const midPrice = (outcome.buyerPrice + outcome.sellerPrice) / 2;
+        EconDraw.drawCircle(ctx, EconDraw.valueToX(outcome.q1, MODEL.qMin, MODEL.qMax), EconDraw.valueToY(midPrice, MODEL.pMin, MODEL.pMax), {
+          fill: ECON_THEME.color.text,
+          stroke: ECON_THEME.color.text,
+          lineWidth: 1.5
+        });
+        EconDraw.drawText(ctx, 'E₁', EconDraw.valueToX(outcome.q1, MODEL.qMin, MODEL.qMax) + 10, EconDraw.valueToY(midPrice, MODEL.pMin, MODEL.pMax) - 10, {
+          size: 13,
+          color: ECON_THEME.color.text,
+          weight: '600'
+        });
+      } else if (config.shockType === 'demand' || config.shockType === 'supply') {
+        drawGuides(ctx, outcome.q1, [outcome.p1], 'Q₁', ['P₁']);
+        EconDraw.drawCircle(ctx, EconDraw.valueToX(outcome.q1, MODEL.qMin, MODEL.qMax), EconDraw.valueToY(outcome.p1, MODEL.pMin, MODEL.pMax), {
+          fill: ECON_THEME.color.text,
+          stroke: ECON_THEME.color.text,
+          lineWidth: 1.5
+        });
+        EconDraw.drawText(ctx, 'E₁', EconDraw.valueToX(outcome.q1, MODEL.qMin, MODEL.qMax) + 10, EconDraw.valueToY(outcome.p1, MODEL.pMin, MODEL.pMax) - 10, {
+          size: 13,
+          color: ECON_THEME.color.text,
+          weight: '600'
+        });
+      }
+
+      if (config.showHandles) {
+        const demandHandleX = EconDraw.valueToX(MODEL.demandHandleQ, MODEL.qMin, MODEL.qMax);
+        const demandHandleY = EconDraw.valueToY(demandPrice(MODEL.demandHandleQ, config.alpha, 0), MODEL.pMin, MODEL.pMax);
+        const supplyHandleX = EconDraw.valueToX(MODEL.supplyHandleQ, MODEL.qMin, MODEL.qMax);
+        const supplyHandleY = EconDraw.valueToY(supplyPrice(MODEL.supplyHandleQ, config.beta, 0), MODEL.pMin, MODEL.pMax);
+        drawHandle(ctx, demandHandleX, demandHandleY, ECON_THEME.color.demand, 'drag');
+        drawHandle(ctx, supplyHandleX, supplyHandleY, ECON_THEME.color.supply, 'drag');
+      }
+
+      if (config.topNote) {
+        EconDraw.drawText(ctx, config.topNote, plot.left + 8, plot.top - 28, {
+          size: 13,
+          color: ECON_THEME.color.muted
+        });
+      }
+
+      return outcome;
+    }
+
+    function outcomeNarrative(outcome, shockTypeName) {
+      const ed = elasticityMagnitude(outcome.alpha);
+      const es = elasticityMagnitude(outcome.beta);
+      if (outcome.shockType === 'tax' || outcome.shockType === 'cost') {
+        const burdenSide = outcome.buyerShare > outcome.sellerShare + 0.03
+          ? 'buyers'
+          : outcome.sellerShare > outcome.buyerShare + 0.03
+            ? 'sellers'
+            : 'both sides about equally';
+        return `At E₀, |Eᴅ| ≈ ${fmt(ed)} and Eˢ ≈ ${fmt(es)}. With the selected ${shockTypeName.toLowerCase()}, ${burdenSide} bear more of the adjustment. Buyer pass-through is ${fmt(100 * outcome.buyerShare, 0)}% and quantity changes by ${fmt(outcome.quantityChange)}.`;
+      }
+      return `At E₀, |Eᴅ| ≈ ${fmt(ed)} and Eˢ ≈ ${fmt(es)}. ${outcome.shockType === 'demand' ? 'The demand shock' : 'The supply shock'} changes price by ${fmt(outcome.priceChange)} and quantity by ${fmt(outcome.quantityChange)}. In this case, ${fmt(100 * outcome.buyerShare, 0)}% of the adjustment shows up in price and the rest through quantity.`;
+    }
+
+    function classificationText(outcome) {
+      if (outcome.shockType === 'tax' || outcome.shockType === 'cost') {
+        const burdenSide = outcome.buyerShare > outcome.sellerShare + 0.03
+          ? 'Buyers'
+          : outcome.sellerShare > outcome.buyerShare + 0.03
+            ? 'Sellers'
+            : 'Roughly even';
+        return {
+          kpis: [
+            ['Demand elasticity |Eᴅ| at E₀', fmt(elasticityMagnitude(outcome.alpha))],
+            ['Supply elasticity Eˢ at E₀', fmt(elasticityMagnitude(outcome.beta))],
+            ['Buyer burden share', `${fmt(100 * outcome.buyerShare, 0)}%`],
+            ['Seller burden share', `${fmt(100 * outcome.sellerShare, 0)}%`],
+            ['Quantity change', fmt(outcome.quantityChange)],
+            ['Main incidence result', burdenSide]
+          ]
+        };
+      }
+      return {
+        kpis: [
+          ['Demand elasticity |Eᴅ| at E₀', fmt(elasticityMagnitude(outcome.alpha))],
+          ['Supply elasticity Eˢ at E₀', fmt(elasticityMagnitude(outcome.beta))],
+          ['Price response share', `${fmt(100 * outcome.buyerShare, 0)}%`],
+          ['Quantity response share', `${fmt(100 * (1 - outcome.buyerShare), 0)}%`],
+          ['Price change', fmt(outcome.priceChange)],
+          ['Quantity change', fmt(outcome.quantityChange)]
+        ]
+      };
+    }
+
+    function renderMetricGrid(container, pairs) {
+      container.innerHTML = pairs.map((pair, index) => `
+        <div class="metric-item ${index === pairs.length - 1 ? 'emphasis' : ''}">
+          <div class="metric-label">${pair[0]}</div>
+          <div class="metric-value">${pair[1]}</div>
+        </div>
+      `).join('');
+    }
+
+    function buildPresetButtons(container, onSelect, currentSlope) {
+      container.innerHTML = PRESETS.map((preset) => {
+        const active = Math.abs(currentSlope - preset.slope) < 0.05 ? 'active' : '';
+        return `<button class="preset-btn ${active}" data-slope="${preset.slope}">${preset.label}</button>`;
+      }).join('');
+      Array.from(container.querySelectorAll('.preset-btn')).forEach((btn) => {
+        btn.addEventListener('click', () => onSelect(Number(btn.dataset.slope)));
+      });
+    }
+
+    function answerClass(userValue, actualValue, revealed) {
+      if (!userValue) return 'answer-pending';
+      if (!revealed) return 'answer-pending';
+      return userValue === actualValue ? 'answer-correct' : 'answer-incorrect';
+    }
+
+    function titleCaseAnswer(value) {
+      if (value === 'demand') return 'Demand';
+      if (value === 'supply') return 'Supply';
+      if (value === 'same') return 'About the same';
+      if (value === 'buyers') return 'Buyers';
+      if (value === 'sellers') return 'Sellers';
+      if (value === 'even') return 'About evenly';
+      if (value === 'high') return 'High';
+      if (value === 'mixed') return 'Mixed';
+      if (value === 'low') return 'Low';
+      if (value === 'large') return 'Large';
+      if (value === 'moderate') return 'Moderate';
+      if (value === 'small') return 'Small';
+      return '—';
+    }
+
+function drawMiniChart(canvas, config) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  const pad = { left: 42, right: 18, top: 28, bottom: 34 };
+  const innerW = w - pad.left - pad.right;
+  const innerH = h - pad.top - pad.bottom;
+
+  const series = config.series
+    ? config.series.map((entry, index) => ({
+        label: entry.label || `Series ${index + 1}`,
+        color: entry.color || config.color || ECON_THEME.color.demand,
+        points: entry.points
+      }))
+    : [{
+        label: config.seriesLabel || '',
+        color: config.color || ECON_THEME.color.demand,
+        points: config.points || []
+      }];
+
+  const labels = (series[0]?.points || []).map((point) => String(point.x));
+  const allValues = series.flatMap((entry) => entry.points.map((point) => point.y));
+  const minY = Math.min(...allValues);
+  const maxY = Math.max(...allValues);
+  const padY = Math.max(1, (maxY - minY) * 0.08);
+  const chartMinY = Math.max(0, minY - padY);
+  const chartMaxY = maxY + padY;
+  const rangeY = Math.max(1, chartMaxY - chartMinY);
+  const xPositions = labels.map((_, index) => pad.left + (labels.length > 1 ? index * innerW / (labels.length - 1) : innerW / 2));
+  const stepX = labels.length > 1 ? innerW / (labels.length - 1) : innerW;
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = ECON_THEME.color.frame;
+  ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+  if (config.activeRange && labels.length) {
+    const startValue = String(config.activeRange[0]);
+    const endValue = String(config.activeRange[config.activeRange.length - 1]);
+    const startIndex = labels.findIndex((label) => label === startValue);
+    const endIndex = labels.findIndex((label) => label === endValue);
+    if (startIndex >= 0 && endIndex >= 0) {
+      const left = xPositions[startIndex] - (startIndex === 0 ? 0 : stepX / 2);
+      const right = xPositions[endIndex] + (endIndex === labels.length - 1 ? 0 : stepX / 2);
+      ctx.save();
+      ctx.fillStyle = 'rgba(47, 107, 255, 0.08)';
+      ctx.fillRect(left, pad.top, right - left, innerH);
+      ctx.restore();
+    }
+  }
+
+  ctx.save();
+  ctx.strokeStyle = ECON_THEME.color.grid;
+  ctx.lineWidth = 0.75;
+  for (let i = 0; i <= 4; i += 1) {
+    const y = pad.top + (i / 4) * innerH;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(w - pad.right, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.strokeStyle = ECON_THEME.color.axis;
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, pad.top);
+  ctx.lineTo(pad.left, h - pad.bottom);
+  ctx.lineTo(w - pad.right, h - pad.bottom);
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.save();
+  ctx.font = `12px ${ECON_THEME.font.family}`;
+  ctx.fillStyle = ECON_THEME.color.muted;
+  for (let i = 0; i <= 4; i += 1) {
+    const value = chartMaxY - (i / 4) * rangeY;
+    const y = pad.top + (i / 4) * innerH;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(fmt(value, 1), pad.left - 8, y);
+  }
+
+  const labelSkip = labels.length > 10 ? Math.ceil(labels.length / 6) : 1;
+  labels.forEach((label, index) => {
+    if (!(index === 0 || index === labels.length - 1 || index % labelSkip === 0)) return;
+    const x = xPositions[index];
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(label, x, h - pad.bottom + 8);
+  });
+  ctx.restore();
+
+  series.forEach((entry) => {
+    ctx.save();
+    ctx.strokeStyle = entry.color;
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    entry.points.forEach((point, index) => {
+      const x = xPositions[index];
+      const y = pad.top + (chartMaxY - point.y) / rangeY * innerH;
+      if (index === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    entry.points.forEach((point, index) => {
+      const x = xPositions[index];
+      const y = pad.top + (chartMaxY - point.y) / rangeY * innerH;
+      ctx.beginPath();
+      ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = entry.color;
+      ctx.fill();
+    });
+    ctx.restore();
+  });
+
+  if (series.length > 1 || series[0].label) {
+    let legendX = pad.left + 6;
+    const legendY = pad.top - 14;
+    series.forEach((entry) => {
+      ctx.save();
+      ctx.strokeStyle = entry.color;
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.moveTo(legendX, legendY);
+      ctx.lineTo(legendX + 16, legendY);
+      ctx.stroke();
+      ctx.fillStyle = ECON_THEME.color.text;
+      ctx.font = `11px ${ECON_THEME.font.family}`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(entry.label, legendX + 22, legendY);
+      legendX += 22 + ctx.measureText(entry.label).width + 18;
+      ctx.restore();
+    });
+  }
+
+  EconDraw.drawText(ctx, config.title, w / 2, 12, {
+    align: 'center',
+    size: 12,
+    weight: '600',
+    color: ECON_THEME.color.text
+  });
+}
+
+
+    // Explore module -------------------------------------------------------
+    const exploreCanvas = document.getElementById('exploreCanvas');
+    const exploreCtx = exploreCanvas.getContext('2d');
+    const exploreState = {
+      alpha: 1.0,
+      beta: 1.0,
+      shockType: 'tax',
+      shockMag: 3,
+      dragging: null,
+      currentPresetD: 'middle',
+      currentPresetS: 'middle'
+    };
+
+    const exploreMetrics = document.getElementById('exploreMetrics');
+    const exploreFeedback = document.getElementById('exploreFeedback');
+    const exploreInterpretation = document.getElementById('exploreInterpretation');
+    const exploreShockType = document.getElementById('exploreShockType');
+    const exploreShockMag = document.getElementById('exploreShockMag');
+    const exploreShockLabel = document.getElementById('exploreShockLabel');
+    const exploreDemandPresets = document.getElementById('exploreDemandPresets');
+    const exploreSupplyPresets = document.getElementById('exploreSupplyPresets');
+
+    function syncExplorePresets() {
+      buildPresetButtons(exploreDemandPresets, (slope) => {
+        exploreState.alpha = slope;
+        renderExplore();
+      }, exploreState.alpha);
+      buildPresetButtons(exploreSupplyPresets, (slope) => {
+        exploreState.beta = slope;
+        renderExplore();
+      }, exploreState.beta);
+    }
+
+    function updateExploreShockLabel() {
+      const label = exploreState.shockType === 'demand'
+        ? `+${fmt(exploreState.shockMag)} demand units`
+        : `${fmt(exploreState.shockMag)} per unit`;
+      exploreShockLabel.textContent = label;
+    }
+
+    function renderExplore() {
+      const outcome = drawElasticityGraph(exploreCtx, {
+        alpha: exploreState.alpha,
+        beta: exploreState.beta,
+        shockType: exploreState.shockType,
+        shockMag: exploreState.shockMag,
+        showHandles: true,
+        showIncidenceBlocks: exploreState.shockType === 'tax',
+        topNote: 'Drag handles to rotate around the fixed benchmark equilibrium E₀.'
+      });
+
+      updateExploreShockLabel();
+      syncExplorePresets();
+
+      const shockTypeName = exploreState.shockType === 'tax'
+        ? 'per-unit tax'
+        : exploreState.shockType === 'cost'
+          ? 'producer cost shock'
+          : 'demand shock';
+
+      renderMetricGrid(exploreMetrics, classificationText(outcome).kpis);
+      exploreFeedback.className = `feedback-panel ${exploreState.shockType === 'demand' ? 'feedback-warning' : 'feedback-success'}`;
+      exploreFeedback.textContent = outcomeNarrative(outcome, shockTypeName);
+
+      if (exploreState.shockType === 'tax' || exploreState.shockType === 'cost') {
+        const burdenSentence = outcome.buyerShare > outcome.sellerShare + 0.03
+          ? 'At E₀, demand is relatively less elastic, so buyers absorb more of the wedge.'
+          : outcome.sellerShare > outcome.buyerShare + 0.03
+            ? 'At E₀, supply is relatively less elastic, so sellers absorb more of the wedge.'
+            : 'At E₀, the elasticities are similar, so the burden is split fairly evenly.';
+        exploreInterpretation.innerHTML = `
+          <div class="status-title">Interpretation</div>
+          <div class="small-muted">${burdenSentence} The orange block shows the buyer burden and the purple block shows the seller burden. Buyer pass-through is <strong>${fmt(100 * outcome.buyerShare, 0)}%</strong>, seller absorption is <strong>${fmt(100 * outcome.sellerShare, 0)}%</strong>, and the quantity response is classified as <strong>${quantityClass(Math.abs(outcome.quantityChange))}</strong>.</div>
+          <div class="inline-kpi">
+            <div class="metric-item"><div class="metric-label">Buyer price</div><div class="metric-value">${fmt(outcome.buyerPrice)}</div></div>
+            <div class="metric-item"><div class="metric-label">Seller price</div><div class="metric-value">${fmt(outcome.sellerPrice)}</div></div>
+            <div class="metric-item"><div class="metric-label">New quantity</div><div class="metric-value">${fmt(outcome.q1)}</div></div>
+            <div class="metric-item"><div class="metric-label">Quantity response</div><div class="metric-value">${titleCaseAnswer(quantityClass(Math.abs(outcome.quantityChange)))}</div></div>
+          </div>
+        `;
+      } else {
+        const pricePass = passThroughClass(outcome.buyerShare);
+        exploreInterpretation.innerHTML = `
+          <div class="status-title">Interpretation</div>
+          <div class="small-muted">For a positive demand shock, the steeper the supply curve at E₀, the more the adjustment shows up in price instead of quantity. Here the price-response share is <strong>${fmt(100 * outcome.buyerShare, 0)}%</strong> and the quantity response is <strong>${titleCaseAnswer(quantityClass(Math.abs(outcome.quantityChange)))}</strong>.</div>
+          <div class="inline-kpi">
+            <div class="metric-item"><div class="metric-label">New market price</div><div class="metric-value">${fmt(outcome.p1)}</div></div>
+            <div class="metric-item"><div class="metric-label">New quantity</div><div class="metric-value">${fmt(outcome.q1)}</div></div>
+            <div class="metric-item"><div class="metric-label">Price pass-through class</div><div class="metric-value">${titleCaseAnswer(pricePass)}</div></div>
+            <div class="metric-item"><div class="metric-label">Quantity-response class</div><div class="metric-value">${titleCaseAnswer(quantityClass(Math.abs(outcome.quantityChange)))}</div></div>
+          </div>
+        `;
+      }
+    }
+
+    function getExploreHandlePositions() {
+      return {
+        demand: {
+          x: EconDraw.valueToX(MODEL.demandHandleQ, MODEL.qMin, MODEL.qMax),
+          y: EconDraw.valueToY(demandPrice(MODEL.demandHandleQ, exploreState.alpha, 0), MODEL.pMin, MODEL.pMax)
+        },
+        supply: {
+          x: EconDraw.valueToX(MODEL.supplyHandleQ, MODEL.qMin, MODEL.qMax),
+          y: EconDraw.valueToY(supplyPrice(MODEL.supplyHandleQ, exploreState.beta, 0), MODEL.pMin, MODEL.pMax)
+        }
+      };
+    }
+
+    function canvasPoint(canvas, event) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (event.clientX - rect.left) * scaleX,
+        y: (event.clientY - rect.top) * scaleY
+      };
+    }
+
+    exploreCanvas.addEventListener('mousedown', (event) => {
+      const pt = canvasPoint(exploreCanvas, event);
+      const handles = getExploreHandlePositions();
+      const distDemand = Math.hypot(pt.x - handles.demand.x, pt.y - handles.demand.y);
+      const distSupply = Math.hypot(pt.x - handles.supply.x, pt.y - handles.supply.y);
+      if (distDemand <= 16 && distDemand <= distSupply) {
+        exploreState.dragging = 'demand';
+      } else if (distSupply <= 16) {
+        exploreState.dragging = 'supply';
+      }
+    });
+
+    window.addEventListener('mousemove', (event) => {
+      if (!exploreState.dragging) return;
+      const pt = canvasPoint(exploreCanvas, event);
+      const pValue = clamp(EconDraw.yToValue(pt.y, MODEL.pMin, MODEL.pMax), MODEL.p0 + 0.8, MODEL.pMax);
+      if (exploreState.dragging === 'demand') {
+        exploreState.alpha = clamp((pValue - MODEL.p0) / (MODEL.q0 - MODEL.demandHandleQ), MODEL.minSlope, MODEL.maxSlope);
+      } else if (exploreState.dragging === 'supply') {
+        exploreState.beta = clamp((pValue - MODEL.p0) / (MODEL.supplyHandleQ - MODEL.q0), MODEL.minSlope, MODEL.maxSlope);
+      }
+      renderExplore();
+    });
+
+    window.addEventListener('mouseup', () => {
+      exploreState.dragging = null;
+    });
+
+    exploreShockType.addEventListener('change', (event) => {
+      exploreState.shockType = event.target.value;
+      renderExplore();
+    });
+
+    exploreShockMag.addEventListener('input', (event) => {
+      exploreState.shockMag = Number(event.target.value);
+      renderExplore();
+    });
+
+    document.getElementById('exploreReset').addEventListener('click', () => {
+      exploreState.alpha = 1.0;
+      exploreState.beta = 1.0;
+      exploreState.shockType = 'tax';
+      exploreState.shockMag = 3;
+      exploreShockType.value = 'tax';
+      exploreShockMag.value = '3';
+      renderExplore();
+    });
+
+    // Practice module ------------------------------------------------------
+    const practiceCanvas = document.getElementById('practiceCanvas');
+    const practiceCtx = practiceCanvas.getContext('2d');
+    const practiceScenarioCard = document.getElementById('practiceScenarioCard');
+    const practiceFeedback = document.getElementById('practiceFeedback');
+    const practiceTableBody = document.getElementById('practiceTableBody');
+    const practiceState = {
+      alpha: 0.45,
+      beta: 3.0,
+      shockType: 'tax',
+      shockMag: 3,
+      revealed: false
+    };
+
+    const answerElastic = document.getElementById('answerElastic');
+    const answerBurden = document.getElementById('answerBurden');
+    const answerPass = document.getElementById('answerPass');
+    const answerQuantity = document.getElementById('answerQuantity');
+
+    function randomFrom(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function newPracticeScenario() {
+      practiceState.alpha = randomFrom([0.45, 0.7, 1.0, 1.7, 2.4, 3.0]);
+      practiceState.beta = randomFrom([0.45, 0.7, 1.0, 1.7, 2.4, 3.0]);
+      practiceState.shockType = 'tax';
+      practiceState.shockMag = randomFrom([1.5, 2.5, 3.5, 4.5, 5.5]);
+      practiceState.revealed = false;
+      [answerElastic, answerBurden, answerPass, answerQuantity].forEach((select) => select.value = '');
+      renderPractice();
+    }
+
+    function practiceCorrectAnswers(outcome) {
+      const burden = outcome.buyerShare > outcome.sellerShare + 0.03
+        ? 'buyers'
+        : outcome.sellerShare > outcome.buyerShare + 0.03
+          ? 'sellers'
+          : 'even';
+      return {
+        elastic: moreElasticSide(outcome.alpha, outcome.beta),
+        burden,
+        pass: passThroughClass(outcome.buyerShare),
+        quantity: quantityClass(Math.abs(outcome.quantityChange))
+      };
+    }
+
+    function renderPracticeTable(correct) {
+      const rows = [
+        ['More elastic side', answerElastic.value, correct.elastic],
+        ['Larger tax burden', answerBurden.value, correct.burden],
+        ['Buyer pass-through', answerPass.value, correct.pass],
+        ['Quantity response', answerQuantity.value, correct.quantity]
+      ];
+      practiceTableBody.innerHTML = rows.map((row) => `
+        <tr>
+          <td>${row[0]}</td>
+          <td class="${answerClass(row[1], row[2], practiceState.revealed)}">${titleCaseAnswer(row[1])}</td>
+          <td class="${practiceState.revealed ? (row[1] === row[2] ? 'answer-correct' : 'answer-incorrect') : 'answer-pending'}">${practiceState.revealed ? titleCaseAnswer(row[2]) : 'Check answer'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderPractice() {
+      const outcome = drawElasticityGraph(practiceCtx, {
+        alpha: practiceState.alpha,
+        beta: practiceState.beta,
+        shockType: practiceState.shockType,
+        shockMag: practiceState.shockMag,
+        showHandles: false,
+        showIncidenceBlocks: practiceState.revealed,
+        topNote: 'Read the tax graph, then answer which side is more elastic at E₀ and who bears more of the burden.'
+      });
+
+      const correct = practiceCorrectAnswers(outcome);
+      renderPracticeTable(correct);
+
+      practiceScenarioCard.innerHTML = `
+        <div class="status-title">Current practice scenario</div>
+        <div class="small-muted">A <strong>per-unit tax on sellers</strong> of <strong>${fmt(practiceState.shockMag)}</strong> is imposed. Read the slopes at E₀ and decide how the burden and quantity response are split.</div>
+        <div class="note-strip">
+          <span class="mini-chip static">Demand slope: ${fmt(practiceState.alpha)}</span>
+          <span class="mini-chip static">Supply slope: ${fmt(practiceState.beta)}</span>
+          <span class="mini-chip static">Tax: ${fmt(practiceState.shockMag)}</span>
+        </div>
+        <div class="small-muted">Compare elasticity at the common benchmark E₀: flatter means more elastic at E₀ and steeper means less elastic at E₀. Along any straight-line demand curve, the upper part is elastic, the midpoint unit elastic, and the lower part inelastic.</div>
+      `;
+
+      if (!practiceState.revealed) {
+        practiceFeedback.className = 'feedback-panel feedback-neutral';
+        practiceFeedback.textContent = 'Choose the more elastic side, the larger tax burden, the buyer pass-through class, and the size of the quantity response. Then press check answer.';
+      } else {
+        const allCorrect = answerElastic.value === correct.elastic
+          && answerBurden.value === correct.burden
+          && answerPass.value === correct.pass
+          && answerQuantity.value === correct.quantity;
+        practiceFeedback.className = `feedback-panel ${allCorrect ? 'feedback-success' : 'feedback-warning'}`;
+        const burdenText = correct.burden === 'buyers' ? 'buyers' : correct.burden === 'sellers' ? 'sellers' : 'both sides about equally';
+        practiceFeedback.textContent = `${allCorrect ? 'Correct.' : 'Not quite.'} Here buyer pass-through is ${fmt(100 * outcome.buyerShare, 0)}%, seller absorption is ${fmt(100 * outcome.sellerShare, 0)}%, and quantity changes by ${fmt(outcome.quantityChange)}. Because ${correct.elastic === 'demand' ? 'demand is more elastic at E₀' : correct.elastic === 'supply' ? 'supply is more elastic at E₀' : 'the elasticities are similar at E₀'}, the larger burden falls on ${burdenText}.`;
+      }
+    }
+
+    document.getElementById('practiceRandom').addEventListener('click', newPracticeScenario);
+    document.getElementById('practiceReset').addEventListener('click', () => {
+      [answerElastic, answerBurden, answerPass, answerQuantity].forEach((select) => select.value = '');
+      practiceState.revealed = false;
+      renderPractice();
+    });
+    document.getElementById('practiceCheck').addEventListener('click', () => {
+      if (!answerElastic.value || !answerBurden.value || !answerPass.value || !answerQuantity.value) {
+        practiceFeedback.className = 'feedback-panel feedback-warning';
+        practiceFeedback.textContent = 'Fill in all four answers before checking.';
+        return;
+      }
+      practiceState.revealed = true;
+      renderPractice();
+    });
+
+    // Case module ----------------------------------------------------------
+    const caseCanvas = document.getElementById('caseCanvas');
+    const caseCtx = caseCanvas.getContext('2d');
+    const caseSelect = document.getElementById('caseSelect');
+    const caseSummary = document.getElementById('caseSummary');
+    const caseStepList = document.getElementById('caseStepList');
+    const caseFactTable = document.getElementById('caseFactTable');
+    const caseSources = document.getElementById('caseSources');
+    const caseChartA = document.getElementById('caseChartA');
+    const caseChartB = document.getElementById('caseChartB');
+    const caseChartANote = document.getElementById('caseChartANote');
+    const caseChartBNote = document.getElementById('caseChartBNote');
+    const caseState = {
+      key: 'opec',
+      stepIndex: 0,
+      timer: null
+    };
+
+function renderCase() {
+  const activeCase = CASES[caseState.key];
+  const currentStep = activeCase.steps[caseState.stepIndex];
+  const firstStep = activeCase.steps[0];
+  const outcome = drawElasticityGraph(caseCtx, {
+    alpha: currentStep.alpha,
+    beta: currentStep.beta,
+    baselineAlpha: firstStep.alpha,
+    baselineBeta: firstStep.beta,
+    shockType: currentStep.shockType,
+    shockMag: currentStep.shockMag,
+    showHandles: false,
+    showIncidenceBlocks: false,
+    topNote: activeCase.title
+  });
+
+  const policyLabel = currentStep.policyFocus || 'Step focus';
+  const shockLabel = Math.abs(currentStep.shockMag) < 0.05
+    ? 'No active shift'
+    : currentStep.shockType === 'demand'
+      ? `Demand shift ${currentStep.shockMag >= 0 ? '+' : ''}${fmt(currentStep.shockMag)}`
+      : `Supply shift ${currentStep.shockMag >= 0 ? '+' : ''}${fmt(currentStep.shockMag)}`;
+
+  const priceMap = Object.fromEntries(activeCase.chartA.points.map((point) => [String(point.x), point.y]));
+  const opecSeries = activeCase.chartB.series[0].points;
+  const nonOpecSeries = activeCase.chartB.series[1]?.points || [];
+  const opecMap = Object.fromEntries(opecSeries.map((point) => [String(point.x), point.y]));
+  const nonOpecMap = Object.fromEntries(nonOpecSeries.map((point) => [String(point.x), point.y]));
+  const rangeStart = String(currentStep.range[0]);
+  const rangeEnd = String(currentStep.range[currentStep.range.length - 1]);
+  const priceStart = priceMap[rangeStart];
+  const priceEnd = priceMap[rangeEnd];
+  const opecStart = opecMap[rangeStart];
+  const opecEnd = opecMap[rangeEnd];
+  const nonOpecStart = nonOpecMap[rangeStart];
+  const nonOpecEnd = nonOpecMap[rangeEnd];
+  const actualRevenueStart = Number.isFinite(priceStart) && Number.isFinite(opecStart) ? priceStart * opecStart : null;
+  const actualRevenueEnd = Number.isFinite(priceEnd) && Number.isFinite(opecEnd) ? priceEnd * opecEnd : null;
+
+  const modelRevenueDirection = outcome.revenueChange > 0.05
+    ? 'rises'
+    : outcome.revenueChange < -0.05
+      ? 'falls'
+      : 'is roughly unchanged';
+
+  const actualRevenueDirection = Number.isFinite(actualRevenueStart) && Number.isFinite(actualRevenueEnd)
+    ? (actualRevenueEnd > actualRevenueStart + 0.5
+        ? 'rose'
+        : actualRevenueEnd < actualRevenueStart - 0.5
+          ? 'fell'
+          : 'was roughly unchanged')
+    : 'changed';
+
+  const dataReading = Number.isFinite(priceStart) && Number.isFinite(priceEnd) && Number.isFinite(opecStart) && Number.isFinite(opecEnd)
+    ? `In the highlighted years, the imported crude price moved from ${fmt(priceStart)} to ${fmt(priceEnd)} while total OPEC output moved from ${fmt(opecStart)} to ${fmt(opecEnd)} mb/d.`
+    : currentStep.realWorld;
+
+  const nonOpecReading = Number.isFinite(nonOpecStart) && Number.isFinite(nonOpecEnd)
+    ? `Non-OPEC output moved from ${fmt(nonOpecStart)} to ${fmt(nonOpecEnd)} mb/d in the same highlighted window.`
+    : '';
+
+  const revenueReading = Number.isFinite(actualRevenueStart) && Number.isFinite(actualRevenueEnd)
+    ? `Using the same annual price and OPEC-output series, the simple revenue proxy P×Q ${actualRevenueDirection} from ${fmt(actualRevenueStart)} to ${fmt(actualRevenueEnd)}.`
+    : `Relative to the common model baseline, the revenue proxy ${modelRevenueDirection}.`;
+
+  caseSummary.innerHTML = `
+    <div class="status-title">${activeCase.title}</div>
+    <div class="small-muted">${activeCase.intro}</div>
+    <div class="note-strip">
+      <span class="mini-chip static">Step ${caseState.stepIndex + 1} of ${activeCase.steps.length}</span>
+      <span class="mini-chip static">${policyLabel}</span>
+      <span class="mini-chip static">${shockLabel}</span>
+      <span class="mini-chip static">|Eᴅ| at E₀ ≈ ${fmt(elasticityMagnitude(currentStep.alpha))}</span>
+      <span class="mini-chip static">Eˢ at E₀ ≈ ${fmt(elasticityMagnitude(currentStep.beta))}</span>
+      <span class="mini-chip static">Model P₁ = ${fmt(outcome.p1)}</span>
+      <span class="mini-chip static">Model Q₁ = ${fmt(outcome.q1)}</span>
+      <span class="mini-chip static">Model P×Q: ${fmt(outcome.sellerRevenue1)}</span>
+    </div>
+    <div class="note-strip">
+      <span class="mini-chip static">Actual price ${rangeStart}→${rangeEnd}: ${Number.isFinite(priceStart) && Number.isFinite(priceEnd) ? `${fmt(priceStart)} → ${fmt(priceEnd)}` : '—'}</span>
+      <span class="mini-chip static">OPEC output ${rangeStart}→${rangeEnd}: ${Number.isFinite(opecStart) && Number.isFinite(opecEnd) ? `${fmt(opecStart)} → ${fmt(opecEnd)}` : '—'}</span>
+      <span class="mini-chip static">Non-OPEC output ${rangeStart}→${rangeEnd}: ${Number.isFinite(nonOpecStart) && Number.isFinite(nonOpecEnd) ? `${fmt(nonOpecStart)} → ${fmt(nonOpecEnd)}` : '—'}</span>
+      <span class="mini-chip static">Actual P×Q: ${Number.isFinite(actualRevenueStart) && Number.isFinite(actualRevenueEnd) ? `${fmt(actualRevenueStart)} → ${fmt(actualRevenueEnd)}` : '—'}</span>
+    </div>
+    <div class="info-list">
+      <div class="info-card"><strong>Current step</strong> ${currentStep.note}</div>
+      <div class="info-card"><strong>Model reading</strong> ${currentStep.callout}</div>
+      <div class="info-card"><strong>Data reading</strong> ${dataReading} ${nonOpecReading}</div>
+      <div class="info-card"><strong>Revenue lesson</strong> ${revenueReading}</div>
+      <div class="info-card"><strong>Real-world anchor</strong> ${currentStep.realWorld}</div>
+    </div>
+  `;
+
+  caseStepList.innerHTML = activeCase.steps.map((step, index) => `
+    <div class="case-step ${index === caseState.stepIndex ? 'active' : ''}" data-index="${index}">
+      <div class="case-step-title">${step.title}</div>
+      <div class="case-step-note">${step.note}</div>
+    </div>
+  `).join('');
+  Array.from(caseStepList.querySelectorAll('.case-step')).forEach((item) => {
+    item.addEventListener('click', () => {
+      caseState.stepIndex = Number(item.dataset.index);
+      stopCaseTimer();
+      renderCase();
+    });
+  });
+
+  caseFactTable.innerHTML = activeCase.facts.map((fact) => `
+    <tr>
+      <td>${fact[0]}</td>
+      <td>${fact[1]}</td>
+      <td>${fact[2]}</td>
+    </tr>
+  `).join('');
+
+  caseSources.className = 'feedback-panel feedback-success';
+  caseSources.innerHTML = `
+    <div class="status-title">Source note</div>
+    <ul class="sources-list">${activeCase.sources.map((source) => `<li>${source}</li>`).join('')}</ul>
+    <div class="tight-note">The structural diagram is deliberately stylized. The annual charts use official historical data for 1970–1985, while the elasticity rotations and shock sizes are teaching calibrations chosen to match the broad observed pattern: short-run price spikes when demand and rival supply were steep, followed by weaker cartel power once both sides had become more elastic.</div>
+  `;
+
+  drawMiniChart(caseChartA, {
+    title: activeCase.chartA.title,
+    note: activeCase.chartA.note,
+    points: activeCase.chartA.points,
+    color: ECON_THEME.color.inflation,
+    activeRange: currentStep.range
+  });
+  drawMiniChart(caseChartB, {
+    title: activeCase.chartB.title,
+    note: activeCase.chartB.note,
+    series: activeCase.chartB.series,
+    activeRange: currentStep.range
+  });
+  caseChartANote.textContent = activeCase.chartA.note;
+  caseChartBNote.textContent = activeCase.chartB.note;
+}
+
+
+    function stopCaseTimer() {
+      if (caseState.timer) {
+        clearInterval(caseState.timer);
+        caseState.timer = null;
+        document.getElementById('casePlay').textContent = 'Play steps';
+      }
+    }
+
+    caseSelect.addEventListener('change', (event) => {
+      caseState.key = event.target.value;
+      caseState.stepIndex = 0;
+      stopCaseTimer();
+      renderCase();
+    });
+
+    document.getElementById('casePrev').addEventListener('click', () => {
+      stopCaseTimer();
+      caseState.stepIndex = Math.max(0, caseState.stepIndex - 1);
+      renderCase();
+    });
+
+    document.getElementById('caseNext').addEventListener('click', () => {
+      stopCaseTimer();
+      const maxIndex = CASES[caseState.key].steps.length - 1;
+      caseState.stepIndex = Math.min(maxIndex, caseState.stepIndex + 1);
+      renderCase();
+    });
+
+    document.getElementById('caseReset').addEventListener('click', () => {
+      stopCaseTimer();
+      caseState.stepIndex = 0;
+      renderCase();
+    });
+
+    document.getElementById('casePlay').addEventListener('click', () => {
+      if (caseState.timer) {
+        stopCaseTimer();
+        return;
+      }
+      const button = document.getElementById('casePlay');
+      button.textContent = 'Pause';
+      caseState.timer = setInterval(() => {
+        const maxIndex = CASES[caseState.key].steps.length - 1;
+        if (caseState.stepIndex >= maxIndex) {
+          stopCaseTimer();
+          return;
+        }
+        caseState.stepIndex += 1;
+        renderCase();
+      }, 1800);
+    });
+
+    // Tabs -----------------------------------------------------------------
+    const moduleTabs = Array.from(document.querySelectorAll('.module-tab'));
+    const moduleSections = Array.from(document.querySelectorAll('.module-section'));
+
+    function activateModule(targetId) {
+      moduleTabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.target === targetId));
+      moduleSections.forEach((section) => section.classList.toggle('active', section.id === targetId));
+      if (targetId === 'exploreModule') renderExplore();
+      if (targetId === 'practiceModule') renderPractice();
+      if (targetId === 'caseModule') renderCase();
+    }
+
+    moduleTabs.forEach((tab) => {
+      tab.addEventListener('click', () => activateModule(tab.dataset.target));
+    });
+
+    // Initial render -------------------------------------------------------
+    renderExplore();
+    newPracticeScenario();
+    renderCase();
+  </script>
+</body>
+</html>

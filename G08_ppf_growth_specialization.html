@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G08_ppf_growth_specialization</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .module-tab {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .module-tab:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+
+    .module-tab.active {
+      background: #eef3ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 16px 0;
+    }
+
+    .summary-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.85fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .graph-stack, .side-stack { display: grid; gap: 16px; }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 12px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 180px;
+    }
+
+    .control-inline.small { min-width: 150px; }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 8px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.3;
+    }
+
+    .legend-line {
+      width: 28px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+
+    .legend-line.ppf { border-color: var(--color-long-run); }
+    .legend-line.base {
+      border-color: var(--color-baseline);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.trade {
+      border-color: var(--color-external);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.arrow {
+      border-color: var(--color-baseline);
+      border-top-style: dotted;
+      border-top-width: 2px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      background: white;
+      border: 2px solid var(--color-text);
+    }
+
+    .legend-dot.point {
+      background: var(--color-output);
+      border-color: var(--color-output);
+    }
+
+    .legend-dot.optimum {
+      background: var(--color-government);
+      border-color: var(--color-government);
+    }
+
+    .legend-dot.consumption {
+      background: var(--color-external);
+      border-color: var(--color-external);
+    }
+
+    .legend-dot.previous {
+      background: white;
+      border-color: var(--color-baseline);
+    }
+
+    .legend-fill {
+      width: 18px;
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid rgba(31, 41, 55, 0.14);
+      display: inline-block;
+      background: rgba(85, 85, 85, 0.08);
+    }
+
+    .graph-note,
+    .small-muted,
+    .footer-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.5;
+    }
+
+    .status-title { font-weight: 600; margin-bottom: 8px; font-size: 13px; }
+
+    .metric-grid.wide {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .metric-grid.wider {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .metric-item .metric-value.small {
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .metric-item .metric-value.tiny {
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .scenario-list,
+    .answer-grid,
+    .step-switch,
+    .practice-results,
+    .chart-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .scenario-card,
+    .answer-card,
+    .step-button,
+    .result-card,
+    .source-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--color-text);
+    }
+
+    .scenario-card,
+    .step-button {
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .scenario-card:hover,
+    .step-button:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+      border-color: #b8c5d8;
+    }
+
+    .scenario-card.active,
+    .step-button.active {
+      background: #eef3ff;
+      border-color: var(--color-demand);
+    }
+
+    .card-title {
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .card-kicker {
+      color: var(--color-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .answer-card label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 6px;
+    }
+
+    .answer-card select {
+      width: 100%;
+      font-size: 13px;
+    }
+
+    .chart-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .chart-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .chart-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+
+    .chart-card canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+
+    .feedback-success { border-left: 4px solid var(--color-government); }
+    .feedback-warning { border-left: 4px solid var(--color-inflation); }
+    .feedback-neutral { border-left: 4px solid var(--color-baseline); }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .btn-small {
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .source-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .source-card li { margin-bottom: 4px; }
+
+    @media (max-width: 980px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Production possibilities frontier: scarcity, efficiency, opportunity cost, growth, and specialization</h1>
+        <p class="diagram-subtitle">
+          Use the PPF to separate feasible from infeasible bundles, efficient from inefficient production, and movement along the frontier from outward growth. The case study turns wartime mobilization into a multi-step PPF sequence with real output data.
+        </p>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Real-world case study</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="summary-strip">
+          <span class="summary-chip">Scarcity and feasible sets</span>
+          <span class="summary-chip">Efficient vs inefficient production</span>
+          <span class="summary-chip">Increasing vs constant opportunity cost</span>
+          <span class="summary-chip">Outward and inward frontier shifts</span>
+          <span class="summary-chip">Specialization and trade line</span>
+        </div>
+
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="exploreXMax">Good X frontier intercept <span id="exploreXMaxValue" class="inline-value"></span></label>
+            <input type="range" id="exploreXMax" min="70" max="140" step="1" value="100" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreYMax">Good Y frontier intercept <span id="exploreYMaxValue" class="inline-value"></span></label>
+            <input type="range" id="exploreYMax" min="70" max="140" step="1" value="100" />
+          </div>
+          <div class="control-inline small">
+            <label for="exploreCurvature">Curvature <span id="exploreCurvatureValue" class="inline-value"></span></label>
+            <input type="range" id="exploreCurvature" min="1" max="3" step="0.05" value="2.1" />
+          </div>
+          <div class="control-inline small">
+            <label for="explorePriceRatio">World relative price P<sub>x</sub>/P<sub>y</sub> <span id="explorePriceRatioValue" class="inline-value"></span></label>
+            <input type="range" id="explorePriceRatio" min="0.4" max="2.2" step="0.05" value="1.25" />
+          </div>
+          <div class="control-inline small">
+            <label for="exploreTradeMix">Trade / consumption mix <span id="exploreTradeMixValue" class="inline-value"></span></label>
+            <input type="range" id="exploreTradeMix" min="-0.5" max="0.5" step="0.05" value="0.18" />
+          </div>
+          <div class="control-inline small">
+            <label for="exploreShowTrade">Trade line</label>
+            <select id="exploreShowTrade">
+              <option value="off">Off</option>
+              <option value="on">On</option>
+            </select>
+          </div>
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="exploreSnapButton">Snap point to frontier</button>
+          </div>
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="exploreSpecializeButton">Specialize to trade line</button>
+          </div>
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="exploreResetButton">Reset</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line base"></span><span>Baseline frontier</span></span>
+                <span class="legend-item"><span class="legend-line ppf"></span><span>Current frontier</span></span>
+                <span class="legend-item"><span class="legend-fill"></span><span>Feasible production set</span></span>
+                <span class="legend-item"><span class="legend-dot point"></span><span>Current production point</span></span>
+                <span class="legend-item"><span class="legend-dot optimum"></span><span>Trade-specialization point</span></span>
+                <span class="legend-item"><span class="legend-dot consumption"></span><span>Consumption with trade</span></span>
+                <span class="legend-item"><span class="legend-line trade"></span><span>Trade line</span></span>
+              </div>
+              <div class="graph-note">
+                Drag the production point anywhere in the graph. Points on the frontier are efficient, points inside are feasible but inefficient, and points above the frontier are unattainable. If the trade line is switched on, the green point shows the production bundle that maximizes value at the chosen world price ratio.
+              </div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="metrics-panel">
+              <div class="status-title">Explore metrics</div>
+              <div class="metric-grid wider">
+                <div class="metric-item">
+                  <div class="metric-label">Current bundle</div>
+                  <div class="metric-value small" id="exploreMetricBundle">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Classification</div>
+                  <div class="metric-value small" id="exploreMetricClass">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Specialization</div>
+                  <div class="metric-value small" id="exploreMetricSpecialization">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Opportunity cost of +1 X</div>
+                  <div class="metric-value small" id="exploreMetricOCX">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Growth vs baseline</div>
+                  <div class="metric-value small" id="exploreMetricGrowth">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Trade implication</div>
+                  <div class="metric-value small" id="exploreMetricTrade">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="exploreFeedback" class="feedback-panel feedback-neutral">
+              The baseline frontier is the default 100-by-100 PPF. Moving the intercepts changes the economy’s productive capacity; moving only the point changes how existing capacity is used.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="summary-strip">
+          <span class="summary-chip">Scenario classification</span>
+          <span class="summary-chip">Growth vs no growth</span>
+          <span class="summary-chip">Specialization direction</span>
+          <span class="summary-chip">Trade beyond the PPF</span>
+          <span class="summary-chip">Constant vs increasing opportunity cost</span>
+        </div>
+
+        <div class="control-row">
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceRandomButton">Random scenario</button>
+          </div>
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceResetButton">Reset answers</button>
+          </div>
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="practiceCheckButton">Check answer</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line base"></span><span>Baseline frontier</span></span>
+                <span class="legend-item"><span class="legend-line ppf"></span><span>Current frontier</span></span>
+                <span class="legend-item"><span class="legend-dot point"></span><span>Observed production point</span></span>
+                <span class="legend-item"><span class="legend-dot consumption"></span><span>Consumption point</span></span>
+                <span class="legend-item"><span class="legend-line trade"></span><span>Trade line</span></span>
+              </div>
+              <div class="graph-note">
+                Read the graph first, then answer the five questions in the side panel. After checking, the feedback panel explains the logic using the same vocabulary as the rest of the suite.
+              </div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="notes-panel">
+              <div class="status-title">Scenario bank</div>
+              <div id="practiceScenarioList" class="scenario-list"></div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="status-title">Your answers</div>
+              <div class="answer-grid">
+                <div class="answer-card">
+                  <label for="practiceAnswerClass">1. Classification</label>
+                  <select id="practiceAnswerClass">
+                    <option value="">Choose</option>
+                    <option value="efficient">Efficient</option>
+                    <option value="inefficient">Feasible but inefficient</option>
+                    <option value="unattainable">Unattainable</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="practiceAnswerGrowth">2. Has the frontier shifted outward relative to the dashed baseline?</label>
+                  <select id="practiceAnswerGrowth">
+                    <option value="">Choose</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="practiceAnswerSpecialization">3. Production is relatively more specialized in</label>
+                  <select id="practiceAnswerSpecialization">
+                    <option value="">Choose</option>
+                    <option value="x">Good X</option>
+                    <option value="y">Good Y</option>
+                    <option value="mixed">Neither strongly; mixed</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="practiceAnswerTrade">4. Does the graph show consumption beyond the PPF through trade?</label>
+                  <select id="practiceAnswerTrade">
+                    <option value="">Choose</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                    <option value="not_shown">Not shown</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label for="practiceAnswerOC">5. Opportunity-cost pattern</label>
+                  <select id="practiceAnswerOC">
+                    <option value="">Choose</option>
+                    <option value="increasing">Increasing</option>
+                    <option value="constant">Constant</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="practiceFeedback" class="feedback-panel feedback-neutral">
+              Choose a scenario, answer the five questions, and then check your responses.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="summary-strip">
+          <span class="summary-chip">Case: U.S. World War II mobilization</span>
+          <span class="summary-chip">Civilian passenger cars vs military aircraft</span>
+          <span class="summary-chip">Movement along the frontier</span>
+          <span class="summary-chip">Outward growth of productive capacity</span>
+          <span class="summary-chip">Specialization for war output</span>
+        </div>
+
+        <div class="control-row">
+          <div class="control-inline" style="min-width: 320px;">
+            <label>Case-study sequence</label>
+            <div id="caseStepSwitch" class="step-switch"></div>
+          </div>
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="casePlayButton">Play sequence</button>
+          </div>
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="caseResetButton">Back to 1941</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line base"></span><span>1941 stylized frontier</span></span>
+                <span class="legend-item"><span class="legend-line ppf"></span><span>Current stylized frontier</span></span>
+                <span class="legend-item"><span class="legend-dot previous"></span><span>Previous output point</span></span>
+                <span class="legend-item"><span class="legend-dot point"></span><span>Current actual output point</span></span>
+                <span class="legend-item"><span class="legend-line arrow"></span><span>Step-to-step movement</span></span>
+              </div>
+              <div class="graph-note">
+                The dots are actual observed output bundles. The frontier itself is a stylized teaching calibration anchored to those data and to wartime GDP growth, not an estimated national production function.
+              </div>
+            </div>
+
+            <div class="chart-grid">
+              <div class="chart-card">
+                <div class="chart-title">Civilian passenger cars (millions)</div>
+                <canvas id="carsChart" width="290" height="210"></canvas>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">Military aircraft deliveries (thousands)</div>
+                <canvas id="aircraftChart" width="290" height="210"></canvas>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">Real GDP (billions of chained 2017 dollars)</div>
+                <canvas id="gdpChart" width="290" height="210"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="metrics-panel">
+              <div class="status-title">Case-study readings</div>
+              <div class="metric-grid wide">
+                <div class="metric-item">
+                  <div class="metric-label">Year</div>
+                  <div class="metric-value small" id="caseMetricYear">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Civilian passenger cars</div>
+                  <div class="metric-value small" id="caseMetricCars">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Military aircraft</div>
+                  <div class="metric-value small" id="caseMetricAircraft">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Real GDP</div>
+                  <div class="metric-value small" id="caseMetricGDP">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Sequence logic</div>
+                  <div class="metric-value tiny" id="caseMetricLogic">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Specialization reading</div>
+                  <div class="metric-value tiny" id="caseMetricSpecialization">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="caseFeedback" class="feedback-panel feedback-neutral">
+              Click a year in the sequence. The graph translates wartime reallocation and wartime growth into PPF language: more military aircraft required a massive sacrifice of civilian car production, and by 1944 the frontier itself had shifted outward as productive capacity expanded.
+            </div>
+
+            <div class="source-card">
+              <div class="status-title">Case-study source note</div>
+              <ul>
+                <li>Passenger-car production: U.S. Census historical statistics.</li>
+                <li>Military aircraft deliveries: Army Air Forces Statistical Digest, World War II.</li>
+                <li>Real GDP: FRED / BEA annual real GDP series.</li>
+                <li>Historical interpretation: wartime rationing and conversion of civilian auto plants to war production.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const DEFAULT_BASELINE = { xMax: 100, yMax: 100, k: 2.1 };
+    const mainPlot = EconDraw.getPlotArea();
+
+    function fmt(value, digits = 1) {
+      if (!Number.isFinite(value)) return "—";
+      return Number(value).toFixed(digits).replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1");
+    }
+
+    function currentDateLabel() {
+      return "2026-04-05";
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function canvasPoint(event, canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      let clientX = event.clientX;
+      let clientY = event.clientY;
+      if (event.touches && event.touches.length) {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+      }
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    function explicitTicks(values, min, max, axis, formatter = null) {
+      return values.map((value) => {
+        const label = formatter ? formatter(value) : fmt(value, Math.abs(value - Math.round(value)) < 1e-6 ? 0 : 1);
+        return axis === "x"
+          ? { label, x: EconDraw.valueToX(value, min, max) }
+          : { label, y: EconDraw.valueToY(value, min, max) };
+      });
+    }
+
+    function frontierY(x, frontier) {
+      if (!frontier || x < 0) return 0;
+      if (x > frontier.xMax) return 0;
+      const share = clamp(x / frontier.xMax, 0, 1);
+      const inside = Math.max(0, 1 - Math.pow(share, frontier.k));
+      return frontier.yMax * Math.pow(inside, 1 / frontier.k);
+    }
+
+    function frontierPoints(frontier, xMin, xMax, yMin, yMax, stepCount = 220) {
+      const points = [];
+      for (let i = 0; i <= stepCount; i += 1) {
+        const x = frontier.xMax * (i / stepCount);
+        const y = frontierY(x, frontier);
+        points.push({
+          x: EconDraw.valueToX(x, xMin, xMax),
+          y: EconDraw.valueToY(y, yMin, yMax)
+        });
+      }
+      return points;
+    }
+
+    function feasiblePolygon(frontier, xMin, xMax, yMin, yMax, stepCount = 220) {
+      const points = [
+        { x: EconDraw.valueToX(0, xMin, xMax), y: EconDraw.valueToY(0, yMin, yMax) },
+        { x: EconDraw.valueToX(frontier.xMax, xMin, xMax), y: EconDraw.valueToY(0, yMin, yMax) }
+      ];
+      for (let i = stepCount; i >= 0; i -= 1) {
+        const x = frontier.xMax * (i / stepCount);
+        const y = frontierY(x, frontier);
+        points.push({
+          x: EconDraw.valueToX(x, xMin, xMax),
+          y: EconDraw.valueToY(y, yMin, yMax)
+        });
+      }
+      return points;
+    }
+
+    function classifyPoint(point, frontier, yDisplayMax) {
+      const tol = 0.015 * yDisplayMax;
+      if (point.x > frontier.xMax + 1e-6) {
+        return {
+          key: "unattainable",
+          label: "Unattainable",
+          explanation: "The point lies to the right of the frontier’s X intercept, so current resources and technology cannot produce it."
+        };
+      }
+      const yFrontier = frontierY(point.x, frontier);
+      if (point.y > yFrontier + tol) {
+        return {
+          key: "unattainable",
+          label: "Unattainable",
+          explanation: "The point lies above the frontier, so it is outside the current feasible production set."
+        };
+      }
+      if (Math.abs(point.y - yFrontier) <= tol) {
+        return {
+          key: "efficient",
+          label: "Efficient",
+          explanation: "The point lies on the frontier, so the economy is using available capacity efficiently."
+        };
+      }
+      return {
+        key: "inefficient",
+        label: "Feasible but inefficient",
+        explanation: "The point lies inside the frontier, so production is feasible but some resources or productivity are being left idle."
+      };
+    }
+
+    function opportunityCostX(frontier, x) {
+      const h = Math.max(frontier.xMax / 400, 0.02);
+      const x1 = clamp(x - h, 0, frontier.xMax);
+      const x2 = clamp(x + h, 0, frontier.xMax);
+      if (Math.abs(x2 - x1) < 1e-8) return 0;
+      const y1 = frontierY(x1, frontier);
+      const y2 = frontierY(x2, frontier);
+      return Math.max(0, -(y2 - y1) / (x2 - x1));
+    }
+
+    function opportunityPattern(frontier) {
+      return frontier.k <= 1.05 ? "constant" : "increasing";
+    }
+
+    function specializationLabel(point, frontier) {
+      const xShare = frontier.xMax ? point.x / frontier.xMax : 0;
+      const yShare = frontier.yMax ? point.y / frontier.yMax : 0;
+      if (xShare - yShare > 0.18) return "More specialized in X";
+      if (yShare - xShare > 0.18) return "More specialized in Y";
+      return "Mixed production";
+    }
+
+    function growthLabel(current, baseline) {
+      const xDelta = (current.xMax - baseline.xMax) / baseline.xMax;
+      const yDelta = (current.yMax - baseline.yMax) / baseline.yMax;
+      if (xDelta > 0.03 || yDelta > 0.03) return "Outward shift / growth";
+      if (xDelta < -0.03 || yDelta < -0.03) return "Inward shift / contraction";
+      return "Near the baseline frontier";
+    }
+
+    function computeTradeOptimum(frontier, priceRatio) {
+      let best = { x: 0, y: frontier.yMax, value: frontier.yMax };
+      for (let i = 0; i <= 600; i += 1) {
+        const x = frontier.xMax * (i / 600);
+        const y = frontierY(x, frontier);
+        const value = priceRatio * x + y;
+        if (value > best.value) {
+          best = { x, y, value };
+        }
+      }
+      return best;
+    }
+
+    function tradeLineEndpoints(point, priceRatio, xMin, xMax, yMin, yMax) {
+      const leftY = point.y + priceRatio * (point.x - xMin);
+      const rightY = point.y - priceRatio * (xMax - point.x);
+      return [
+        { x: EconDraw.valueToX(xMin, xMin, xMax), y: EconDraw.valueToY(leftY, yMin, yMax) },
+        { x: EconDraw.valueToX(xMax, xMin, xMax), y: EconDraw.valueToY(rightY, yMin, yMax) }
+      ];
+    }
+
+    function consumptionPoint(productionPoint, frontier, priceRatio, tradeMix, xDisplayMax, yDisplayMax) {
+      let dx = tradeMix * frontier.xMax * 0.6;
+      let x = productionPoint.x + dx;
+      x = clamp(x, 0, xDisplayMax);
+      let y = productionPoint.y - priceRatio * (x - productionPoint.x);
+      if (y < 0) {
+        y = 0;
+        x = clamp(productionPoint.x + productionPoint.y / priceRatio, 0, xDisplayMax);
+      }
+      if (y > yDisplayMax) {
+        y = yDisplayMax;
+        x = clamp(productionPoint.x - (yDisplayMax - productionPoint.y) / priceRatio, 0, xDisplayMax);
+      }
+      return { x, y };
+    }
+
+    function isBeyondFrontier(point, frontier, yDisplayMax) {
+      const tol = 0.012 * yDisplayMax;
+      if (point.x > frontier.xMax + tol) return true;
+      return point.y > frontierY(point.x, frontier) + tol;
+    }
+
+    function drawArrow(ctx, fromPoint, toPoint, color = ECON_THEME.color.baseline) {
+      const angle = Math.atan2(toPoint.y - fromPoint.y, toPoint.x - fromPoint.x);
+      const head = 9;
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(fromPoint.x, fromPoint.y);
+      ctx.lineTo(toPoint.x, toPoint.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(toPoint.x, toPoint.y);
+      ctx.lineTo(toPoint.x - head * Math.cos(angle - Math.PI / 6), toPoint.y - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(toPoint.x - head * Math.cos(angle + Math.PI / 6), toPoint.y - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawPPFGraph(ctx, options) {
+      const {
+        xMin = 0,
+        xMax = 100,
+        yMin = 0,
+        yMax = 100,
+        xTicks = [0, 20, 40, 60, 80, 100],
+        yTicks = [0, 20, 40, 60, 80, 100],
+        xFormatter = null,
+        yFormatter = null,
+        xLabel = "Good X",
+        yLabel = "Good Y",
+        baselineFrontier = null,
+        currentFrontier,
+        point,
+        pointLabel = "P",
+        comparisonPoint = null,
+        comparisonLabel = "Previous",
+        showTrade = false,
+        priceRatio = 1,
+        tradePoint = null,
+        consumption = null,
+        titleNote = "",
+        showDragHint = false
+      } = options;
+
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+      EconDraw.drawAxes(ctx, {
+        xLabel,
+        yLabel,
+        xTicks: explicitTicks(xTicks, xMin, xMax, "x", xFormatter),
+        yTicks: explicitTicks(yTicks, yMin, yMax, "y", yFormatter)
+      });
+
+      if (currentFrontier) {
+        EconDraw.fillPolygon(ctx, feasiblePolygon(currentFrontier, xMin, xMax, yMin, yMax), {
+          fill: "rgba(85,85,85,0.08)"
+        });
+      }
+
+      if (baselineFrontier) {
+        EconDraw.drawLine(ctx, frontierPoints(baselineFrontier, xMin, xMax, yMin, yMax), {
+          color: ECON_THEME.color.baseline,
+          lineWidth: ECON_THEME.line.baseline,
+          dash: ECON_THEME.dash.baseline
+        });
+        const bx = baselineFrontier.xMax * 0.18;
+        const by = frontierY(bx, baselineFrontier);
+        EconDraw.drawText(ctx, "Baseline PPF", EconDraw.valueToX(bx, xMin, xMax) - 10, EconDraw.valueToY(by, yMin, yMax) - 16, {
+          size: 12,
+          color: ECON_THEME.color.baseline
+        });
+      }
+
+      EconDraw.drawLine(ctx, frontierPoints(currentFrontier, xMin, xMax, yMin, yMax), {
+        color: ECON_THEME.color.longRun,
+        lineWidth: ECON_THEME.line.main
+      });
+
+      const cx = currentFrontier.xMax * 0.62;
+      const cy = frontierY(cx, currentFrontier);
+      EconDraw.drawText(ctx, titleNote || "Current PPF", EconDraw.valueToX(cx, xMin, xMax) - 14, EconDraw.valueToY(cy, yMin, yMax) - 18, {
+        size: 12,
+        color: ECON_THEME.color.longRun
+      });
+
+      if (showTrade && tradePoint) {
+        const endpoints = tradeLineEndpoints(tradePoint, priceRatio, xMin, xMax, yMin, yMax);
+        EconDraw.drawLine(ctx, endpoints, {
+          color: ECON_THEME.color.external,
+          lineWidth: ECON_THEME.line.policy,
+          dash: ECON_THEME.dash.policy
+        });
+        EconDraw.drawText(ctx, "Trade line", endpoints[1].x - 110, endpoints[1].y - 10, {
+          size: 12,
+          color: ECON_THEME.color.external
+        });
+        EconDraw.drawCircle(
+          ctx,
+          EconDraw.valueToX(tradePoint.x, xMin, xMax),
+          EconDraw.valueToY(tradePoint.y, yMin, yMax),
+          {
+            fill: ECON_THEME.color.government,
+            stroke: ECON_THEME.color.government,
+            radius: 5
+          }
+        );
+        EconDraw.drawText(ctx, "Specialize", EconDraw.valueToX(tradePoint.x, xMin, xMax) + 8, EconDraw.valueToY(tradePoint.y, yMin, yMax) - 10, {
+          size: 12,
+          color: ECON_THEME.color.government
+        });
+      }
+
+      if (comparisonPoint) {
+        const compX = EconDraw.valueToX(comparisonPoint.x, xMin, xMax);
+        const compY = EconDraw.valueToY(comparisonPoint.y, yMin, yMax);
+        EconDraw.drawCircle(ctx, compX, compY, {
+          fill: "#ffffff",
+          stroke: ECON_THEME.color.baseline,
+          radius: 5
+        });
+        EconDraw.drawText(ctx, comparisonLabel, compX + 8, compY - 8, {
+          size: 12,
+          color: ECON_THEME.color.baseline
+        });
+        drawArrow(ctx, { x: compX, y: compY }, { x: EconDraw.valueToX(point.x, xMin, xMax), y: EconDraw.valueToY(point.y, yMin, yMax) }, ECON_THEME.color.baseline);
+      }
+
+      if (consumption) {
+        const consX = EconDraw.valueToX(consumption.x, xMin, xMax);
+        const consY = EconDraw.valueToY(consumption.y, yMin, yMax);
+        EconDraw.drawCircle(ctx, consX, consY, {
+          fill: ECON_THEME.color.external,
+          stroke: ECON_THEME.color.external,
+          radius: 5
+        });
+        EconDraw.drawText(ctx, "Consumption", consX + 8, consY - 8, {
+          size: 12,
+          color: ECON_THEME.color.external
+        });
+      }
+
+      const px = EconDraw.valueToX(point.x, xMin, xMax);
+      const py = EconDraw.valueToY(point.y, yMin, yMax);
+      EconDraw.drawCircle(ctx, px, py, {
+        fill: ECON_THEME.color.output,
+        stroke: ECON_THEME.color.output,
+        radius: 6
+      });
+      EconDraw.drawText(ctx, pointLabel, px + 8, py - 8, {
+        size: 12,
+        color: ECON_THEME.color.output
+      });
+
+      if (showDragHint) {
+        EconDraw.drawText(ctx, "Drag point", mainPlot.right - 100, mainPlot.top + 18, {
+          size: 12,
+          color: ECON_THEME.color.muted
+        });
+      }
+    }
+
+    function drawMiniChart(canvas, options) {
+      const ctx = canvas.getContext("2d");
+      const width = canvas.width;
+      const height = canvas.height;
+      const pad = { left: 36, right: 12, top: 12, bottom: 28 };
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+      const { labels, values, maxY, color, activeIndex, yTicks = 4, decimals = 1 } = options;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.strokeStyle = ECON_THEME.color.frame;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
+
+      ctx.strokeStyle = ECON_THEME.color.axis;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top);
+      ctx.lineTo(pad.left, height - pad.bottom);
+      ctx.lineTo(width - pad.right, height - pad.bottom);
+      ctx.stroke();
+
+      ctx.font = `11px ${ECON_THEME.font.family}`;
+      ctx.fillStyle = ECON_THEME.color.muted;
+
+      for (let i = 0; i <= yTicks; i += 1) {
+        const yVal = (maxY / yTicks) * i;
+        const y = height - pad.bottom - (i / yTicks) * plotH;
+        ctx.strokeStyle = ECON_THEME.color.grid;
+        ctx.lineWidth = 0.75;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(width - pad.right, y);
+        ctx.stroke();
+        ctx.fillStyle = ECON_THEME.color.muted;
+        ctx.fillText(fmt(yVal, decimals), 4, y + 4);
+      }
+
+      const n = values.length;
+      const xForIndex = (index) => pad.left + (index / (n - 1)) * plotW;
+      const yForValue = (value) => height - pad.bottom - (value / maxY) * plotH;
+
+      if (Number.isInteger(activeIndex)) {
+        const hx = xForIndex(activeIndex);
+        ctx.strokeStyle = "rgba(201,123,0,0.45)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(hx, pad.top);
+        ctx.lineTo(hx, height - pad.bottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      values.forEach((value, index) => {
+        const x = xForIndex(index);
+        const y = yForValue(value);
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      values.forEach((value, index) => {
+        const x = xForIndex(index);
+        const y = yForValue(value);
+        ctx.beginPath();
+        ctx.fillStyle = index === activeIndex ? ECON_THEME.color.external : color;
+        ctx.arc(x, y, index === activeIndex ? 4.5 : 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = ECON_THEME.color.muted;
+      labels.forEach((label, index) => {
+        const x = xForIndex(index);
+        ctx.fillText(String(label), x - 10, height - 10);
+      });
+    }
+
+    // ---------------------------
+    // Explore module
+    // ---------------------------
+    const exploreCanvas = document.getElementById("exploreCanvas");
+    const exploreCtx = exploreCanvas.getContext("2d");
+
+    const exploreState = {
+      xMax: 100,
+      yMax: 100,
+      k: 2.1,
+      point: { x: 56, y: 56 },
+      showTrade: false,
+      priceRatio: 1.25,
+      tradeMix: 0.18
+    };
+
+    const exploreControls = {
+      xMax: document.getElementById("exploreXMax"),
+      yMax: document.getElementById("exploreYMax"),
+      k: document.getElementById("exploreCurvature"),
+      priceRatio: document.getElementById("explorePriceRatio"),
+      tradeMix: document.getElementById("exploreTradeMix"),
+      showTrade: document.getElementById("exploreShowTrade"),
+      xMaxLabel: document.getElementById("exploreXMaxValue"),
+      yMaxLabel: document.getElementById("exploreYMaxValue"),
+      kLabel: document.getElementById("exploreCurvatureValue"),
+      priceRatioLabel: document.getElementById("explorePriceRatioValue"),
+      tradeMixLabel: document.getElementById("exploreTradeMixValue")
+    };
+
+    const exploreMetrics = {
+      bundle: document.getElementById("exploreMetricBundle"),
+      klass: document.getElementById("exploreMetricClass"),
+      specialization: document.getElementById("exploreMetricSpecialization"),
+      ocx: document.getElementById("exploreMetricOCX"),
+      growth: document.getElementById("exploreMetricGrowth"),
+      trade: document.getElementById("exploreMetricTrade"),
+      feedback: document.getElementById("exploreFeedback")
+    };
+
+    function exploreFrontier() {
+      return { xMax: exploreState.xMax, yMax: exploreState.yMax, k: exploreState.k };
+    }
+
+    function updateExploreLabels() {
+      exploreControls.xMaxLabel.textContent = fmt(exploreState.xMax, 0);
+      exploreControls.yMaxLabel.textContent = fmt(exploreState.yMax, 0);
+      exploreControls.kLabel.textContent = fmt(exploreState.k, 2);
+      exploreControls.priceRatioLabel.textContent = fmt(exploreState.priceRatio, 2);
+      exploreControls.tradeMixLabel.textContent = fmt(exploreState.tradeMix, 2);
+      exploreControls.priceRatio.disabled = !exploreState.showTrade;
+      exploreControls.tradeMix.disabled = !exploreState.showTrade;
+      document.getElementById("exploreSpecializeButton").disabled = !exploreState.showTrade;
+    }
+
+    function renderExplore() {
+      const frontier = exploreFrontier();
+      const classification = classifyPoint(exploreState.point, frontier, 160);
+      const ocx = opportunityCostX(frontier, clamp(exploreState.point.x, 0, frontier.xMax));
+      const specialization = specializationLabel(exploreState.point, frontier);
+      const growth = growthLabel(frontier, DEFAULT_BASELINE);
+      const tradePoint = computeTradeOptimum(frontier, exploreState.priceRatio);
+      const consumption = exploreState.showTrade ? consumptionPoint(tradePoint, frontier, exploreState.priceRatio, exploreState.tradeMix, 160, 160) : null;
+      const beyond = consumption ? isBeyondFrontier(consumption, frontier, 160) : false;
+
+      drawPPFGraph(exploreCtx, {
+        xMin: 0,
+        xMax: 160,
+        yMin: 0,
+        yMax: 160,
+        xTicks: [0, 20, 40, 60, 80, 100, 120, 140, 160],
+        yTicks: [0, 20, 40, 60, 80, 100, 120, 140, 160],
+        xLabel: "Good X",
+        yLabel: "Good Y",
+        baselineFrontier: DEFAULT_BASELINE,
+        currentFrontier: frontier,
+        point: exploreState.point,
+        pointLabel: "Production",
+        showTrade: exploreState.showTrade,
+        priceRatio: exploreState.priceRatio,
+        tradePoint,
+        consumption,
+        titleNote: "Current PPF",
+        showDragHint: true
+      });
+
+      exploreMetrics.bundle.textContent = `(${fmt(exploreState.point.x, 1)}, ${fmt(exploreState.point.y, 1)})`;
+      exploreMetrics.klass.textContent = classification.label;
+      exploreMetrics.specialization.textContent = specialization;
+      exploreMetrics.ocx.textContent = frontier.k <= 1.05
+        ? `${fmt(ocx, 2)} units of Y`
+        : `${fmt(ocx, 2)} units of Y`;
+      exploreMetrics.growth.textContent = growth;
+      if (!exploreState.showTrade) {
+        exploreMetrics.trade.textContent = "Trade line off";
+      } else {
+        exploreMetrics.trade.textContent = beyond
+          ? `Consumption can lie beyond the PPF`
+          : `Trade line shown; current mix stays on or within PPF`;
+      }
+
+      const ocPattern = opportunityPattern(frontier) === "constant" ? "constant" : "increasing";
+      const tradeSentence = !exploreState.showTrade
+        ? "Trade is switched off, so the production point is also the economy’s consumption bundle in this simple picture."
+        : `At Pₓ/Pᵧ = ${fmt(exploreState.priceRatio, 2)}, the value-maximizing production bundle is the green specialization point. ${beyond ? "The orange consumption point lies beyond the frontier, which is exactly the gains-from-trade idea." : "The orange point shows a different mix on the trade line but not beyond the frontier at the current trade setting."}`;
+
+      exploreMetrics.feedback.className = `feedback-panel ${classification.key === "efficient" ? "feedback-success" : classification.key === "inefficient" ? "feedback-neutral" : "feedback-warning"}`;
+      exploreMetrics.feedback.textContent = `${classification.explanation} The frontier’s shape implies ${ocPattern} opportunity cost. ${growth}. ${tradeSentence}`;
+    }
+
+    function resetExplore() {
+      exploreState.xMax = 100;
+      exploreState.yMax = 100;
+      exploreState.k = 2.1;
+      exploreState.point = { x: 56, y: 56 };
+      exploreState.showTrade = false;
+      exploreState.priceRatio = 1.25;
+      exploreState.tradeMix = 0.18;
+
+      exploreControls.xMax.value = "100";
+      exploreControls.yMax.value = "100";
+      exploreControls.k.value = "2.1";
+      exploreControls.priceRatio.value = "1.25";
+      exploreControls.tradeMix.value = "0.18";
+      exploreControls.showTrade.value = "off";
+      updateExploreLabels();
+      renderExplore();
+    }
+
+    exploreControls.xMax.addEventListener("input", () => {
+      exploreState.xMax = Number(exploreControls.xMax.value);
+      updateExploreLabels();
+      renderExplore();
+    });
+    exploreControls.yMax.addEventListener("input", () => {
+      exploreState.yMax = Number(exploreControls.yMax.value);
+      updateExploreLabels();
+      renderExplore();
+    });
+    exploreControls.k.addEventListener("input", () => {
+      exploreState.k = Number(exploreControls.k.value);
+      updateExploreLabels();
+      renderExplore();
+    });
+    exploreControls.priceRatio.addEventListener("input", () => {
+      exploreState.priceRatio = Number(exploreControls.priceRatio.value);
+      updateExploreLabels();
+      renderExplore();
+    });
+    exploreControls.tradeMix.addEventListener("input", () => {
+      exploreState.tradeMix = Number(exploreControls.tradeMix.value);
+      updateExploreLabels();
+      renderExplore();
+    });
+    exploreControls.showTrade.addEventListener("change", () => {
+      exploreState.showTrade = exploreControls.showTrade.value === "on";
+      updateExploreLabels();
+      renderExplore();
+    });
+
+    document.getElementById("exploreSnapButton").addEventListener("click", () => {
+      const frontier = exploreFrontier();
+      const snappedX = clamp(exploreState.point.x, 0, frontier.xMax);
+      exploreState.point.x = snappedX;
+      exploreState.point.y = frontierY(snappedX, frontier);
+      renderExplore();
+    });
+
+    document.getElementById("exploreSpecializeButton").addEventListener("click", () => {
+      const frontier = exploreFrontier();
+      const optimum = computeTradeOptimum(frontier, exploreState.priceRatio);
+      exploreState.point = { x: optimum.x, y: optimum.y };
+      if (!exploreState.showTrade) {
+        exploreState.showTrade = true;
+        exploreControls.showTrade.value = "on";
+      }
+      updateExploreLabels();
+      renderExplore();
+    });
+
+    document.getElementById("exploreResetButton").addEventListener("click", resetExplore);
+
+    let exploreDragging = false;
+    function updateExplorePointFromEvent(event) {
+      const pos = canvasPoint(event, exploreCanvas);
+      const frontier = exploreFrontier();
+      const x = clamp(EconDraw.xToValue(pos.x, 0, 160), 0, 160);
+      const y = clamp(EconDraw.yToValue(pos.y, 0, 160), 0, 160);
+      exploreState.point = { x, y };
+      renderExplore();
+    }
+
+    exploreCanvas.addEventListener("mousedown", (event) => {
+      const pos = canvasPoint(event, exploreCanvas);
+      const px = EconDraw.valueToX(exploreState.point.x, 0, 160);
+      const py = EconDraw.valueToY(exploreState.point.y, 0, 160);
+      const dist = Math.hypot(pos.x - px, pos.y - py);
+      if (dist <= 16) {
+        exploreDragging = true;
+      }
+    });
+    window.addEventListener("mousemove", (event) => {
+      if (!exploreDragging) return;
+      updateExplorePointFromEvent(event);
+    });
+    window.addEventListener("mouseup", () => { exploreDragging = false; });
+
+    exploreCanvas.addEventListener("touchstart", (event) => {
+      const pos = canvasPoint(event, exploreCanvas);
+      const px = EconDraw.valueToX(exploreState.point.x, 0, 160);
+      const py = EconDraw.valueToY(exploreState.point.y, 0, 160);
+      const dist = Math.hypot(pos.x - px, pos.y - py);
+      if (dist <= 18) {
+        exploreDragging = true;
+        event.preventDefault();
+      }
+    }, { passive: false });
+
+    exploreCanvas.addEventListener("touchmove", (event) => {
+      if (!exploreDragging) return;
+      updateExplorePointFromEvent(event);
+      event.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener("touchend", () => { exploreDragging = false; });
+
+    // ---------------------------
+    // Practice module
+    // ---------------------------
+    const practiceCanvas = document.getElementById("practiceCanvas");
+    const practiceCtx = practiceCanvas.getContext("2d");
+    const practiceFeedback = document.getElementById("practiceFeedback");
+
+    function buildPracticeScenarios() {
+      const frontierTrade = { xMax: 100, yMax: 100, k: 2.2 };
+      const tradePoint = computeTradeOptimum(frontierTrade, 1.7);
+      const tradeConsumption = consumptionPoint(tradePoint, frontierTrade, 1.7, 0.36, 160, 160);
+
+      return [
+        {
+          title: "Inside the frontier",
+          kicker: "Idle resources",
+          prompt: "Read the point relative to the PPF.",
+          frontier: { xMax: 100, yMax: 100, k: 2.2 },
+          baseline: DEFAULT_BASELINE,
+          point: { x: 48, y: 36 },
+          showTrade: false,
+          answers: { klass: "inefficient", growth: "no", specialization: "mixed", trade: "not_shown", oc: "increasing" },
+          explanation: "The point is inside the frontier, so it is feasible but inefficient. The bowed shape means increasing opportunity cost."
+        },
+        {
+          title: "On the frontier, tilted toward X",
+          kicker: "Efficient specialization",
+          prompt: "The economy is using capacity efficiently and producing relatively more of X.",
+          frontier: { xMax: 100, yMax: 100, k: 2.2 },
+          baseline: DEFAULT_BASELINE,
+          point: { x: 78, y: frontierY(78, { xMax: 100, yMax: 100, k: 2.2 }) },
+          showTrade: false,
+          answers: { klass: "efficient", growth: "no", specialization: "x", trade: "not_shown", oc: "increasing" },
+          explanation: "The point lies on the frontier and sits closer to the X intercept, so it is efficient and relatively specialized in X."
+        },
+        {
+          title: "Wish list above the frontier",
+          kicker: "Scarcity",
+          prompt: "The point sits above the feasible frontier.",
+          frontier: { xMax: 100, yMax: 100, k: 2.2 },
+          baseline: DEFAULT_BASELINE,
+          point: { x: 70, y: 82 },
+          showTrade: false,
+          answers: { klass: "unattainable", growth: "no", specialization: "mixed", trade: "not_shown", oc: "increasing" },
+          explanation: "A point above the PPF is unattainable with current resources and technology. That is the scarcity idea in one picture."
+        },
+        {
+          title: "Outward shift from growth",
+          kicker: "Economic growth",
+          prompt: "The solid frontier lies outside the dashed baseline.",
+          frontier: { xMax: 122, yMax: 118, k: 2.2 },
+          baseline: DEFAULT_BASELINE,
+          point: { x: 62, y: frontierY(62, { xMax: 122, yMax: 118, k: 2.2 }) },
+          showTrade: false,
+          answers: { klass: "efficient", growth: "yes", specialization: "mixed", trade: "not_shown", oc: "increasing" },
+          explanation: "The frontier shifted outward, so the economy can now produce more of at least one good than before. The point shown is on the new frontier."
+        },
+        {
+          title: "Straight-line frontier",
+          kicker: "Constant opportunity cost",
+          prompt: "A linear frontier means the trade-off does not steepen as production moves right.",
+          frontier: { xMax: 100, yMax: 100, k: 1.0 },
+          baseline: { xMax: 100, yMax: 100, k: 1.0 },
+          point: { x: 58, y: frontierY(58, { xMax: 100, yMax: 100, k: 1.0 }) },
+          showTrade: false,
+          answers: { klass: "efficient", growth: "no", specialization: "mixed", trade: "not_shown", oc: "constant" },
+          explanation: "A straight-line PPF implies constant opportunity cost."
+        },
+        {
+          title: "Trade and specialization",
+          kicker: "Consumption beyond the frontier",
+          prompt: "Production is specialized; consumption lies on the trade line beyond the PPF.",
+          frontier: frontierTrade,
+          baseline: DEFAULT_BASELINE,
+          point: tradePoint,
+          showTrade: true,
+          priceRatio: 1.7,
+          consumption: tradeConsumption,
+          answers: { klass: "efficient", growth: "no", specialization: "x", trade: "yes", oc: "increasing" },
+          explanation: "The green production point is the value-maximizing specialization bundle, and the orange consumption point lies beyond the PPF. That is the gains-from-trade result."
+        },
+        {
+          title: "Y-heavy frontier point",
+          kicker: "Specialization toward Y",
+          prompt: "The efficient point is close to the Y intercept.",
+          frontier: { xMax: 100, yMax: 100, k: 2.2 },
+          baseline: DEFAULT_BASELINE,
+          point: { x: 22, y: frontierY(22, { xMax: 100, yMax: 100, k: 2.2 }) },
+          showTrade: false,
+          answers: { klass: "efficient", growth: "no", specialization: "y", trade: "not_shown", oc: "increasing" },
+          explanation: "The point is on the frontier and relatively closer to the Y axis, so production is more specialized in Y."
+        },
+        {
+          title: "Growth but still idle resources",
+          kicker: "Bigger frontier, inefficient use",
+          prompt: "The frontier has grown, but the economy is still inside it.",
+          frontier: { xMax: 120, yMax: 120, k: 2.2 },
+          baseline: DEFAULT_BASELINE,
+          point: { x: 55, y: 42 },
+          showTrade: false,
+          answers: { klass: "inefficient", growth: "yes", specialization: "mixed", trade: "not_shown", oc: "increasing" },
+          explanation: "The solid frontier is outside the dashed baseline, so there has been growth, but the point itself remains inside the new frontier."
+        }
+      ];
+    }
+
+    const practiceScenarios = buildPracticeScenarios();
+    const practiceState = {
+      index: 0,
+      revealed: false
+    };
+
+    const practiceSelects = {
+      klass: document.getElementById("practiceAnswerClass"),
+      growth: document.getElementById("practiceAnswerGrowth"),
+      specialization: document.getElementById("practiceAnswerSpecialization"),
+      trade: document.getElementById("practiceAnswerTrade"),
+      oc: document.getElementById("practiceAnswerOC")
+    };
+
+    function renderPracticeScenarioList() {
+      const list = document.getElementById("practiceScenarioList");
+      list.innerHTML = "";
+      practiceScenarios.forEach((scenario, index) => {
+        const card = document.createElement("div");
+        card.className = "scenario-card" + (index === practiceState.index ? " active" : "");
+        card.innerHTML = `
+          <div class="card-kicker">${scenario.kicker}</div>
+          <div class="card-title">${scenario.title}</div>
+          <div>${scenario.prompt}</div>
+        `;
+        card.addEventListener("click", () => {
+          practiceState.index = index;
+          practiceState.revealed = false;
+          practiceFeedback.className = "feedback-panel feedback-neutral";
+          practiceFeedback.textContent = "Read the graph, answer the five questions, and then check your response.";
+          renderPracticeScenarioList();
+          renderPractice();
+        });
+        list.appendChild(card);
+      });
+    }
+
+    function resetPracticeAnswers() {
+      Object.values(practiceSelects).forEach((select) => { select.value = ""; });
+      practiceState.revealed = false;
+      practiceFeedback.className = "feedback-panel feedback-neutral";
+      practiceFeedback.textContent = "Read the graph, answer the five questions, and then check your response.";
+      renderPractice();
+    }
+
+    function renderPractice() {
+      const scenario = practiceScenarios[practiceState.index];
+      drawPPFGraph(practiceCtx, {
+        xMin: 0,
+        xMax: 160,
+        yMin: 0,
+        yMax: 160,
+        xTicks: [0, 20, 40, 60, 80, 100, 120, 140, 160],
+        yTicks: [0, 20, 40, 60, 80, 100, 120, 140, 160],
+        xLabel: "Good X",
+        yLabel: "Good Y",
+        baselineFrontier: scenario.baseline,
+        currentFrontier: scenario.frontier,
+        point: scenario.point,
+        pointLabel: "Observed bundle",
+        showTrade: Boolean(scenario.showTrade),
+        priceRatio: scenario.priceRatio || 1,
+        tradePoint: scenario.showTrade ? scenario.point : null,
+        consumption: scenario.consumption || null,
+        titleNote: "Scenario PPF"
+      });
+    }
+
+    function checkPractice() {
+      const scenario = practiceScenarios[practiceState.index];
+      const missing = Object.values(practiceSelects).some((select) => !select.value);
+      if (missing) {
+        practiceFeedback.className = "feedback-panel feedback-warning";
+        practiceFeedback.textContent = "Complete all five fields before checking.";
+        return;
+      }
+      const answers = {
+        klass: practiceSelects.klass.value,
+        growth: practiceSelects.growth.value,
+        specialization: practiceSelects.specialization.value,
+        trade: practiceSelects.trade.value,
+        oc: practiceSelects.oc.value
+      };
+      const wrong = [];
+      Object.keys(scenario.answers).forEach((key) => {
+        if (answers[key] !== scenario.answers[key]) {
+          wrong.push(key);
+        }
+      });
+      practiceState.revealed = true;
+      if (!wrong.length) {
+        practiceFeedback.className = "feedback-panel feedback-success";
+        practiceFeedback.textContent = `Correct. ${scenario.explanation}`;
+      } else {
+        const names = {
+          klass: "classification",
+          growth: "growth",
+          specialization: "specialization",
+          trade: "trade reading",
+          oc: "opportunity-cost pattern"
+        };
+        const answerPretty = {
+          klass: { efficient: "Efficient", inefficient: "Feasible but inefficient", unattainable: "Unattainable" },
+          growth: { yes: "Yes", no: "No" },
+          specialization: { x: "Good X", y: "Good Y", mixed: "Mixed" },
+          trade: { yes: "Yes", no: "No", not_shown: "Not shown" },
+          oc: { increasing: "Increasing", constant: "Constant" }
+        };
+        const details = wrong.map((key) => `${names[key]}: ${answerPretty[key][scenario.answers[key]]}`).join("; ");
+        practiceFeedback.className = "feedback-panel feedback-warning";
+        practiceFeedback.textContent = `Not quite. Correct readings are ${details}. ${scenario.explanation}`;
+      }
+    }
+
+    document.getElementById("practiceRandomButton").addEventListener("click", () => {
+      let next = Math.floor(Math.random() * practiceScenarios.length);
+      if (practiceScenarios.length > 1 && next === practiceState.index) {
+        next = (next + 1) % practiceScenarios.length;
+      }
+      practiceState.index = next;
+      renderPracticeScenarioList();
+      resetPracticeAnswers();
+    });
+    document.getElementById("practiceResetButton").addEventListener("click", resetPracticeAnswers);
+    document.getElementById("practiceCheckButton").addEventListener("click", checkPractice);
+
+    // ---------------------------
+    // Case study module
+    // ---------------------------
+    const caseCanvas = document.getElementById("caseCanvas");
+    const caseCtx = caseCanvas.getContext("2d");
+    const caseFeedback = document.getElementById("caseFeedback");
+
+    const warCase = [
+      {
+        year: 1941,
+        title: "1941: Civilian cars still dominate",
+        carsMillion: 3.779682,
+        carsCount: 3779682,
+        aircraftThousand: 18.466,
+        gdp: 1681.049,
+        frontier: { xMax: 4.35, yMax: 38, k: 2.0 },
+        logic: "Mostly a movement along the existing frontier has not happened yet; the economy is still heavily civilian.",
+        note: "Passenger-car output was still 3.78 million while military-aircraft deliveries were 18.5 thousand. This is a civilian-heavy bundle before full wartime conversion.",
+        specialization: "Much more specialized in civilian cars than in military aircraft."
+      },
+      {
+        year: 1942,
+        title: "1942: Civilian auto production is shut down",
+        carsMillion: 0.222862,
+        carsCount: 222862,
+        aircraftThousand: 46.907,
+        gdp: 1998.542,
+        frontier: { xMax: 4.35, yMax: 55, k: 2.0 },
+        logic: "Big movement toward the aircraft axis, plus an early outward shift from mobilization.",
+        note: "Civilian vehicle production collapsed after February 1942 while resources and plants were redirected to the war effort. Aircraft deliveries jumped sharply.",
+        specialization: "A dramatic move away from civilian cars and toward military output."
+      },
+      {
+        year: 1943,
+        title: "1943: Near-complete wartime specialization",
+        carsMillion: 0.000139,
+        carsCount: 139,
+        aircraftThousand: 84.853,
+        gdp: 2338.761,
+        frontier: { xMax: 4.55, yMax: 90, k: 2.0 },
+        logic: "Further movement toward the aircraft axis, alongside a much larger frontier as wartime capacity scales up.",
+        note: "Civilian passenger-car output was essentially zero while aircraft deliveries surged to almost 85 thousand. The economy looks far more specialized in war goods.",
+        specialization: "Near-complete specialization in military aircraft rather than civilian cars."
+      },
+      {
+        year: 1944,
+        title: "1944: Peak aircraft deliveries on a larger frontier",
+        carsMillion: 0.000610,
+        carsCount: 610,
+        aircraftThousand: 96.270,
+        gdp: 2524.752,
+        frontier: { xMax: 4.95, yMax: 100, k: 2.0 },
+        logic: "The frontier sits well outside 1941, so the story is no longer just reallocation; it is reallocation plus growth in productive capacity.",
+        note: "Aircraft deliveries reached 96.27 thousand while civilian cars stayed effectively absent. By this stage the economy was producing on a much larger wartime frontier.",
+        specialization: "Extreme specialization in war output, combined with outward growth of the frontier."
+      }
+    ];
+
+    const caseState = {
+      index: 0,
+      timer: null
+    };
+
+    function formatCars(casePoint) {
+      if (casePoint.carsCount >= 1000000) return `${fmt(casePoint.carsMillion, 3)} million`;
+      if (casePoint.carsCount >= 1000) return `${fmt(casePoint.carsCount / 1000, 1)} thousand`;
+      return `${casePoint.carsCount.toLocaleString()} cars`;
+    }
+
+    function renderCaseStepButtons() {
+      const wrap = document.getElementById("caseStepSwitch");
+      wrap.innerHTML = "";
+      warCase.forEach((step, index) => {
+        const button = document.createElement("button");
+        button.className = "step-button" + (index === caseState.index ? " active" : "");
+        button.innerHTML = `<div class="card-kicker">${step.year}</div><div class="card-title">${step.title}</div>`;
+        button.addEventListener("click", () => {
+          caseState.index = index;
+          stopCasePlayback();
+          renderCase();
+        });
+        wrap.appendChild(button);
+      });
+    }
+
+    function stopCasePlayback() {
+      if (caseState.timer) {
+        clearInterval(caseState.timer);
+        caseState.timer = null;
+      }
+      document.getElementById("casePlayButton").textContent = "Play sequence";
+    }
+
+    function toggleCasePlayback() {
+      if (caseState.timer) {
+        stopCasePlayback();
+        return;
+      }
+      document.getElementById("casePlayButton").textContent = "Pause sequence";
+      caseState.timer = setInterval(() => {
+        caseState.index += 1;
+        if (caseState.index >= warCase.length) {
+          caseState.index = warCase.length - 1;
+          stopCasePlayback();
+        }
+        renderCase();
+      }, 1600);
+    }
+
+    function renderCase() {
+      const step = warCase[caseState.index];
+      const previous = caseState.index > 0 ? warCase[caseState.index - 1] : null;
+      drawPPFGraph(caseCtx, {
+        xMin: 0,
+        xMax: 5.2,
+        yMin: 0,
+        yMax: 105,
+        xTicks: [0, 1, 2, 3, 4, 5],
+        yTicks: [0, 20, 40, 60, 80, 100],
+        xFormatter: (value) => fmt(value, 0),
+        yFormatter: (value) => fmt(value, 0),
+        xLabel: "Civilian passenger cars (millions)",
+        yLabel: "Military aircraft deliveries (thousands)",
+        baselineFrontier: warCase[0].frontier,
+        currentFrontier: step.frontier,
+        point: { x: step.carsMillion, y: step.aircraftThousand },
+        pointLabel: String(step.year),
+        comparisonPoint: previous ? { x: previous.carsMillion, y: previous.aircraftThousand } : null,
+        comparisonLabel: previous ? String(previous.year) : "",
+        showTrade: false,
+        titleNote: `${step.year} stylized frontier`
+      });
+
+      drawMiniChart(document.getElementById("carsChart"), {
+        labels: warCase.map((d) => d.year),
+        values: warCase.map((d) => d.carsMillion),
+        maxY: 4.1,
+        color: ECON_THEME.color.output,
+        activeIndex: caseState.index,
+        yTicks: 4,
+        decimals: 1
+      });
+
+      drawMiniChart(document.getElementById("aircraftChart"), {
+        labels: warCase.map((d) => d.year),
+        values: warCase.map((d) => d.aircraftThousand),
+        maxY: 105,
+        color: ECON_THEME.color.supply,
+        activeIndex: caseState.index,
+        yTicks: 5,
+        decimals: 0
+      });
+
+      drawMiniChart(document.getElementById("gdpChart"), {
+        labels: warCase.map((d) => d.year),
+        values: warCase.map((d) => d.gdp),
+        maxY: 2600,
+        color: ECON_THEME.color.government,
+        activeIndex: caseState.index,
+        yTicks: 4,
+        decimals: 0
+      });
+
+      document.getElementById("caseMetricYear").textContent = String(step.year);
+      document.getElementById("caseMetricCars").textContent = formatCars(step);
+      document.getElementById("caseMetricAircraft").textContent = `${fmt(step.aircraftThousand, 3)} thousand`;
+      document.getElementById("caseMetricGDP").textContent = `$${fmt(step.gdp, 0)} bn`;
+      document.getElementById("caseMetricLogic").textContent = step.logic;
+      document.getElementById("caseMetricSpecialization").textContent = step.specialization;
+
+      caseFeedback.className = "feedback-panel feedback-neutral";
+      caseFeedback.textContent = `${step.note} ${step.logic} The frontier is intentionally stylized so the case can be read as a sequence of movement along the PPF plus outward shifts in productive capacity.`;
+
+      renderCaseStepButtons();
+    }
+
+    document.getElementById("casePlayButton").addEventListener("click", toggleCasePlayback);
+    document.getElementById("caseResetButton").addEventListener("click", () => {
+      stopCasePlayback();
+      caseState.index = 0;
+      renderCase();
+    });
+
+    // ---------------------------
+    // Shared module tabs
+    // ---------------------------
+    function activateSection(targetId) {
+      document.querySelectorAll(".module-tab").forEach((tab) => {
+        tab.classList.toggle("active", tab.dataset.target === targetId);
+      });
+      document.querySelectorAll(".module-section").forEach((section) => {
+        section.classList.toggle("active", section.id === targetId);
+      });
+      if (targetId === "exploreSection") renderExplore();
+      if (targetId === "practiceSection") renderPractice();
+      if (targetId === "caseSection") renderCase();
+    }
+
+    document.querySelectorAll(".module-tab").forEach((tab) => {
+      tab.addEventListener("click", () => activateSection(tab.dataset.target));
+    });
+
+    renderPracticeScenarioList();
+    updateExploreLabels();
+    renderExplore();
+    renderPractice();
+    renderCase();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G01_demand_supply_equilibrium</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .module-tab {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .module-tab:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+
+    .module-tab.active {
+      background: #eef4ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+
+    .module-section {
+      display: none;
+    }
+
+    .module-section.active {
+      display: block;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.9fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .bank-panel,
+    .status-panel {
+      margin-top: 0;
+    }
+
+    .subtle-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.45;
+    }
+
+    .bank-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+
+    .bank-toolbar .control-group {
+      min-width: 140px;
+      flex: 1 1 150px;
+    }
+
+    .count-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #f3f6fb;
+      border: 1px solid var(--color-frame);
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+
+    .determinant-bank {
+      max-height: 620px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .group-heading {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-muted);
+      margin: 12px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .scenario-item,
+    .case-item {
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: white;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color 0.12s ease, transform 0.12s ease, background-color 0.12s ease;
+    }
+
+    .scenario-item:hover,
+    .case-item:hover {
+      transform: translateY(-1px);
+      border-color: #90a6c4;
+      background: #fbfcff;
+    }
+
+    .scenario-item.active,
+    .case-item.active {
+      border-color: var(--color-demand);
+      background: #f5f8ff;
+    }
+
+    .scenario-title,
+    .case-title {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.35;
+      margin-bottom: 4px;
+      color: var(--color-text);
+    }
+
+    .scenario-note,
+    .case-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.4;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: white;
+    }
+
+    .history-item strong {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+
+    .history-item span {
+      display: block;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+
+    .series-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .series-card {
+      background: #fbfcff;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .series-card canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+
+    .series-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 8px;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-line {
+      width: 28px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+
+    .legend-line.demand {
+      border-color: var(--color-demand);
+    }
+
+    .legend-line.supply {
+      border-color: var(--color-supply);
+    }
+
+    .legend-line.baseline {
+      border-color: var(--color-baseline);
+      border-top-style: dashed;
+    }
+
+    .legend-line.guess {
+      border-color: var(--color-guess);
+      border-top-style: dashed;
+    }
+
+    .legend-line.output {
+      border-color: var(--color-output);
+    }
+
+    .legend-line.inflation {
+      border-color: var(--color-inflation);
+    }
+
+    .legend-line.long-run {
+      border-color: var(--color-long-run);
+      border-top-style: dashed;
+    }
+
+    .metric-grid.tight {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    .metric-label small {
+      display: block;
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    .inline-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #f3f6fb;
+      border: 1px solid var(--color-frame);
+      color: var(--color-text);
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 12px;
+      margin-top: 12px;
+    }
+
+    .answer-grid .control-group {
+      min-width: 0;
+    }
+
+    .answer-grid select {
+      width: 100%;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table.comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+      border-bottom: 1px solid #e6edf5;
+      padding: 8px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .comparison-table th {
+      background: #f8fbff;
+      font-weight: 600;
+    }
+
+    .comparison-table tr.active-row td {
+      background: #f5f8ff;
+    }
+
+    .check-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-inline {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-inline:hover {
+      background: #f8fbff;
+    }
+
+    .btn-inline.primary {
+      background: var(--color-government);
+      border-color: var(--color-government);
+      color: white;
+    }
+
+    .btn-inline.secondary {
+      background: white;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .status-box {
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: #fbfcff;
+      line-height: 1.45;
+      font-size: 13px;
+    }
+
+    .status-box strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .source-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .source-list .pill {
+      justify-content: flex-start;
+      border-radius: 10px;
+      padding: 8px 10px;
+      align-items: flex-start;
+    }
+
+    .badge-soft {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #eef4ff;
+      color: var(--color-demand);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    canvas.graph-canvas.fixed {
+      width: 100%;
+      max-width: var(--canvas-width);
+      height: auto;
+    }
+
+    @media (max-width: 1040px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .determinant-bank {
+        max-height: 360px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .series-grid,
+      .answer-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Demand and supply equilibrium with non-price determinants</h1>
+        <p class="diagram-subtitle">
+          G01 uses a standard cross diagram to connect non-price determinants, equilibrium shifts, and time-series outcomes. Explore a comprehensive determinant bank, practise comparative statics, or step through a calibrated Perth post-COVID housing case study.
+        </p>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore determinants</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseStudySection">Perth housing case study</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="control-panel">
+          <div class="control-group">
+            <label for="exploreMagnitude">Shock size</label>
+            <input type="range" id="exploreMagnitude" min="0.5" max="3.0" step="0.5" value="2.0" />
+          </div>
+          <div class="control-group">
+            <label for="exploreFilterText">Filter determinants</label>
+            <input type="text" id="exploreFilterText" placeholder="income, expectations, technology, regulation..." />
+          </div>
+          <div class="control-group">
+            <label for="exploreFamilyFilter">Family</label>
+            <select id="exploreFamilyFilter">
+              <option value="all">All determinants</option>
+              <option value="D">Demand only</option>
+              <option value="S">Supply only</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="exploreBaselineToggle">Baseline reference</label>
+            <select id="exploreBaselineToggle">
+              <option value="show">Show baseline curves</option>
+              <option value="hide">Hide baseline curves</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="exploreUndoButton">Undo last shock</button>
+          </div>
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="exploreResetButton">Reset explore path</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="stack">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas fixed" width="960" height="600"></canvas>
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line baseline"></span><span>Baseline demand and supply</span></div>
+                <div class="legend-item"><span class="legend-line demand"></span><span>Current demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Current supply</span></div>
+              </div>
+              <p class="subtle-note" style="margin: 10px 0 0 0;">
+                Click any determinant in the bank to add one more shift to the sequence. The left panel keeps the current market diagram, while the two small charts below convert the sequence into an equilibrium price path and an equilibrium quantity path.
+              </p>
+            </div>
+
+            <div class="series-grid">
+              <div class="series-card">
+                <div class="series-title">Equilibrium price over the applied sequence</div>
+                <canvas id="explorePriceSeries" width="440" height="240"></canvas>
+              </div>
+              <div class="series-card">
+                <div class="series-title">Equilibrium quantity over the applied sequence</div>
+                <canvas id="exploreQuantitySeries" width="440" height="240"></canvas>
+              </div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="metric-grid tight" id="exploreMetricGrid"></div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="exploreFeedback">
+              The explore mode starts at the baseline equilibrium. Every new determinant shock updates the live market graph and appends one point to both time-series charts.
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="notes-panel bank-panel">
+              <div class="bank-toolbar">
+                <span class="count-chip" id="exploreCountChip">54 determinants visible</span>
+                <span class="count-chip" id="exploreMagnitudeChip">Shock size: 2.0</span>
+              </div>
+              <div class="determinant-bank" id="exploreScenarioList"></div>
+            </div>
+
+            <div class="notes-panel status-panel">
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Applied event log</div>
+              <div class="history-list" id="exploreHistory"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="control-panel">
+          <div class="control-group">
+            <label for="practiceFilterText">Filter determinants</label>
+            <input type="text" id="practiceFilterText" placeholder="income, migration, taxes, logistics..." />
+          </div>
+          <div class="control-group">
+            <label for="practiceFamilyFilter">Family</label>
+            <select id="practiceFamilyFilter">
+              <option value="all">All determinants</option>
+              <option value="D">Demand only</option>
+              <option value="S">Supply only</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceRandomButton">Random determinant</button>
+          </div>
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceResetButton">Reset practice</button>
+          </div>
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="practiceCheckButton">Check answer</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="stack">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas fixed" width="960" height="600"></canvas>
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line baseline"></span><span>Baseline demand and supply</span></div>
+                <div class="legend-item"><span class="legend-line guess"></span><span>Your guessed shifted curve</span></div>
+                <div class="legend-item"><span class="legend-line demand"></span><span>Revealed demand answer</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Revealed supply answer</span></div>
+              </div>
+            </div>
+
+            <div class="notes-panel">
+              <div class="status-box" id="practicePromptBox">
+                <strong>Choose a determinant to begin.</strong>
+                Then choose which curve shifts, in which direction, and what happens to equilibrium price and quantity.
+              </div>
+
+              <div class="answer-grid">
+                <div class="control-group">
+                  <label for="practiceCurveSelect">Which curve shifts?</label>
+                  <select id="practiceCurveSelect">
+                    <option value="">Choose</option>
+                    <option value="D">Demand</option>
+                    <option value="S">Supply</option>
+                  </select>
+                </div>
+                <div class="control-group">
+                  <label for="practiceDirectionSelect">Which direction?</label>
+                  <select id="practiceDirectionSelect">
+                    <option value="">Choose</option>
+                    <option value="right">Right</option>
+                    <option value="left">Left</option>
+                  </select>
+                </div>
+                <div class="control-group">
+                  <label for="practicePriceSelect">Equilibrium price</label>
+                  <select id="practicePriceSelect">
+                    <option value="">Choose</option>
+                    <option value="increase">Increase</option>
+                    <option value="decrease">Decrease</option>
+                  </select>
+                </div>
+                <div class="control-group">
+                  <label for="practiceQuantitySelect">Equilibrium quantity</label>
+                  <select id="practiceQuantitySelect">
+                    <option value="">Choose</option>
+                    <option value="increase">Increase</option>
+                    <option value="decrease">Decrease</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="metric-grid tight" id="practiceMetricGrid"></div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="practiceFeedback">
+              Practice mode reveals the correct shifted curve after you check your answer. The purple dashed line appears as soon as you choose a curve and direction.
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="notes-panel bank-panel">
+              <div class="bank-toolbar">
+                <span class="count-chip" id="practiceCountChip">54 determinants visible</span>
+                <span class="badge-soft">Practice uses one determinant at a time</span>
+              </div>
+              <div class="determinant-bank" id="practiceScenarioList"></div>
+            </div>
+
+            <div class="notes-panel">
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Checking rule</div>
+              <p class="subtle-note" style="margin:0;">
+                The practice check asks for four things: the correct curve, the correct shift direction, and the direction of change in equilibrium price and quantity. Because each item in the determinant bank is a pure non-price determinant, only one curve shifts in each practice question.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseStudySection" class="module-section">
+        <div class="control-panel">
+          <div class="control-group">
+            <label for="caseOverlayToggle">Observed overlay</label>
+            <select id="caseOverlayToggle">
+              <option value="show">Show observed proxies</option>
+              <option value="hide">Hide observed proxies</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="caseBaselineToggle">Baseline reference</label>
+            <select id="caseBaselineToggle">
+              <option value="show">Show baseline curves</option>
+              <option value="hide">Hide baseline curves</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="caseNextButton">Apply next step</button>
+          </div>
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="casePlayButton">Play full sequence</button>
+          </div>
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="caseFullButton">Load full path</button>
+          </div>
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="caseResetButton">Reset case study</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="stack">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas fixed" width="960" height="600"></canvas>
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line baseline"></span><span>June 2020 baseline curves</span></div>
+                <div class="legend-item"><span class="legend-line demand"></span><span>Modelled demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Modelled supply</span></div>
+              </div>
+              <p class="subtle-note" style="margin: 10px 0 0 0;">
+                The main graph uses a stylised housing calibration: price is shown in thousands of dollars and quantity is a sales-activity index. The rightward and leftward shifts are chosen so the sequence broadly matches published Perth market benchmarks.
+              </p>
+            </div>
+
+            <div class="series-grid">
+              <div class="series-card">
+                <div class="series-title">Perth proxy house price path</div>
+                <canvas id="casePriceSeries" width="440" height="240"></canvas>
+              </div>
+              <div class="series-card">
+                <div class="series-title">Perth sales-activity proxy path</div>
+                <canvas id="caseQuantitySeries" width="440" height="240"></canvas>
+              </div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="metric-grid tight" id="caseMetricGrid"></div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="caseFeedback">
+              The Perth case study is calibrated rather than estimated. The price series is anchored to published REIWA benchmark medians; the quantity series is a stylised sales-activity proxy because the public references mix weekly reported transactions and annual settled sales.
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="notes-panel bank-panel">
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Case-study sequence</div>
+              <div id="caseStepList" class="determinant-bank"></div>
+            </div>
+
+            <div class="notes-panel">
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Calibration notes and source cues</div>
+              <div class="source-list" id="caseSourceList"></div>
+            </div>
+
+            <div class="notes-panel">
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Observed vs model table</div>
+              <div class="table-wrap">
+                <table class="comparison-table">
+                  <thead>
+                    <tr>
+                      <th>Step</th>
+                      <th>Observed price</th>
+                      <th>Model price</th>
+                      <th>Observed quantity proxy</th>
+                      <th>Model quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody id="caseTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const determinantScenarios = [{"group": "Households: income, demographics and tastes", "title": "Higher consumer income (normal good)", "note": "Income", "curve": "D", "direction": "right", "explanation": "For a normal good, higher income increases consumers' willingness and ability to buy, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: income, demographics and tastes", "title": "Lower consumer income (normal good)", "note": "Income", "curve": "D", "direction": "left", "explanation": "For a normal good, lower income reduces consumers' purchasing power, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: income, demographics and tastes", "title": "Lower consumer income (inferior good)", "note": "Income and type of good", "curve": "D", "direction": "right", "explanation": "For an inferior good, lower income makes consumers switch toward cheaper options, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: income, demographics and tastes", "title": "Higher consumer income (inferior good)", "note": "Income and type of good", "curve": "D", "direction": "left", "explanation": "For an inferior good, higher income makes consumers switch away toward preferred alternatives, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: income, demographics and tastes", "title": "Target-market demographics become more favourable", "note": "Demographics", "curve": "D", "direction": "right", "explanation": "When the share of likely buyers grows, more units are demanded at every price, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: income, demographics and tastes", "title": "Target-market demographics become less favourable", "note": "Demographics", "curve": "D", "direction": "left", "explanation": "When the share of likely buyers shrinks, fewer units are demanded at every price, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: income, demographics and tastes", "title": "Product becomes more fashionable or preferred", "note": "Tastes and preferences", "curve": "D", "direction": "right", "explanation": "Stronger tastes and preferences for the good increase demand at every price, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: income, demographics and tastes", "title": "Product falls out of fashion or tastes worsen", "note": "Tastes and preferences", "curve": "D", "direction": "left", "explanation": "Weaker tastes and preferences reduce demand at every price, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: income, demographics and tastes", "title": "Successful advertising or better product information", "note": "Advertising and information", "curve": "D", "direction": "right", "explanation": "Advertising or better information can raise consumers' desire to buy, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: income, demographics and tastes", "title": "Negative publicity, product recall, or safety scare", "note": "Advertising and information", "curve": "D", "direction": "left", "explanation": "Bad news about the product reduces willingness to buy, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Price of a substitute rises", "note": "Related goods: substitutes", "curve": "D", "direction": "right", "explanation": "If a substitute becomes more expensive, consumers switch toward this good, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Price of a substitute falls", "note": "Related goods: substitutes", "curve": "D", "direction": "left", "explanation": "If a substitute becomes cheaper, consumers switch away from this good, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Price of a complement falls", "note": "Related goods: complements", "curve": "D", "direction": "right", "explanation": "If a complement becomes cheaper, consumers buy more of both goods together, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Price of a complement rises", "note": "Related goods: complements", "curve": "D", "direction": "left", "explanation": "If a complement becomes more expensive, consumers buy less of both goods together, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Number of buyers increases", "note": "Market size", "curve": "D", "direction": "right", "explanation": "With more buyers in the market, total demand rises at every price, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Number of buyers decreases", "note": "Market size", "curve": "D", "direction": "left", "explanation": "With fewer buyers in the market, total demand falls at every price, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Consumers expect higher future prices", "note": "Expectations", "curve": "D", "direction": "right", "explanation": "If consumers expect the good to become dearer later, they buy more now, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Consumers expect lower future prices", "note": "Expectations", "curve": "D", "direction": "left", "explanation": "If consumers expect the good to become cheaper later, they postpone purchases, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Consumer confidence improves or expected future income rises", "note": "Income expectations", "curve": "D", "direction": "right", "explanation": "Greater confidence about future income encourages current spending, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Consumer confidence falls or recession fears increase", "note": "Income expectations", "curve": "D", "direction": "left", "explanation": "Worse expectations about future income reduce current spending, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Easier consumer credit or lower borrowing costs (durables or housing)", "note": "Credit conditions", "curve": "D", "direction": "right", "explanation": "When financing becomes easier or cheaper, households buy more interest-sensitive goods, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Tighter consumer credit or higher borrowing costs", "note": "Credit conditions", "curve": "D", "direction": "left", "explanation": "When financing becomes harder or more expensive, households reduce purchases of interest-sensitive goods, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Government rebate or subsidy to buyers", "note": "Government policy", "curve": "D", "direction": "right", "explanation": "A subsidy or rebate effectively boosts buyers' willingness and ability to purchase, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Tax on buyers or removal of a buyer rebate", "note": "Government policy", "curve": "D", "direction": "left", "explanation": "A buyer-side tax or removal of a rebate discourages purchases, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Seasonal rise in demand", "note": "Seasonality", "curve": "D", "direction": "right", "explanation": "Seasonal factors can make consumers want more of the good at every price, so demand shifts right.", "equilibrium": "Equilibrium price rises and equilibrium quantity rises."}, {"group": "Households: related goods, expectations, credit and policy", "title": "Seasonal fall in demand", "note": "Seasonality", "curve": "D", "direction": "left", "explanation": "When the season passes, consumers want less of the good at every price, so demand shifts left.", "equilibrium": "Equilibrium price falls and equilibrium quantity falls."}, {"group": "Firms: costs, wages, productivity and technology", "title": "Lower raw-material or input costs", "note": "Input prices", "curve": "S", "direction": "right", "explanation": "Lower input costs make production more profitable at every price, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: costs, wages, productivity and technology", "title": "Higher raw-material or input costs", "note": "Input prices", "curve": "S", "direction": "left", "explanation": "Higher input costs make production less profitable at every price, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: costs, wages, productivity and technology", "title": "Lower wage costs", "note": "Labour costs", "curve": "S", "direction": "right", "explanation": "Lower labour costs reduce firms' costs of production, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: costs, wages, productivity and technology", "title": "Higher wage costs", "note": "Labour costs", "curve": "S", "direction": "left", "explanation": "Higher labour costs raise firms' costs of production, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: costs, wages, productivity and technology", "title": "Better production technology", "note": "Technology", "curve": "S", "direction": "right", "explanation": "Better technology lets firms produce more efficiently, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: costs, wages, productivity and technology", "title": "Technology setback or equipment breakdown", "note": "Technology", "curve": "S", "direction": "left", "explanation": "A production setback makes firms less efficient, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: costs, wages, productivity and technology", "title": "Higher productivity or improved worker training", "note": "Productivity", "curve": "S", "direction": "right", "explanation": "Higher productivity lowers unit costs and increases output at each price, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: costs, wages, productivity and technology", "title": "Lower productivity or strike action", "note": "Productivity", "curve": "S", "direction": "left", "explanation": "Lower productivity reduces output at each price, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: sellers, capacity, taxes and related production choices", "title": "More firms enter the market", "note": "Number of sellers", "curve": "S", "direction": "right", "explanation": "More sellers increase total market supply at every price, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: sellers, capacity, taxes and related production choices", "title": "Firms exit the market", "note": "Number of sellers", "curve": "S", "direction": "left", "explanation": "Fewer sellers reduce total market supply at every price, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: sellers, capacity, taxes and related production choices", "title": "Better access to business credit or expanded capacity", "note": "Capacity and finance", "curve": "S", "direction": "right", "explanation": "Easier finance or more productive capacity allows firms to supply more at each price, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: sellers, capacity, taxes and related production choices", "title": "Credit squeeze or capacity constraint", "note": "Capacity and finance", "curve": "S", "direction": "left", "explanation": "Tighter finance or capacity limits restrict production, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: sellers, capacity, taxes and related production choices", "title": "Producer subsidy", "note": "Government policy", "curve": "S", "direction": "right", "explanation": "A producer subsidy lowers effective production costs, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: sellers, capacity, taxes and related production choices", "title": "Higher business tax or excise on sellers", "note": "Government policy", "curve": "S", "direction": "left", "explanation": "A seller-side tax raises firms' costs, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: sellers, capacity, taxes and related production choices", "title": "Lower business tax", "note": "Government policy", "curve": "S", "direction": "right", "explanation": "Lower business taxes improve profitability at each price, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: sellers, capacity, taxes and related production choices", "title": "Stricter regulation or higher compliance costs", "note": "Regulation", "curve": "S", "direction": "left", "explanation": "More burdensome regulation raises production costs, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: sellers, capacity, taxes and related production choices", "title": "Lower price of an alternative product in production", "note": "Related goods in production", "curve": "S", "direction": "right", "explanation": "If another product becomes less attractive to produce, firms shift resources toward this good, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: sellers, capacity, taxes and related production choices", "title": "Higher price of an alternative product in production", "note": "Related goods in production", "curve": "S", "direction": "left", "explanation": "If another product becomes more attractive to produce, firms shift resources away from this good, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: shocks, logistics, exchange rates and expectations", "title": "Good weather or a bumper harvest", "note": "Natural conditions", "curve": "S", "direction": "right", "explanation": "Favourable natural conditions raise output, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: shocks, logistics, exchange rates and expectations", "title": "Bad weather, natural disaster, or production damage", "note": "Natural conditions", "curve": "S", "direction": "left", "explanation": "Adverse shocks reduce firms' ability to produce, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: shocks, logistics, exchange rates and expectations", "title": "Lower transport or energy costs", "note": "Logistics and energy", "curve": "S", "direction": "right", "explanation": "Cheaper transport or energy lowers total production costs, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: shocks, logistics, exchange rates and expectations", "title": "Supply-chain disruption or higher logistics costs", "note": "Logistics and energy", "curve": "S", "direction": "left", "explanation": "Disruptions or higher shipping costs reduce output at each price, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: shocks, logistics, exchange rates and expectations", "title": "Currency appreciation lowers the cost of imported inputs", "note": "Exchange rates", "curve": "S", "direction": "right", "explanation": "If imported inputs become cheaper, firms can supply more at each price, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: shocks, logistics, exchange rates and expectations", "title": "Currency depreciation raises the cost of imported inputs", "note": "Exchange rates", "curve": "S", "direction": "left", "explanation": "If imported inputs become dearer, firms can supply less at each price, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: shocks, logistics, exchange rates and expectations", "title": "Producers expect lower future prices", "note": "Expectations", "curve": "S", "direction": "right", "explanation": "If producers expect lower prices later, they bring more supply to market now, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: shocks, logistics, exchange rates and expectations", "title": "Producers expect higher future prices", "note": "Expectations", "curve": "S", "direction": "left", "explanation": "If producers expect higher prices later, they may hold stock back now, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}, {"group": "Firms: shocks, logistics, exchange rates and expectations", "title": "Discovery of new resources or improved infrastructure", "note": "Resource availability", "curve": "S", "direction": "right", "explanation": "Better access to resources or infrastructure expands productive capacity, so supply shifts right.", "equilibrium": "Equilibrium price falls and equilibrium quantity rises."}, {"group": "Firms: shocks, logistics, exchange rates and expectations", "title": "Disease, pests, or war damage production", "note": "Adverse supply shock", "curve": "S", "direction": "left", "explanation": "Serious disruptions to production reduce market supply, so supply shifts left.", "equilibrium": "Equilibrium price rises and equilibrium quantity falls."}];
+    const caseStudySteps = [{"label": "Jun 2020", "title": "Perth trough after the long downturn and early-pandemic uncertainty", "demandShift": 0.0, "supplyShift": 0.0, "observedPrice": 475, "observedQuantity": 100, "summary": "Use June 2020 as the benchmark low. REIWA described the Perth median house price as falling to about $475,000 in the June 2020 quarter, after which the market began to recover.", "evidence": "Benchmark low around $475k."}, {"label": "End 2021", "title": "Ultra-low rates, HomeBuilder, reopening, and returning buyers", "demandShift": 35.333333333333336, "supplyShift": 18.666666666666664, "observedPrice": 525, "observedQuantity": 127, "summary": "Demand shifts right strongly as borrowing costs collapse and stimulus supports housing demand; supply also shifts right somewhat as more sellers and construction plans return. The model is calibrated to a median price around $525k and a sales-activity proxy 27% above the 2020 base.", "evidence": "RBA cut the cash rate to 0.1%; HomeBuilder launched; average weekly sales were 865 in 2021 versus 680 in 2020."}, {"label": "End 2022", "title": "Rate rises begin, but Perth remains affordable and activity stays elevated", "demandShift": 50.833333333333336, "supplyShift": 29.166666666666664, "observedPrice": 540, "observedQuantity": 140, "summary": "Compared with the 2020 trough, both demand and supply still sit to the right: Perth remained relatively affordable and active, while an earlier pipeline still supported transactions. But the model only nudges price up to about $540k because rising rates begin to constrain extra demand.", "evidence": "REIWA reported the 2022 median house price at about $540k despite multiple rate rises."}, {"label": "End 2023", "title": "Strong fundamentals and thin listings keep pressure on prices", "demandShift": 69.16666666666667, "supplyShift": 30.833333333333332, "observedPrice": 590, "observedQuantity": 150, "summary": "Demand continues to shift right on strong population growth, low unemployment and investor interest, while supply barely improves. That combination pushes the calibrated price to about $590k while keeping quantity high.", "evidence": "REIWA recorded a new median house price of $590k and 53,895 settled sales in 2023."}, {"label": "End 2024", "title": "Migration surge and record-low listings widen the shortage", "demandShift": 96.83333333333334, "supplyShift": 5.166666666666664, "observedPrice": 750, "observedQuantity": 151, "summary": "Demand jumps again as Perth population growth accelerates and housing remains comparatively attractive; supply shifts back left as active listings remain exceptionally low. The model is calibrated to roughly $750k by the end of 2024 while turnover stays high rather than collapsing.", "evidence": "Perth population growth hit 3.1% in 2023–24; active listings stayed below 4,000 for most of 2024 and hit 3,199 in July; REIWA later referenced a $750k median at end-2024."}, {"label": "End 2025", "title": "Affordability bites, but tight new listings keep prices climbing", "demandShift": 98.5, "supplyShift": -26.5, "observedPrice": 850, "observedQuantity": 136, "summary": "Demand stays high but does not accelerate much further; the bigger story is that effective supply for the established market tightens again because new listings stay unusually low. That raises the calibrated price to about $850k while the quantity proxy softens.", "evidence": "REIWA said the median rose from $750k at end-2024 to $850k in Dec 2025, while 2024–25 settled sales were 48,793 and low new listings contributed to renewed FOMO."}];
+
+    const GENERIC_MODEL = {
+      qMin: 0,
+      qMax: 20,
+      pMin: 0,
+      pMax: 20,
+      a: 18,
+      b: 0.6,
+      c: 4,
+      d: 0.6,
+      xLabel: "Quantity",
+      yLabel: "Price"
+    };
+
+    const CASE_MODEL = {
+      qMin: 70,
+      qMax: 170,
+      pMin: 250,
+      pMax: 950,
+      a: 1075,
+      b: 6,
+      c: -125,
+      d: 6,
+      xLabel: "Sales activity index",
+      yLabel: "Median house sale price ($k)"
+    };
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function priceOnDemand(model, q, demandShift) {
+      return model.a + model.b * demandShift - model.b * q;
+    }
+
+    function priceOnSupply(model, q, supplyShift) {
+      return model.c - model.d * supplyShift + model.d * q;
+    }
+
+    function equilibrium(model, demandShift, supplyShift) {
+      const numerator = model.a + model.b * demandShift - model.c + model.d * supplyShift;
+      const denominator = model.b + model.d;
+      const q = numerator / denominator;
+      const p = priceOnDemand(model, q, demandShift);
+      return { q, p };
+    }
+
+    function formatNumber(value, digits = 1) {
+      const rounded = Number(value.toFixed(digits));
+      return rounded.toLocaleString(undefined, {
+        minimumFractionDigits: digits === 0 ? 0 : 0,
+        maximumFractionDigits: digits
+      });
+    }
+
+    function formatGenericPrice(value) {
+      return formatNumber(value, 1);
+    }
+
+    function formatGenericQuantity(value) {
+      return formatNumber(value, 1);
+    }
+
+    function formatCasePrice(value) {
+      return "$" + Math.round(value).toLocaleString() + "k";
+    }
+
+    function formatCaseQuantity(value) {
+      return formatNumber(value, 0);
+    }
+
+    function describePriceChange(curve, direction) {
+      if (curve === "D") return direction === "right" ? "increase" : "decrease";
+      return direction === "right" ? "decrease" : "increase";
+    }
+
+    function describeQuantityChange(curve, direction) {
+      if (curve === "D") return direction === "right" ? "increase" : "decrease";
+      return direction === "right" ? "increase" : "decrease";
+    }
+
+    function makeTicks(model, axis, count) {
+      const ticks = [];
+      for (let i = 0; i <= count; i += 1) {
+        const value = axis === "x"
+          ? model.qMin + (i / count) * (model.qMax - model.qMin)
+          : model.pMin + (i / count) * (model.pMax - model.pMin);
+        ticks.push({
+          label: axis === "x"
+            ? Math.round(value)
+            : Math.round(value),
+          x: axis === "x" ? EconDraw.valueToX(value, model.qMin, model.qMax) : undefined,
+          y: axis === "y" ? EconDraw.valueToY(value, model.pMin, model.pMax) : undefined
+        });
+      }
+      return ticks;
+    }
+
+    function curvePoints(model, curveType, shift) {
+      const points = [];
+      const step = (model.qMax - model.qMin) / 180;
+      for (let q = model.qMin; q <= model.qMax + 1e-6; q += step) {
+        const p = curveType === "demand"
+          ? priceOnDemand(model, q, shift)
+          : priceOnSupply(model, q, shift);
+        points.push({
+          x: EconDraw.valueToX(q, model.qMin, model.qMax),
+          y: EconDraw.valueToY(p, model.pMin, model.pMax)
+        });
+      }
+      return points;
+    }
+
+    function drawGuideLines(ctx, model, eq, priceFormatter, quantityFormatter) {
+      const x = EconDraw.valueToX(eq.q, model.qMin, model.qMax);
+      const y = EconDraw.valueToY(eq.p, model.pMin, model.pMax);
+      const plot = EconDraw.getPlotArea();
+
+      ctx.save();
+      ctx.strokeStyle = ECON_THEME.color.longRun;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash(ECON_THEME.dash.guide);
+
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x, plot.bottom);
+      ctx.moveTo(x, y);
+      ctx.lineTo(plot.left, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      EconDraw.drawText(ctx, priceFormatter(eq.p), plot.left - 10, y, {
+        align: "right",
+        baseline: "middle",
+        size: 12,
+        color: ECON_THEME.color.muted
+      });
+      EconDraw.drawText(ctx, quantityFormatter(eq.q), x, plot.bottom + 18, {
+        align: "center",
+        baseline: "top",
+        size: 12,
+        color: ECON_THEME.color.muted
+      });
+      ctx.restore();
+    }
+
+    function drawEquilibriumMarker(ctx, model, eq, label, options = {}) {
+      const x = EconDraw.valueToX(eq.q, model.qMin, model.qMax);
+      const y = EconDraw.valueToY(eq.p, model.pMin, model.pMax);
+
+      if (options.hollow) {
+        EconDraw.drawCircle(ctx, x, y, {
+          radius: ECON_THEME.radius.marker + 1,
+          fill: "#ffffff",
+          stroke: options.stroke || ECON_THEME.color.baseline,
+          lineWidth: 2
+        });
+      } else {
+        EconDraw.drawCircle(ctx, x, y, {
+          radius: ECON_THEME.radius.marker + 1,
+          fill: options.fill || ECON_THEME.color.text,
+          stroke: options.stroke || "#ffffff",
+          lineWidth: 2
+        });
+      }
+
+      EconDraw.drawText(ctx, label, x + 8, y - 10, {
+        size: 13,
+        weight: "600",
+        color: options.textColor || options.stroke || options.fill || ECON_THEME.color.text
+      });
+    }
+
+    function drawMarketGraph(canvas, model, options) {
+      const ctx = canvas.getContext("2d");
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+
+      const xTicks = makeTicks(model, "x", 5);
+      const yTicks = makeTicks(model, "y", 5);
+
+      EconDraw.drawAxes(ctx, {
+        xLabel: model.xLabel,
+        yLabel: model.yLabel,
+        xTicks,
+        yTicks
+      });
+
+      if (options.showBaseline) {
+        EconDraw.drawLine(ctx, curvePoints(model, "demand", 0), {
+          color: ECON_THEME.color.baseline,
+          dash: ECON_THEME.dash.baseline,
+          lineWidth: ECON_THEME.line.baseline
+        });
+        EconDraw.drawLine(ctx, curvePoints(model, "supply", 0), {
+          color: ECON_THEME.color.baseline,
+          dash: ECON_THEME.dash.baseline,
+          lineWidth: ECON_THEME.line.baseline
+        });
+        EconDraw.drawText(ctx, "D₀", EconDraw.valueToX(model.qMin + 1, model.qMin, model.qMax), EconDraw.valueToY(priceOnDemand(model, model.qMin + 1, 0), model.pMin, model.pMax) - 6, {
+          size: 13,
+          weight: "600",
+          color: ECON_THEME.color.baseline
+        });
+        EconDraw.drawText(ctx, "S₀", EconDraw.valueToX(model.qMax - 1.5, model.qMin, model.qMax), EconDraw.valueToY(priceOnSupply(model, model.qMax - 1.5, 0), model.pMin, model.pMax) - 6, {
+          size: 13,
+          weight: "600",
+          color: ECON_THEME.color.baseline
+        });
+      }
+
+      if (options.guess) {
+        const guessShift = options.guess.direction === "right" ? options.guess.magnitude : -options.guess.magnitude;
+        if (options.guess.curve === "D") {
+          EconDraw.drawLine(ctx, curvePoints(model, "demand", guessShift), {
+            color: ECON_THEME.color.guess,
+            dash: ECON_THEME.dash.guess,
+            lineWidth: ECON_THEME.line.main
+          });
+          EconDraw.drawText(ctx, "Guess", EconDraw.valueToX(model.qMin + 2, model.qMin, model.qMax), EconDraw.valueToY(priceOnDemand(model, model.qMin + 2, guessShift), model.pMin, model.pMax) - 6, {
+            size: 13,
+            weight: "600",
+            color: ECON_THEME.color.guess
+          });
+        } else if (options.guess.curve === "S") {
+          EconDraw.drawLine(ctx, curvePoints(model, "supply", guessShift), {
+            color: ECON_THEME.color.guess,
+            dash: ECON_THEME.dash.guess,
+            lineWidth: ECON_THEME.line.main
+          });
+          EconDraw.drawText(ctx, "Guess", EconDraw.valueToX(model.qMax - 3, model.qMin, model.qMax), EconDraw.valueToY(priceOnSupply(model, model.qMax - 3, guessShift), model.pMin, model.pMax) - 6, {
+            size: 13,
+            weight: "600",
+            color: ECON_THEME.color.guess
+          });
+        }
+      }
+
+      EconDraw.drawLine(ctx, curvePoints(model, "demand", options.demandShift), {
+        color: ECON_THEME.color.demand,
+        lineWidth: ECON_THEME.line.main
+      });
+      EconDraw.drawLine(ctx, curvePoints(model, "supply", options.supplyShift), {
+        color: ECON_THEME.color.supply,
+        lineWidth: ECON_THEME.line.main
+      });
+
+      EconDraw.drawText(ctx, "D", EconDraw.valueToX(model.qMin + 1.2, model.qMin, model.qMax), EconDraw.valueToY(priceOnDemand(model, model.qMin + 1.2, options.demandShift), model.pMin, model.pMax) - 8, {
+        size: 14,
+        weight: "600",
+        color: ECON_THEME.color.demand
+      });
+      EconDraw.drawText(ctx, "S", EconDraw.valueToX(model.qMax - 1.8, model.qMin, model.qMax), EconDraw.valueToY(priceOnSupply(model, model.qMax - 1.8, options.supplyShift), model.pMin, model.pMax) - 8, {
+        size: 14,
+        weight: "600",
+        color: ECON_THEME.color.supply
+      });
+
+      const baselineEq = equilibrium(model, 0, 0);
+      drawEquilibriumMarker(ctx, model, baselineEq, "E₀", {
+        hollow: true,
+        stroke: ECON_THEME.color.baseline,
+        textColor: ECON_THEME.color.baseline
+      });
+
+      const currentEq = equilibrium(model, options.demandShift, options.supplyShift);
+      drawGuideLines(ctx, model, currentEq, options.priceFormatter, options.quantityFormatter);
+      drawEquilibriumMarker(ctx, model, currentEq, options.currentLabel || "E₁", {
+        fill: ECON_THEME.color.text,
+        textColor: ECON_THEME.color.text
+      });
+
+      if (options.revealText) {
+        EconDraw.drawText(ctx, options.revealText, 98, 32, {
+          size: 13,
+          color: ECON_THEME.color.muted
+        });
+      }
+    }
+
+    function drawSeriesChart(canvas, config) {
+      const ctx = canvas.getContext("2d");
+      const width = canvas.width;
+      const height = canvas.height;
+      const pad = { left: 52, right: 18, top: 18, bottom: 40 };
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+
+      const data = config.data || [];
+      const observed = config.observed || [];
+      const allValues = [];
+      data.forEach((item) => allValues.push(item.value));
+      if (config.showObserved) observed.forEach((item) => allValues.push(item.value));
+
+      if (!allValues.length) return;
+
+      let minY = Math.min.apply(null, allValues);
+      let maxY = Math.max.apply(null, allValues);
+      if (minY === maxY) {
+        minY -= 1;
+        maxY += 1;
+      }
+      const span = maxY - minY;
+      minY -= span * 0.12;
+      maxY += span * 0.12;
+
+      const xFor = (index, length) => {
+        if (length <= 1) return pad.left;
+        return pad.left + (index / (length - 1)) * (width - pad.left - pad.right);
+      };
+
+      const yFor = (value) => {
+        return height - pad.bottom - ((value - minY) / (maxY - minY)) * (height - pad.top - pad.bottom);
+      };
+
+      ctx.save();
+      ctx.strokeStyle = ECON_THEME.color.axis;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top);
+      ctx.lineTo(pad.left, height - pad.bottom);
+      ctx.lineTo(width - pad.right, height - pad.bottom);
+      ctx.stroke();
+
+      ctx.font = "12px " + ECON_THEME.font.family;
+      ctx.fillStyle = ECON_THEME.color.muted;
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      for (let i = 0; i <= 4; i += 1) {
+        const value = minY + (i / 4) * (maxY - minY);
+        const y = yFor(value);
+        ctx.strokeStyle = ECON_THEME.color.grid;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(width - pad.right, y);
+        ctx.stroke();
+        ctx.fillText(config.formatter(value), pad.left - 8, y);
+      }
+
+      if (config.showObserved && observed.length) {
+        ctx.strokeStyle = ECON_THEME.color.longRun;
+        ctx.lineWidth = 2;
+        ctx.setLineDash(ECON_THEME.dash.baseline);
+        ctx.beginPath();
+        observed.forEach((item, index) => {
+          const x = xFor(index, observed.length);
+          const y = yFor(item.value);
+          if (index === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      ctx.strokeStyle = config.color;
+      ctx.lineWidth = 2.8;
+      ctx.beginPath();
+      data.forEach((item, index) => {
+        const x = xFor(index, data.length);
+        const y = yFor(item.value);
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      data.forEach((item, index) => {
+        const x = xFor(index, data.length);
+        const y = yFor(item.value);
+        ctx.beginPath();
+        ctx.fillStyle = config.color;
+        ctx.arc(x, y, index === config.highlightIndex ? 4.8 : 3.6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.font = "11px " + ECON_THEME.font.family;
+      ctx.fillStyle = ECON_THEME.color.text;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      data.forEach((item, index) => {
+        const x = xFor(index, data.length);
+        ctx.fillText(item.label, x, height - pad.bottom + 10);
+      });
+
+      if (config.showObserved && observed.length) {
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillStyle = ECON_THEME.color.muted;
+        ctx.fillText("Observed proxy", pad.left + 4, pad.top - 4);
+      }
+      ctx.restore();
+    }
+
+    function buildMetricCard(label, value, detail) {
+      return '<div class="metric-item"><div class="metric-label">' + label + (detail ? '<small>' + detail + '</small>' : '') + '</div><div class="metric-value">' + value + '</div></div>';
+    }
+
+    function visibleScenarioIndices(filterText, family) {
+      const query = filterText.trim().toLowerCase();
+      return determinantScenarios
+        .map((scenario, index) => ({ scenario, index }))
+        .filter((entry) => {
+          const matchesFamily = family === "all" || entry.scenario.curve === family;
+          const haystack = (entry.scenario.group + " " + entry.scenario.title + " " + entry.scenario.note).toLowerCase();
+          const matchesText = !query || haystack.includes(query);
+          return matchesFamily && matchesText;
+        })
+        .map((entry) => entry.index);
+    }
+
+    const exploreState = {
+      demandShift: 0,
+      supplyShift: 0,
+      history: [{
+        label: "T0",
+        title: "Baseline equilibrium",
+        note: "No non-price determinants applied yet.",
+        demandShift: 0,
+        supplyShift: 0,
+        explanation: "Start from the original equilibrium and then add determinants one by one."
+      }],
+      filterText: "",
+      family: "all",
+      magnitude: 2,
+      showBaseline: true
+    };
+
+    const practiceState = {
+      selectedIndex: null,
+      filterText: "",
+      family: "all",
+      guessCurve: "",
+      guessDirection: "",
+      guessPrice: "",
+      guessQuantity: "",
+      revealed: false
+    };
+
+    const caseState = {
+      currentIndex: 0,
+      showObserved: true,
+      showBaseline: true,
+      timerId: null
+    };
+
+    function renderExploreScenarioList() {
+      const container = document.getElementById("exploreScenarioList");
+      const indices = visibleScenarioIndices(exploreState.filterText, exploreState.family);
+      document.getElementById("exploreCountChip").textContent = indices.length + " determinants visible";
+      container.innerHTML = "";
+      let currentGroup = "";
+
+      if (!indices.length) {
+        container.innerHTML = '<div class="scenario-note">No determinants match the current filter.</div>';
+        return;
+      }
+
+      indices.forEach((index) => {
+        const scenario = determinantScenarios[index];
+        if (scenario.group !== currentGroup) {
+          currentGroup = scenario.group;
+          const heading = document.createElement("div");
+          heading.className = "group-heading";
+          heading.textContent = currentGroup;
+          container.appendChild(heading);
+        }
+
+        const item = document.createElement("div");
+        item.className = "scenario-item";
+        item.innerHTML = '<div class="scenario-title">' + scenario.title + '</div><div class="scenario-note">' + scenario.note + ' • ' + (scenario.curve === "D" ? "Demand" : "Supply") + ' ' + scenario.direction + '</div>';
+        item.addEventListener("click", () => applyExploreScenario(index));
+        container.appendChild(item);
+      });
+    }
+
+    function applyExploreScenario(index) {
+      const scenario = determinantScenarios[index];
+      const magnitude = Number(document.getElementById("exploreMagnitude").value);
+
+      if (scenario.curve === "D") {
+        exploreState.demandShift += scenario.direction === "right" ? magnitude : -magnitude;
+      } else {
+        exploreState.supplyShift += scenario.direction === "right" ? magnitude : -magnitude;
+      }
+
+      const stepNumber = exploreState.history.length;
+      exploreState.history.push({
+        label: "T" + stepNumber,
+        title: scenario.title,
+        note: scenario.note,
+        demandShift: exploreState.demandShift,
+        supplyShift: exploreState.supplyShift,
+        explanation: scenario.explanation,
+        equilibriumText: scenario.equilibrium
+      });
+
+      document.getElementById("exploreFeedback").className = "feedback-panel feedback-success";
+      document.getElementById("exploreFeedback").innerHTML = "<strong>Latest shock applied:</strong> " + scenario.title + ". " + scenario.explanation + " " + scenario.equilibrium;
+      renderExplore();
+    }
+
+    function undoExploreScenario() {
+      if (exploreState.history.length <= 1) return;
+      exploreState.history.pop();
+      const last = exploreState.history[exploreState.history.length - 1];
+      exploreState.demandShift = last.demandShift;
+      exploreState.supplyShift = last.supplyShift;
+      document.getElementById("exploreFeedback").className = "feedback-panel feedback-neutral";
+      document.getElementById("exploreFeedback").textContent = "The most recent shock was removed. The time-series charts now end at the previous equilibrium.";
+      renderExplore();
+    }
+
+    function resetExplore() {
+      exploreState.demandShift = 0;
+      exploreState.supplyShift = 0;
+      exploreState.history = [{
+        label: "T0",
+        title: "Baseline equilibrium",
+        note: "No non-price determinants applied yet.",
+        demandShift: 0,
+        supplyShift: 0,
+        explanation: "Start from the original equilibrium and then add determinants one by one."
+      }];
+      document.getElementById("exploreFeedback").className = "feedback-panel feedback-neutral";
+      document.getElementById("exploreFeedback").textContent = "Explore mode has been reset to the initial equilibrium.";
+      renderExplore();
+    }
+
+    function renderExplore() {
+      const canvas = document.getElementById("exploreCanvas");
+      drawMarketGraph(canvas, GENERIC_MODEL, {
+        demandShift: exploreState.demandShift,
+        supplyShift: exploreState.supplyShift,
+        showBaseline: exploreState.showBaseline,
+        priceFormatter: formatGenericPrice,
+        quantityFormatter: formatGenericQuantity
+      });
+
+      const exploreSeries = exploreState.history.map((entry) => {
+        const eq = equilibrium(GENERIC_MODEL, entry.demandShift, entry.supplyShift);
+        return {
+          label: entry.label,
+          price: eq.p,
+          quantity: eq.q
+        };
+      });
+
+      drawSeriesChart(document.getElementById("explorePriceSeries"), {
+        data: exploreSeries.map((item) => ({ label: item.label, value: item.price })),
+        color: ECON_THEME.color.inflation,
+        formatter: (value) => formatGenericPrice(value),
+        highlightIndex: exploreSeries.length - 1,
+        showObserved: false
+      });
+
+      drawSeriesChart(document.getElementById("exploreQuantitySeries"), {
+        data: exploreSeries.map((item) => ({ label: item.label, value: item.quantity })),
+        color: ECON_THEME.color.output,
+        formatter: (value) => formatGenericQuantity(value),
+        highlightIndex: exploreSeries.length - 1,
+        showObserved: false
+      });
+
+      const currentEq = equilibrium(GENERIC_MODEL, exploreState.demandShift, exploreState.supplyShift);
+      const baselineEq = equilibrium(GENERIC_MODEL, 0, 0);
+
+      document.getElementById("exploreMetricGrid").innerHTML =
+        buildMetricCard("Baseline equilibrium", "P = " + formatGenericPrice(baselineEq.p) + ", Q = " + formatGenericQuantity(baselineEq.q), "Reference point") +
+        buildMetricCard("Current equilibrium", "P = " + formatGenericPrice(currentEq.p) + ", Q = " + formatGenericQuantity(currentEq.q), "After " + (exploreState.history.length - 1) + " shock(s)") +
+        buildMetricCard("Demand shift", (exploreState.demandShift >= 0 ? "+" : "") + formatGenericQuantity(exploreState.demandShift), "Cumulative right/left movement") +
+        buildMetricCard("Supply shift", (exploreState.supplyShift >= 0 ? "+" : "") + formatGenericQuantity(exploreState.supplyShift), "Cumulative right/left movement") +
+        buildMetricCard("Price change", (currentEq.p - baselineEq.p >= 0 ? "+" : "") + formatGenericPrice(currentEq.p - baselineEq.p), "Relative to baseline") +
+        buildMetricCard("Quantity change", (currentEq.q - baselineEq.q >= 0 ? "+" : "") + formatGenericQuantity(currentEq.q - baselineEq.q), "Relative to baseline");
+
+      document.getElementById("exploreHistory").innerHTML = exploreState.history.map((entry, index) => {
+        const eq = equilibrium(GENERIC_MODEL, entry.demandShift, entry.supplyShift);
+        return '<div class="history-item"><strong>' + entry.label + " • " + entry.title + '</strong><span>P = ' + formatGenericPrice(eq.p) + ', Q = ' + formatGenericQuantity(eq.q) + '</span><span>' + entry.explanation + '</span></div>';
+      }).join("");
+
+      document.getElementById("exploreMagnitudeChip").textContent = "Shock size: " + Number(document.getElementById("exploreMagnitude").value).toFixed(1);
+    }
+
+    function renderPracticeScenarioList() {
+      const container = document.getElementById("practiceScenarioList");
+      const indices = visibleScenarioIndices(practiceState.filterText, practiceState.family);
+      document.getElementById("practiceCountChip").textContent = indices.length + " determinants visible";
+      container.innerHTML = "";
+      let currentGroup = "";
+
+      if (!indices.length) {
+        container.innerHTML = '<div class="scenario-note">No determinants match the current filter.</div>';
+        return;
+      }
+
+      indices.forEach((index) => {
+        const scenario = determinantScenarios[index];
+        if (scenario.group !== currentGroup) {
+          currentGroup = scenario.group;
+          const heading = document.createElement("div");
+          heading.className = "group-heading";
+          heading.textContent = currentGroup;
+          container.appendChild(heading);
+        }
+
+        const item = document.createElement("div");
+        item.className = "scenario-item" + (practiceState.selectedIndex === index ? " active" : "");
+        item.innerHTML = '<div class="scenario-title">' + scenario.title + '</div><div class="scenario-note">' + scenario.note + '</div>';
+        item.addEventListener("click", () => choosePracticeScenario(index));
+        container.appendChild(item);
+      });
+    }
+
+    function choosePracticeScenario(index) {
+      practiceState.selectedIndex = index;
+      practiceState.revealed = false;
+      document.getElementById("practiceCurveSelect").value = "";
+      document.getElementById("practiceDirectionSelect").value = "";
+      document.getElementById("practicePriceSelect").value = "";
+      document.getElementById("practiceQuantitySelect").value = "";
+      document.getElementById("practiceFeedback").className = "feedback-panel feedback-neutral";
+      document.getElementById("practiceFeedback").textContent = "Make your selections, then press Check answer.";
+      renderPracticeScenarioList();
+      renderPractice();
+    }
+
+    function randomPracticeScenario() {
+      const indices = visibleScenarioIndices(practiceState.filterText, practiceState.family);
+      if (!indices.length) return;
+      const index = indices[Math.floor(Math.random() * indices.length)];
+      choosePracticeScenario(index);
+    }
+
+    function resetPractice() {
+      practiceState.selectedIndex = null;
+      practiceState.guessCurve = "";
+      practiceState.guessDirection = "";
+      practiceState.guessPrice = "";
+      practiceState.guessQuantity = "";
+      practiceState.revealed = false;
+      document.getElementById("practiceCurveSelect").value = "";
+      document.getElementById("practiceDirectionSelect").value = "";
+      document.getElementById("practicePriceSelect").value = "";
+      document.getElementById("practiceQuantitySelect").value = "";
+      document.getElementById("practiceFeedback").className = "feedback-panel feedback-neutral";
+      document.getElementById("practiceFeedback").textContent = "Practice mode has been reset. Choose another determinant or use Random determinant.";
+      renderPracticeScenarioList();
+      renderPractice();
+    }
+
+    function renderPractice() {
+      const promptBox = document.getElementById("practicePromptBox");
+      const metricGrid = document.getElementById("practiceMetricGrid");
+      const canvas = document.getElementById("practiceCanvas");
+
+      if (practiceState.selectedIndex === null) {
+        drawMarketGraph(canvas, GENERIC_MODEL, {
+          demandShift: 0,
+          supplyShift: 0,
+          showBaseline: true,
+          priceFormatter: formatGenericPrice,
+          quantityFormatter: formatGenericQuantity,
+          revealText: "Baseline only. Select a determinant to begin."
+        });
+        promptBox.innerHTML = "<strong>Choose a determinant to begin.</strong>Then choose which curve shifts, in which direction, and what happens to equilibrium price and quantity.";
+        metricGrid.innerHTML =
+          buildMetricCard("Correct curve", "—", "") +
+          buildMetricCard("Correct direction", "—", "") +
+          buildMetricCard("Price effect", "—", "") +
+          buildMetricCard("Quantity effect", "—", "");
+        return;
+      }
+
+      const scenario = determinantScenarios[practiceState.selectedIndex];
+      const actualShift = scenario.direction === "right" ? 2.5 : -2.5;
+      const currentDemandShift = practiceState.revealed && scenario.curve === "D" ? actualShift : 0;
+      const currentSupplyShift = practiceState.revealed && scenario.curve === "S" ? actualShift : 0;
+      const guessCurve = document.getElementById("practiceCurveSelect").value;
+      const guessDirection = document.getElementById("practiceDirectionSelect").value;
+      const guess = (guessCurve && guessDirection) ? { curve: guessCurve, direction: guessDirection, magnitude: 2.5 } : null;
+
+      drawMarketGraph(canvas, GENERIC_MODEL, {
+        demandShift: currentDemandShift,
+        supplyShift: currentSupplyShift,
+        showBaseline: true,
+        guess,
+        priceFormatter: formatGenericPrice,
+        quantityFormatter: formatGenericQuantity,
+        currentLabel: practiceState.revealed ? "E₁" : "E",
+        revealText: practiceState.revealed ? "Answer revealed. Compare your guess with the correct shifted curve." : "Choose your answer first, then check it."
+      });
+
+      const priceEffect = describePriceChange(scenario.curve, scenario.direction);
+      const quantityEffect = describeQuantityChange(scenario.curve, scenario.direction);
+
+      promptBox.innerHTML = "<strong>Selected determinant:</strong> " + scenario.title + "<br><span style='color:var(--color-muted);'>" + scenario.note + ". Decide which curve shifts and what happens to equilibrium price and quantity.</span>";
+
+      metricGrid.innerHTML =
+        buildMetricCard("Correct curve", practiceState.revealed ? (scenario.curve === "D" ? "Demand" : "Supply") : "?", "Revealed after checking") +
+        buildMetricCard("Correct direction", practiceState.revealed ? (scenario.direction === "right" ? "Right" : "Left") : "?", "Revealed after checking") +
+        buildMetricCard("Price effect", practiceState.revealed ? (priceEffect === "increase" ? "Increase" : "Decrease") : "?", "Comparative statics") +
+        buildMetricCard("Quantity effect", practiceState.revealed ? (quantityEffect === "increase" ? "Increase" : "Decrease") : "?", "Comparative statics");
+    }
+
+    function checkPracticeAnswer() {
+      if (practiceState.selectedIndex === null) {
+        document.getElementById("practiceFeedback").className = "feedback-panel feedback-warning";
+        document.getElementById("practiceFeedback").textContent = "Choose a determinant first.";
+        return;
+      }
+
+      const scenario = determinantScenarios[practiceState.selectedIndex];
+      const guessCurve = document.getElementById("practiceCurveSelect").value;
+      const guessDirection = document.getElementById("practiceDirectionSelect").value;
+      const guessPrice = document.getElementById("practicePriceSelect").value;
+      const guessQuantity = document.getElementById("practiceQuantitySelect").value;
+
+      if (!guessCurve || !guessDirection || !guessPrice || !guessQuantity) {
+        document.getElementById("practiceFeedback").className = "feedback-panel feedback-warning";
+        document.getElementById("practiceFeedback").textContent = "Complete all four response boxes before checking.";
+        return;
+      }
+
+      const correctPrice = describePriceChange(scenario.curve, scenario.direction);
+      const correctQuantity = describeQuantityChange(scenario.curve, scenario.direction);
+
+      const correct = guessCurve === scenario.curve &&
+        guessDirection === scenario.direction &&
+        guessPrice === correctPrice &&
+        guessQuantity === correctQuantity;
+
+      practiceState.revealed = true;
+      renderPractice();
+
+      document.getElementById("practiceFeedback").className = "feedback-panel " + (correct ? "feedback-success" : "feedback-warning");
+      document.getElementById("practiceFeedback").innerHTML = (correct ? "<strong>Correct.</strong> " : "<strong>Not quite.</strong> ") +
+        scenario.explanation + " " + scenario.equilibrium +
+        "<br><span style='color:var(--color-muted);'>Correct answer: " +
+        (scenario.curve === "D" ? "Demand" : "Supply") + " shifts " + scenario.direction +
+        ", equilibrium price " + correctPrice + "s, and equilibrium quantity " + correctQuantity + "s.</span>";
+    }
+
+    function currentCaseStep() {
+      return caseStudySteps[caseState.currentIndex];
+    }
+
+    function renderCaseStepList() {
+      const container = document.getElementById("caseStepList");
+      container.innerHTML = "";
+      caseStudySteps.forEach((step, index) => {
+        const item = document.createElement("div");
+        item.className = "case-item" + (index === caseState.currentIndex ? " active" : "");
+        item.innerHTML = '<div class="case-title">' + step.label + " • " + step.title + '</div><div class="case-note">' + step.summary + '</div>';
+        item.addEventListener("click", () => {
+          caseState.currentIndex = index;
+          stopCasePlayback();
+          renderCaseStudy();
+        });
+        container.appendChild(item);
+      });
+    }
+
+    function caseSeriesData() {
+      return caseStudySteps.slice(0, caseState.currentIndex + 1).map((step) => {
+        const eq = equilibrium(CASE_MODEL, step.demandShift, step.supplyShift);
+        return {
+          label: step.label,
+          price: eq.p,
+          quantity: eq.q
+        };
+      });
+    }
+
+    function renderCaseStudy() {
+      renderCaseStepList();
+      const step = currentCaseStep();
+      const canvas = document.getElementById("caseCanvas");
+
+      drawMarketGraph(canvas, CASE_MODEL, {
+        demandShift: step.demandShift,
+        supplyShift: step.supplyShift,
+        showBaseline: caseState.showBaseline,
+        priceFormatter: formatCasePrice,
+        quantityFormatter: formatCaseQuantity
+      });
+
+      const data = caseSeriesData();
+      const observed = caseStudySteps.slice(0, caseState.currentIndex + 1).map((stepEntry) => ({
+        label: stepEntry.label,
+        value: stepEntry.observedPrice
+      }));
+
+      drawSeriesChart(document.getElementById("casePriceSeries"), {
+        data: data.map((item) => ({ label: item.label, value: item.price })),
+        observed,
+        color: ECON_THEME.color.inflation,
+        formatter: (value) => "$" + Math.round(value),
+        highlightIndex: data.length - 1,
+        showObserved: caseState.showObserved
+      });
+
+      drawSeriesChart(document.getElementById("caseQuantitySeries"), {
+        data: data.map((item) => ({ label: item.label, value: item.quantity })),
+        observed: caseStudySteps.slice(0, caseState.currentIndex + 1).map((stepEntry) => ({
+          label: stepEntry.label,
+          value: stepEntry.observedQuantity
+        })),
+        color: ECON_THEME.color.output,
+        formatter: (value) => Math.round(value),
+        highlightIndex: data.length - 1,
+        showObserved: caseState.showObserved
+      });
+
+      const eq = equilibrium(CASE_MODEL, step.demandShift, step.supplyShift);
+      document.getElementById("caseMetricGrid").innerHTML =
+        buildMetricCard("Selected step", step.label, step.title) +
+        buildMetricCard("Model equilibrium price", formatCasePrice(eq.p), "Stylised housing calibration") +
+        buildMetricCard("Observed price proxy", formatCasePrice(step.observedPrice), "Published benchmark anchor") +
+        buildMetricCard("Model quantity", formatCaseQuantity(eq.q), "Sales-activity index") +
+        buildMetricCard("Observed quantity proxy", formatCaseQuantity(step.observedQuantity), "Stylised turnover proxy") +
+        buildMetricCard("Demand vs supply", "D shift " + (step.demandShift >= 0 ? "+" : "") + formatCaseQuantity(step.demandShift) + " • S shift " + (step.supplyShift >= 0 ? "+" : "") + formatCaseQuantity(step.supplyShift), "Cumulative calibration");
+
+      document.getElementById("caseFeedback").className = "feedback-panel feedback-neutral";
+      document.getElementById("caseFeedback").innerHTML = "<strong>" + step.label + ":</strong> " + step.summary + "<br><span style='color:var(--color-muted);'>" + step.evidence + "</span>";
+
+      document.getElementById("caseSourceList").innerHTML = caseStudySteps.map((item, index) => {
+        return '<div class="pill" style="' + (index === caseState.currentIndex ? "border-color: var(--color-demand); background:#f5f8ff;" : "") + '"><strong>' + item.label + "</strong><br><span style='color:var(--color-muted); line-height:1.4;'>" + item.evidence + "</span></div>";
+      }).join("");
+
+      document.getElementById("caseTableBody").innerHTML = caseStudySteps.map((item, index) => {
+        const itemEq = equilibrium(CASE_MODEL, item.demandShift, item.supplyShift);
+        return '<tr class="' + (index === caseState.currentIndex ? 'active-row' : '') + '"><td>' + item.label + '</td><td>' + formatCasePrice(item.observedPrice) + '</td><td>' + formatCasePrice(itemEq.p) + '</td><td>' + formatCaseQuantity(item.observedQuantity) + '</td><td>' + formatCaseQuantity(itemEq.q) + '</td></tr>';
+      }).join("");
+    }
+
+    function caseNext() {
+      if (caseState.currentIndex < caseStudySteps.length - 1) {
+        caseState.currentIndex += 1;
+        renderCaseStudy();
+      } else {
+        stopCasePlayback();
+      }
+    }
+
+    function stopCasePlayback() {
+      if (caseState.timerId) {
+        clearInterval(caseState.timerId);
+        caseState.timerId = null;
+      }
+      document.getElementById("casePlayButton").textContent = "Play full sequence";
+    }
+
+    function toggleCasePlayback() {
+      if (caseState.timerId) {
+        stopCasePlayback();
+        return;
+      }
+
+      if (caseState.currentIndex >= caseStudySteps.length - 1) {
+        caseState.currentIndex = 0;
+        renderCaseStudy();
+      }
+
+      document.getElementById("casePlayButton").textContent = "Pause";
+      caseState.timerId = setInterval(() => {
+        if (caseState.currentIndex >= caseStudySteps.length - 1) {
+          stopCasePlayback();
+        } else {
+          caseState.currentIndex += 1;
+          renderCaseStudy();
+        }
+      }, 1300);
+    }
+
+    function resetCaseStudy() {
+      stopCasePlayback();
+      caseState.currentIndex = 0;
+      renderCaseStudy();
+    }
+
+    function loadFullCaseStudy() {
+      stopCasePlayback();
+      caseState.currentIndex = caseStudySteps.length - 1;
+      renderCaseStudy();
+    }
+
+    document.getElementById("exploreMagnitude").addEventListener("input", () => {
+      exploreState.magnitude = Number(document.getElementById("exploreMagnitude").value);
+      document.getElementById("exploreMagnitudeChip").textContent = "Shock size: " + exploreState.magnitude.toFixed(1);
+    });
+
+    document.getElementById("exploreFilterText").addEventListener("input", (event) => {
+      exploreState.filterText = event.target.value;
+      renderExploreScenarioList();
+    });
+
+    document.getElementById("exploreFamilyFilter").addEventListener("change", (event) => {
+      exploreState.family = event.target.value;
+      renderExploreScenarioList();
+    });
+
+    document.getElementById("exploreBaselineToggle").addEventListener("change", (event) => {
+      exploreState.showBaseline = event.target.value === "show";
+      renderExplore();
+    });
+
+    document.getElementById("exploreUndoButton").addEventListener("click", undoExploreScenario);
+    document.getElementById("exploreResetButton").addEventListener("click", resetExplore);
+
+    document.getElementById("practiceFilterText").addEventListener("input", (event) => {
+      practiceState.filterText = event.target.value;
+      renderPracticeScenarioList();
+    });
+
+    document.getElementById("practiceFamilyFilter").addEventListener("change", (event) => {
+      practiceState.family = event.target.value;
+      renderPracticeScenarioList();
+    });
+
+    document.getElementById("practiceCurveSelect").addEventListener("change", () => {
+      renderPractice();
+    });
+
+    document.getElementById("practiceDirectionSelect").addEventListener("change", () => {
+      renderPractice();
+    });
+
+    document.getElementById("practiceRandomButton").addEventListener("click", randomPracticeScenario);
+    document.getElementById("practiceResetButton").addEventListener("click", resetPractice);
+    document.getElementById("practiceCheckButton").addEventListener("click", checkPracticeAnswer);
+
+    document.getElementById("practicePriceSelect").addEventListener("change", () => {});
+    document.getElementById("practiceQuantitySelect").addEventListener("change", () => {});
+
+    document.getElementById("caseOverlayToggle").addEventListener("change", (event) => {
+      caseState.showObserved = event.target.value === "show";
+      renderCaseStudy();
+    });
+
+    document.getElementById("caseBaselineToggle").addEventListener("change", (event) => {
+      caseState.showBaseline = event.target.value === "show";
+      renderCaseStudy();
+    });
+
+    document.getElementById("caseNextButton").addEventListener("click", caseNext);
+    document.getElementById("casePlayButton").addEventListener("click", toggleCasePlayback);
+    document.getElementById("caseResetButton").addEventListener("click", resetCaseStudy);
+    document.getElementById("caseFullButton").addEventListener("click", loadFullCaseStudy);
+
+    Array.from(document.querySelectorAll(".module-tab")).forEach((tab) => {
+      tab.addEventListener("click", () => {
+        Array.from(document.querySelectorAll(".module-tab")).forEach((button) => button.classList.remove("active"));
+        Array.from(document.querySelectorAll(".module-section")).forEach((section) => section.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.target).classList.add("active");
+      });
+    });
+
+    renderExploreScenarioList();
+    renderExplore();
+    renderPracticeScenarioList();
+    renderPractice();
+    renderCaseStudy();
+  </script>
+</body>
+</html>

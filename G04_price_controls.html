@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G04_price_controls</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .module-tab {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .module-tab:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+
+    .module-tab.active {
+      background: #eef7f1;
+      border-color: var(--color-government);
+      color: var(--color-government);
+    }
+
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 16px 0;
+    }
+
+    .summary-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.58fr) minmax(305px, 0.82fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .graph-stack,
+    .side-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.3;
+    }
+
+    .legend-line {
+      width: 28px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+
+    .legend-line.demand { border-color: var(--color-demand); }
+    .legend-line.supply { border-color: var(--color-supply); }
+    .legend-line.policy {
+      border-color: var(--color-government);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.realized {
+      border-color: var(--color-text);
+      border-top-style: dashed;
+      border-top-width: 2px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--color-baseline);
+      background: white;
+      display: inline-block;
+    }
+
+    .legend-dot.current {
+      background: var(--color-text);
+      border-color: var(--color-text);
+    }
+
+    .legend-fill {
+      width: 18px;
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid rgba(31, 41, 55, 0.14);
+      display: inline-block;
+    }
+
+    .legend-fill.gap { background: rgba(224, 122, 0, 0.18); }
+    .legend-fill.case { background: rgba(47, 107, 255, 0.14); }
+
+    .graph-note,
+    .small-muted {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.5;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 12px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 180px;
+    }
+
+    .control-inline.compact { min-width: 150px; }
+
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+
+    .value-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #f6f8fb;
+      border: 1px solid var(--color-frame);
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+
+    .metric-item.emphasis { border-left: 3px solid var(--color-government); }
+    .metric-item.warn { border-left: 3px solid var(--color-inflation); }
+    .metric-value.small { font-size: 13px; font-weight: 600; }
+
+    .status-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .info-list,
+    .scenario-list,
+    .data-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .info-card,
+    .scenario-card,
+    .data-card,
+    .answer-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--color-text);
+    }
+
+    .scenario-card {
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+    }
+
+    .scenario-card:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+      border-color: #b8c5d8;
+    }
+
+    .scenario-card.active {
+      background: #eef7f1;
+      border-color: var(--color-government);
+    }
+
+    .info-card strong,
+    .scenario-card strong,
+    .data-card strong,
+    .answer-card strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--color-text);
+    }
+
+    .case-switch {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .case-switch button.active {
+      background: var(--color-government);
+      border-color: var(--color-government);
+      color: white;
+    }
+
+    .case-banner {
+      padding: 12px 14px;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      background: #fbfcfe;
+      margin-bottom: 12px;
+    }
+
+    .ratio-meter {
+      height: 10px;
+      border-radius: 999px;
+      background: #edf1f7;
+      overflow: hidden;
+      margin-top: 6px;
+      border: 1px solid var(--color-frame);
+    }
+
+    .ratio-fill {
+      height: 100%;
+      background: linear-gradient(90deg, rgba(216,74,58,0.75), rgba(47,107,255,0.75));
+      border-radius: 999px;
+    }
+
+    .practice-answer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .answer-card select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--color-frame);
+      font-family: var(--font-family-base);
+      font-size: 13px;
+      background: white;
+    }
+
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .result-table th,
+    .result-table td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #e8edf4;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .result-table th:last-child,
+    .result-table td:last-child { text-align: left; }
+
+    .feedback-success-soft {
+      border-left: 4px solid var(--color-government);
+      background: #f6fbf8;
+    }
+
+    .feedback-warning-soft {
+      border-left: 4px solid var(--color-inflation);
+      background: #fffaf5;
+    }
+
+    .pill-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 11px;
+      color: var(--color-muted);
+      padding: 4px 8px;
+      margin-right: 6px;
+      margin-bottom: 4px;
+    }
+
+    .footer-note {
+      font-size: 11px;
+      color: var(--color-muted);
+      line-height: 1.45;
+    }
+
+    @media (max-width: 1040px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .practice-answer-grid {
+        grid-template-columns: 1fr;
+      }
+      .control-inline,
+      .control-inline.compact {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreModule">Explore and compare</button>
+        <button class="module-tab" data-target="practiceModule">Practice and check</button>
+        <button class="module-tab" data-target="caseModule">Australian case studies</button>
+      </div>
+
+      <section id="exploreModule" class="module-section active">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Price ceilings, price floors and labour market controls</h1>
+          <p class="diagram-subtitle">Explore binding versus non-binding controls across rent control, minimum wages and support prices. Drag the legal price line, change demand and supply, and watch the realized quantity move to the short side of the market.</p>
+        </div>
+
+        <div class="summary-strip">
+          <div class="summary-chip">Price ceiling</div>
+          <div class="summary-chip">Price floor</div>
+          <div class="summary-chip">Rent control</div>
+          <div class="summary-chip">Minimum wage</div>
+          <div class="summary-chip">Support price</div>
+          <div class="summary-chip">Binding versus non-binding</div>
+          <div class="summary-chip">Realized quantity = short side</div>
+        </div>
+
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="explorePresetSelect">Preset market</label>
+            <select id="explorePresetSelect"></select>
+          </div>
+          <div class="control-inline">
+            <label for="legalPriceSlider">Legal price / wage</label>
+            <input id="legalPriceSlider" type="range" min="0" max="10" step="0.1" value="5" />
+          </div>
+          <div class="control-inline compact">
+            <label for="demandShiftSlider">Demand shift</label>
+            <input id="demandShiftSlider" type="range" min="-3" max="3" step="0.1" value="0" />
+          </div>
+          <div class="control-inline compact">
+            <label for="supplyShiftSlider">Supply shift</label>
+            <input id="supplyShiftSlider" type="range" min="-3" max="3" step="0.1" value="0" />
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="exploreResetButton">Reset</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="exploreRandomButton">Random preset</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line demand"></span><span>Demand or labour demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Supply or labour supply</span></div>
+                <div class="legend-item"><span class="legend-line policy"></span><span>Legal price line</span></div>
+                <div class="legend-item"><span class="legend-line realized"></span><span>Realized traded quantity</span></div>
+                <div class="legend-item"><span class="legend-dot"></span><span>Competitive equilibrium E*</span></div>
+                <div class="legend-item"><span class="legend-dot current"></span><span>Realized outcome under the control</span></div>
+                <div class="legend-item"><span class="legend-fill gap"></span><span>Shortage or surplus gap at the legal price</span></div>
+              </div>
+              <div class="graph-note">You can drag the green legal price line directly on the graph. A binding ceiling creates a shortage because quantity supplied becomes the short side. A binding floor creates a surplus because quantity demanded becomes the short side. This diagram focuses on quantity logic and binding status; welfare shading is handled in G03.</div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="metrics-panel">
+              <div class="metric-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Competitive equilibrium</div>
+                  <div class="metric-value" id="metricCompetitive">—</div>
+                </div>
+                <div class="metric-item emphasis">
+                  <div class="metric-label">Legal price</div>
+                  <div class="metric-value" id="metricLegal">—</div>
+                </div>
+                <div class="metric-item warn">
+                  <div class="metric-label">Binding status</div>
+                  <div class="metric-value" id="metricBinding">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Quantity demanded at legal price</div>
+                  <div class="metric-value small" id="metricQd">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Quantity supplied at legal price</div>
+                  <div class="metric-value small" id="metricQs">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Realized traded quantity</div>
+                  <div class="metric-value small" id="metricRealized">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="exploreFeedback">
+              Choose a preset and move the legal line. The panel will explain whether the control is binding and why the traded quantity is limited by the short side of the market.
+            </div>
+
+            <div class="legend-panel">
+              <div class="status-title">Preset bank</div>
+              <div class="scenario-list" id="exploreScenarioList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceModule" class="module-section">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Practice: binding versus non-binding controls</h1>
+          <p class="diagram-subtitle">Work through rent control, minimum wage and support-price examples. Decide whether the policy binds, what kind of imbalance appears, and which side determines the realized quantity.</p>
+        </div>
+
+        <div class="summary-strip">
+          <div class="summary-chip">Binding logic</div>
+          <div class="summary-chip">Shortage or surplus</div>
+          <div class="summary-chip">Realized quantity</div>
+          <div class="summary-chip">Minimum wage</div>
+          <div class="summary-chip">Rent control</div>
+          <div class="summary-chip">Support price</div>
+        </div>
+
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="practiceScenarioSelect">Practice scenario</label>
+            <select id="practiceScenarioSelect"></select>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceRandomButton">Random scenario</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceResetButton">Reset answers</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="practiceCheckButton">Check answer</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line demand"></span><span>Demand or labour demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Supply or labour supply</span></div>
+                <div class="legend-item"><span class="legend-line policy"></span><span>Legal price line</span></div>
+                <div class="legend-item"><span class="legend-dot"></span><span>Competitive equilibrium E*</span></div>
+                <div class="legend-item"><span class="legend-dot current"></span><span>Revealed realized outcome</span></div>
+              </div>
+              <div class="graph-note">Before you check, focus on the legal price relative to equilibrium. After checking, the graph reveals the realized quantity and the size of the shortage or surplus gap.</div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="legend-panel">
+              <div class="status-title">Your answers</div>
+              <div class="practice-answer-grid">
+                <div class="answer-card">
+                  <strong>Does the policy bind?</strong>
+                  <select id="answerBinding">
+                    <option value="">Choose</option>
+                    <option value="binding">Binding</option>
+                    <option value="nonbinding">Non-binding</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <strong>What happens in the market?</strong>
+                  <select id="answerImbalance">
+                    <option value="">Choose</option>
+                    <option value="shortage">Shortage</option>
+                    <option value="surplus">Surplus</option>
+                    <option value="none">No imbalance</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <strong>Which quantity is realized?</strong>
+                  <select id="answerRealized">
+                    <option value="">Choose</option>
+                    <option value="qd">Quantity demanded / labour demanded</option>
+                    <option value="qs">Quantity supplied / labour supplied</option>
+                    <option value="qeq">Competitive quantity</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="practiceFeedback">
+              Pick a scenario and answer all three questions. Then check your answer to see the correct binding logic and realized quantity.
+            </div>
+
+            <div class="legend-panel">
+              <div class="status-title">Revealed answer summary</div>
+              <table class="result-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Your answer</th>
+                    <th>Correct answer</th>
+                  </tr>
+                </thead>
+                <tbody id="practiceResultTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseModule" class="module-section">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Australian minimum wage case studies</h1>
+          <p class="diagram-subtitle">These two cases contrast a likely binding wage floor in award-reliant low-pay work in 2024 with an unbinding floor in Western Australia's mining-boom labour market in 2007. The graphs are stylised teaching calibrations anchored to official data rather than full structural estimates.</p>
+        </div>
+
+        <div class="summary-strip">
+          <div class="summary-chip">Australia 2024</div>
+          <div class="summary-chip">Western Australia 2007</div>
+          <div class="summary-chip">Binding minimum wage</div>
+          <div class="summary-chip">Non-binding minimum wage</div>
+          <div class="summary-chip">Official wage-order data</div>
+          <div class="summary-chip">Stylised labour-market calibration</div>
+        </div>
+
+        <div class="case-switch" id="caseButtons"></div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="case-banner">
+              <div class="status-title" id="caseTitle">—</div>
+              <div class="small-muted" id="caseSubtitle">—</div>
+            </div>
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line demand"></span><span>Labour demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Labour supply</span></div>
+                <div class="legend-item"><span class="legend-line policy"></span><span>Minimum wage</span></div>
+                <div class="legend-item"><span class="legend-dot"></span><span>Counterfactual competitive equilibrium</span></div>
+                <div class="legend-item"><span class="legend-dot current"></span><span>Realized employment under the wage floor</span></div>
+                <div class="legend-item"><span class="legend-fill case"></span><span>Labour surplus / unemployment gap when binding</span></div>
+              </div>
+              <div class="graph-note" id="caseGraphNote">—</div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="metrics-panel">
+              <div class="metric-grid">
+                <div class="metric-item emphasis">
+                  <div class="metric-label">Minimum wage</div>
+                  <div class="metric-value" id="caseMinWage">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Stylized market wage W*</div>
+                  <div class="metric-value" id="caseMarketWage">—</div>
+                </div>
+                <div class="metric-item warn">
+                  <div class="metric-label">Binding status</div>
+                  <div class="metric-value" id="caseBinding">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Competitive employment</div>
+                  <div class="metric-value small" id="caseEmploymentEq">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Realized employment</div>
+                  <div class="metric-value small" id="caseEmploymentReal">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Labour gap</div>
+                  <div class="metric-value small" id="caseGap">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="legend-panel">
+              <div class="status-title">Evidence cards</div>
+              <div class="data-grid" id="caseDataGrid"></div>
+            </div>
+
+            <div class="legend-panel">
+              <div class="status-title">Minimum wage relative to the market wage</div>
+              <div class="small-muted" id="ratioText">—</div>
+              <div class="ratio-meter"><div class="ratio-fill" id="ratioFill" style="width: 0%"></div></div>
+              <div class="footer-note" id="ratioNote">—</div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="caseInterpretation">—</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const PRESETS = [
+      {
+        id: 'genericCeiling',
+        group: 'Price ceilings',
+        title: 'Binding price ceiling in a product market',
+        note: 'Legal price set below equilibrium.',
+        controlType: 'ceiling',
+        marketType: 'goods',
+        axisX: 'Quantity',
+        axisY: 'Price',
+        demandLabel: 'D',
+        supplyLabel: 'S',
+        policyLabel: 'Price ceiling',
+        a: 12.4,
+        b: 0.72,
+        c: 2.2,
+        d: 0.55,
+        xMax: 12,
+        yMax: 14,
+        legalPrice: 5.2,
+        legalMin: 1,
+        legalMax: 12,
+        shiftMin: -2.8,
+        shiftMax: 2.8,
+        description: 'Because the legal price is below the competitive equilibrium, quantity supplied becomes the short side and a shortage appears.'
+      },
+      {
+        id: 'rentControl',
+        group: 'Price ceilings',
+        title: 'Rent control in a rental housing market',
+        note: 'A rent ceiling below equilibrium creates a shortage of rental units.',
+        controlType: 'ceiling',
+        marketType: 'housing',
+        axisX: 'Rental units',
+        axisY: 'Weekly rent',
+        demandLabel: 'D',
+        supplyLabel: 'S',
+        policyLabel: 'Rent ceiling',
+        a: 13.0,
+        b: 0.70,
+        c: 2.4,
+        d: 0.50,
+        xMax: 12,
+        yMax: 14,
+        legalPrice: 5.8,
+        legalMin: 1,
+        legalMax: 12,
+        shiftMin: -2.8,
+        shiftMax: 2.8,
+        description: 'Tenants want more units at the controlled rent, but landlords supply fewer units, so the realized quantity is the amount landlords are willing to supply.'
+      },
+      {
+        id: 'genericFloor',
+        group: 'Price floors',
+        title: 'Binding price floor in a product market',
+        note: 'Legal price set above equilibrium.',
+        controlType: 'floor',
+        marketType: 'goods',
+        axisX: 'Quantity',
+        axisY: 'Price',
+        demandLabel: 'D',
+        supplyLabel: 'S',
+        policyLabel: 'Price floor',
+        a: 12.4,
+        b: 0.72,
+        c: 2.2,
+        d: 0.55,
+        xMax: 12,
+        yMax: 14,
+        legalPrice: 8.7,
+        legalMin: 1,
+        legalMax: 12,
+        shiftMin: -2.8,
+        shiftMax: 2.8,
+        description: 'Because the legal price is above the competitive equilibrium, producers want to sell more than consumers want to buy, so a surplus appears.'
+      },
+      {
+        id: 'supportPrice',
+        group: 'Price floors',
+        title: 'Agricultural support price',
+        note: 'A support price above equilibrium creates excess supply.',
+        controlType: 'floor',
+        marketType: 'agriculture',
+        axisX: 'Farm output',
+        axisY: 'Farm price',
+        demandLabel: 'D',
+        supplyLabel: 'S',
+        policyLabel: 'Support price',
+        a: 16.2,
+        b: 0.76,
+        c: 3.0,
+        d: 0.52,
+        xMax: 14,
+        yMax: 18,
+        legalPrice: 10.9,
+        legalMin: 2,
+        legalMax: 16,
+        shiftMin: -3.0,
+        shiftMax: 3.0,
+        description: 'The higher support price encourages extra production, but buyers cut back, so the realized quantity is limited by quantity demanded.'
+      },
+      {
+        id: 'minimumWage',
+        group: 'Price floors',
+        title: 'Binding minimum wage in a labour market',
+        note: 'The legal wage is above the competitive wage.',
+        controlType: 'floor',
+        marketType: 'labour',
+        axisX: 'Employment',
+        axisY: 'Hourly wage',
+        demandLabel: 'LD',
+        supplyLabel: 'LS',
+        policyLabel: 'Minimum wage',
+        a: 29.6,
+        b: 0.06,
+        c: 13.6,
+        d: 0.04,
+        xMax: 140,
+        yMax: 32,
+        legalPrice: 24.1,
+        legalMin: 10,
+        legalMax: 30,
+        shiftMin: -25,
+        shiftMax: 25,
+        description: 'Employers want to hire fewer workers at the higher wage, but more workers want to work, so the minimum wage creates a labour surplus (unemployment) when it binds.'
+      }
+    ];
+
+    const PRACTICE_CASES = [
+      {
+        id: 'p1',
+        title: 'Rent control well below equilibrium',
+        presetId: 'rentControl',
+        legalPrice: 5.4,
+        demandShiftQ: 0.4,
+        supplyShiftQ: -0.2,
+        prompt: 'A city imposes a rent ceiling below the market rent in a tight rental market.'
+      },
+      {
+        id: 'p2',
+        title: 'Non-binding rent ceiling',
+        presetId: 'rentControl',
+        legalPrice: 8.5,
+        demandShiftQ: 0.2,
+        supplyShiftQ: 0.1,
+        prompt: 'A city announces a rent ceiling, but it sits above the competitive rent.'
+      },
+      {
+        id: 'p3',
+        title: 'Binding minimum wage',
+        presetId: 'minimumWage',
+        legalPrice: 24.4,
+        demandShiftQ: 0,
+        supplyShiftQ: 0,
+        prompt: 'A minimum wage is set above the competitive wage in a low-wage labour market.'
+      },
+      {
+        id: 'p4',
+        title: 'Non-binding minimum wage',
+        presetId: 'minimumWage',
+        legalPrice: 20.0,
+        demandShiftQ: 10,
+        supplyShiftQ: -5,
+        prompt: 'The minimum wage is below the going wage in a relatively strong labour market.'
+      },
+      {
+        id: 'p5',
+        title: 'Support price for farm output',
+        presetId: 'supportPrice',
+        legalPrice: 11.4,
+        demandShiftQ: 0,
+        supplyShiftQ: 0.5,
+        prompt: 'A support price is set above the market-clearing farm price.'
+      },
+      {
+        id: 'p6',
+        title: 'Non-binding product floor',
+        presetId: 'genericFloor',
+        legalPrice: 5.8,
+        demandShiftQ: 0,
+        supplyShiftQ: 0,
+        prompt: 'A legal floor is announced but it sits below the market equilibrium price.'
+      }
+    ];
+
+    const CASES = [
+      {
+        id: 'au2024',
+        title: 'Australia 2024: likely binding minimum wage in an award-reliant low-pay labour market',
+        subtitle: 'Stylised hospitality-style labour market anchored to the 2024 national minimum wage decision.',
+        controlType: 'floor',
+        marketType: 'labour',
+        axisX: 'Employment (index)',
+        axisY: 'Hourly wage',
+        demandLabel: 'LD',
+        supplyLabel: 'LS',
+        policyLabel: 'Minimum wage',
+        a: 29.6,
+        b: 0.06,
+        c: 13.6,
+        d: 0.04,
+        xMax: 140,
+        yMax: 32,
+        legalPrice: 24.10,
+        demandShiftQ: 0,
+        supplyShiftQ: 0,
+        graphNote: 'The counterfactual no-floor equilibrium is not directly observed in the data. The graph therefore uses a stylised labour-demand and labour-supply calibration with W* slightly below the legal floor, consistent with strong award reliance in low-pay sectors.',
+        dataCards: [
+          { label: 'National minimum wage', value: '$24.10 per hour ($915.90 per week) from 1 July 2024' },
+          { label: 'Previous rate', value: '$23.23 per hour ($882.80 per week)' },
+          { label: 'Workers directly affected', value: '2.60 million employees, or about 20.7% of all employees' },
+          { label: 'Accommodation & food services', value: '59.6% of employees are modern-award reliant' },
+          { label: 'Wage floor versus median earnings', value: '55.2% — the highest ratio in a decade' }
+        ],
+        interpretation: 'The official data show that the 2024 minimum wage mattered for a large award-reliant segment of the workforce. In the stylised low-pay labour market shown here, the legal wage sits above W*, so employment is determined by labour demand and a labour surplus appears.',
+        ratioNote: 'This does not claim a precise causal estimate of unemployment. It is a teaching calibration that translates the official wage-order facts into binding-floor logic for an award-reliant sector.'
+      },
+      {
+        id: 'wa2007',
+        title: 'Western Australia 2007: unbinding minimum wage during the mining-boom labour squeeze',
+        subtitle: 'Stylised state labour market anchored to the 2007 WA state wage order and tight labour-market evidence.',
+        controlType: 'floor',
+        marketType: 'labour',
+        axisX: 'Employment (index)',
+        axisY: 'Hourly wage',
+        demandLabel: 'LD',
+        supplyLabel: 'LS',
+        policyLabel: 'Minimum wage',
+        a: 37.0,
+        b: 0.08,
+        c: 22.0,
+        d: 0.07,
+        xMax: 140,
+        yMax: 36,
+        legalPrice: 13.91,
+        demandShiftQ: 0,
+        supplyShiftQ: 0,
+        graphNote: 'Here the wage floor is far below the inferred market wage. The legal minimum remains on the graph, but it does not change employment or create a labour surplus because the market clears above the floor.',
+        dataCards: [
+          { label: 'WA state minimum wage', value: '$528.40 per week from 1 July 2007 (about $13.91 per hour on a 38-hour week)' },
+          { label: 'Labour market tightness', value: 'Unemployment fell to 2.7% in April 2007 and was 3.2% in May 2007' },
+          { label: 'Wages growth', value: 'Average weekly earnings rose 6.7% over the year to February 2007' },
+          { label: 'State wage benchmark', value: 'ABS reported a state average weekly ordinary-time earnings level of $1,060 in 2005-06' },
+          { label: 'Approximate early-2007 market wage', value: 'Applying the 6.7% growth rate to that benchmark gives about $1,131 per week, or roughly $29.8 per hour' }
+        ],
+        interpretation: 'The 2007 WA labour market was extremely tight. On this calibration the going wage is far above the statutory floor, so the minimum wage is non-binding and employment remains at the competitive level.',
+        ratioNote: 'The $29.8 per hour figure is an explicit inference based on the official 2005-06 weekly earnings benchmark and the official year-ended wages growth reported for early 2007.'
+      }
+    ];
+
+    function getPreset(id) {
+      return PRESETS.find(item => item.id === id) || PRESETS[0];
+    }
+
+    function getPracticeCase(id) {
+      return PRACTICE_CASES.find(item => item.id === id) || PRACTICE_CASES[0];
+    }
+
+    function getCase(id) {
+      return CASES.find(item => item.id === id) || CASES[0];
+    }
+
+    function formatNumber(value, digits = 2) {
+      if (!Number.isFinite(value)) return '—';
+      const rounded = Math.abs(value) < Math.pow(10, -digits) / 2 ? 0 : value;
+      return rounded.toFixed(digits).replace(/\.00$/, '').replace(/(\.\d*[1-9])0$/, '$1');
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function effectiveDemandIntercept(scenario, demandShiftQ) {
+      return scenario.a + scenario.b * demandShiftQ;
+    }
+
+    function effectiveSupplyIntercept(scenario, supplyShiftQ) {
+      return scenario.c - scenario.d * supplyShiftQ;
+    }
+
+    function demandPrice(scenario, q, demandShiftQ = 0) {
+      return effectiveDemandIntercept(scenario, demandShiftQ) - scenario.b * q;
+    }
+
+    function supplyPrice(scenario, q, supplyShiftQ = 0) {
+      return effectiveSupplyIntercept(scenario, supplyShiftQ) + scenario.d * q;
+    }
+
+    function demandQuantityAtPrice(scenario, price, demandShiftQ = 0) {
+      return (effectiveDemandIntercept(scenario, demandShiftQ) - price) / scenario.b;
+    }
+
+    function supplyQuantityAtPrice(scenario, price, supplyShiftQ = 0) {
+      return (price - effectiveSupplyIntercept(scenario, supplyShiftQ)) / scenario.d;
+    }
+
+    function computeOutcome(scenario, demandShiftQ, supplyShiftQ, legalPrice) {
+      const A = effectiveDemandIntercept(scenario, demandShiftQ);
+      const C = effectiveSupplyIntercept(scenario, supplyShiftQ);
+      const qEqRaw = (A - C) / (scenario.b + scenario.d);
+      const qEq = clamp(qEqRaw, 0, scenario.xMax);
+      const pEq = demandPrice(scenario, qEq, demandShiftQ);
+      const qdLegal = clamp(demandQuantityAtPrice(scenario, legalPrice, demandShiftQ), 0, scenario.xMax * 1.2);
+      const qsLegal = clamp(supplyQuantityAtPrice(scenario, legalPrice, supplyShiftQ), 0, scenario.xMax * 1.2);
+
+      const eps = 0.02;
+      let binding = false;
+      let imbalanceType = 'none';
+      let realizedQ = qEq;
+      let gap = 0;
+
+      if (scenario.controlType === 'ceiling') {
+        binding = legalPrice < pEq - eps;
+        if (binding) {
+          imbalanceType = 'shortage';
+          realizedQ = Math.min(qdLegal, qsLegal);
+          gap = Math.max(0, qdLegal - qsLegal);
+        }
+      } else {
+        binding = legalPrice > pEq + eps;
+        if (binding) {
+          imbalanceType = 'surplus';
+          realizedQ = Math.min(qdLegal, qsLegal);
+          gap = Math.max(0, qsLegal - qdLegal);
+        }
+      }
+
+      return {
+        pEq,
+        qEq,
+        qdLegal,
+        qsLegal,
+        binding,
+        imbalanceType,
+        realizedQ,
+        legalPrice,
+        gap
+      };
+    }
+
+    function makeTicks(min, max, count, axis, scenario) {
+      const ticks = [];
+      for (let i = 0; i <= count; i += 1) {
+        const value = min + (i / count) * (max - min);
+        ticks.push({
+          label: formatNumber(value, value < 10 ? 1 : 0),
+          x: axis === 'x' ? EconDraw.valueToX(value, min, max) : undefined,
+          y: axis === 'y' ? EconDraw.valueToY(value, min, max) : undefined
+        });
+      }
+      return ticks;
+    }
+
+    function sampleCurvePoints(fn, xMin, xMax, yMin, yMax, steps = 120) {
+      const points = [];
+      for (let i = 0; i <= steps; i += 1) {
+        const q = xMin + (i / steps) * (xMax - xMin);
+        const p = fn(q);
+        if (Number.isFinite(p)) {
+          points.push({
+            x: EconDraw.valueToX(q, xMin, xMax),
+            y: EconDraw.valueToY(clamp(p, yMin, yMax), yMin, yMax),
+            q,
+            p
+          });
+        }
+      }
+      return points;
+    }
+
+    function drawPolicyGraph(canvas, scenario, state, options = {}) {
+      const ctx = canvas.getContext('2d');
+      const xMin = 0;
+      const xMax = scenario.xMax;
+      const yMin = 0;
+      const yMax = scenario.yMax;
+      const outcome = computeOutcome(scenario, state.demandShiftQ || 0, state.supplyShiftQ || 0, state.legalPrice);
+
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+
+      EconDraw.drawAxes(ctx, {
+        xLabel: scenario.axisX,
+        yLabel: scenario.axisY,
+        xTicks: makeTicks(xMin, xMax, scenario.xMax > 50 ? 7 : 6, 'x', scenario),
+        yTicks: makeTicks(yMin, yMax, scenario.yMax > 20 ? 6 : 7, 'y', scenario)
+      });
+
+      const demandPts = sampleCurvePoints(q => demandPrice(scenario, q, state.demandShiftQ || 0), xMin, xMax, yMin, yMax);
+      const supplyPts = sampleCurvePoints(q => supplyPrice(scenario, q, state.supplyShiftQ || 0), xMin, xMax, yMin, yMax);
+      EconDraw.drawLine(ctx, demandPts, { color: ECON_THEME.color.demand });
+      EconDraw.drawLine(ctx, supplyPts, { color: ECON_THEME.color.supply });
+
+      const plot = EconDraw.getPlotArea();
+      const legalY = EconDraw.valueToY(state.legalPrice, yMin, yMax);
+      EconDraw.drawLine(ctx, [{ x: plot.left, y: legalY }, { x: plot.right, y: legalY }], { color: ECON_THEME.color.government, dash: ECON_THEME.dash.policy, lineWidth: ECON_THEME.line.policy });
+
+      if (options.showGap !== false && outcome.binding) {
+        const qLeft = scenario.controlType === 'ceiling' ? outcome.qsLegal : outcome.qdLegal;
+        const qRight = scenario.controlType === 'ceiling' ? outcome.qdLegal : outcome.qsLegal;
+        const gapPoly = [
+          { x: EconDraw.valueToX(qLeft, xMin, xMax), y: legalY - 6 },
+          { x: EconDraw.valueToX(qRight, xMin, xMax), y: legalY - 6 },
+          { x: EconDraw.valueToX(qRight, xMin, xMax), y: legalY + 6 },
+          { x: EconDraw.valueToX(qLeft, xMin, xMax), y: legalY + 6 }
+        ];
+        EconDraw.fillPolygon(ctx, gapPoly, { fill: 'rgba(224, 122, 0, 0.18)' });
+      }
+
+      const eqX = EconDraw.valueToX(outcome.qEq, xMin, xMax);
+      const eqY = EconDraw.valueToY(outcome.pEq, yMin, yMax);
+      EconDraw.drawCircle(ctx, eqX, eqY, {
+        radius: ECON_THEME.radius.marker + 1,
+        fill: '#ffffff',
+        stroke: ECON_THEME.color.baseline,
+        lineWidth: 2
+      });
+      EconDraw.drawText(ctx, 'E*', eqX + 9, eqY - 10, { size: 13, weight: '600', color: ECON_THEME.color.baseline });
+
+      const realizedY = outcome.binding ? legalY : eqY;
+      const realizedX = EconDraw.valueToX(outcome.binding ? outcome.realizedQ : outcome.qEq, xMin, xMax);
+      EconDraw.drawLine(ctx, [
+        { x: realizedX, y: plot.bottom },
+        { x: realizedX, y: realizedY }
+      ], {
+        color: ECON_THEME.color.text,
+        dash: [7, 5],
+        lineWidth: 1.8
+      });
+      EconDraw.drawCircle(ctx, realizedX, realizedY, {
+        radius: ECON_THEME.radius.marker,
+        fill: ECON_THEME.color.text,
+        stroke: ECON_THEME.color.text,
+        lineWidth: 1.5
+      });
+      EconDraw.drawText(ctx, outcome.binding ? 'Realized' : 'E* = realized', realizedX + 9, realizedY + 16, {
+        size: 12,
+        weight: '600',
+        color: ECON_THEME.color.text
+      });
+
+      if (outcome.binding) {
+        const qdX = EconDraw.valueToX(outcome.qdLegal, xMin, xMax);
+        const qsX = EconDraw.valueToX(outcome.qsLegal, xMin, xMax);
+        EconDraw.drawText(ctx, scenario.controlType === 'ceiling' ? 'Qs' : 'Qd', realizedX - 18, plot.bottom + 26, {
+          size: 12,
+          weight: '600',
+          color: ECON_THEME.color.text
+        });
+        EconDraw.drawText(ctx, scenario.controlType === 'ceiling' ? 'Qd' : 'Qs', (scenario.controlType === 'ceiling' ? qdX : qsX) - 10, plot.bottom + 26, {
+          size: 12,
+          weight: '600',
+          color: ECON_THEME.color.muted
+        });
+        const labelX = (qdX + qsX) / 2;
+        const labelText = getImbalanceLabel(scenario, outcome.imbalanceType);
+        EconDraw.drawText(ctx, labelText, labelX, legalY - 12, {
+          size: 12,
+          weight: '600',
+          color: ECON_THEME.color.inflation,
+          align: 'center'
+        });
+      }
+
+      const demandLabelQ = scenario.xMax > 50 ? scenario.xMax * 0.82 : scenario.xMax * 0.76;
+      const supplyLabelQ = scenario.xMax > 50 ? scenario.xMax * 0.78 : scenario.xMax * 0.16;
+      EconDraw.drawText(ctx, scenario.demandLabel, EconDraw.valueToX(demandLabelQ, xMin, xMax), EconDraw.valueToY(demandPrice(scenario, demandLabelQ, state.demandShiftQ || 0), yMin, yMax) - 8, {
+        size: 14,
+        weight: '600',
+        color: ECON_THEME.color.demand
+      });
+      EconDraw.drawText(ctx, scenario.supplyLabel, EconDraw.valueToX(supplyLabelQ, xMin, xMax), EconDraw.valueToY(supplyPrice(scenario, supplyLabelQ, state.supplyShiftQ || 0), yMin, yMax) - 8, {
+        size: 14,
+        weight: '600',
+        color: ECON_THEME.color.supply
+      });
+      EconDraw.drawText(ctx, scenario.policyLabel, plot.right - 8, legalY - 10, {
+        size: 12,
+        weight: '600',
+        color: ECON_THEME.color.government,
+        align: 'right'
+      });
+
+      return outcome;
+    }
+
+    function getImbalanceLabel(scenario, imbalanceType) {
+      if (imbalanceType === 'none') return 'No shortage or surplus';
+      if (scenario.marketType === 'labour' && imbalanceType === 'surplus') return 'Labour surplus / unemployment';
+      if (scenario.marketType === 'labour' && imbalanceType === 'shortage') return 'Labour shortage';
+      return imbalanceType === 'shortage' ? 'Shortage' : 'Surplus';
+    }
+
+    function getBindingText(outcome) {
+      return outcome.binding ? 'Binding' : 'Non-binding';
+    }
+
+    function getRealizedQuantityAnswer(scenario, outcome) {
+      if (!outcome.binding) return 'qeq';
+      return scenario.controlType === 'ceiling' ? 'qs' : 'qd';
+    }
+
+    function updateExploreUI(outcome, scenario) {
+      document.getElementById('metricCompetitive').textContent = `P* = ${formatNumber(outcome.pEq)}, Q* = ${formatNumber(outcome.qEq)}`;
+      document.getElementById('metricLegal').textContent = formatNumber(outcome.legalPrice);
+      document.getElementById('metricBinding').textContent = getBindingText(outcome);
+      document.getElementById('metricQd').textContent = formatNumber(outcome.qdLegal);
+      document.getElementById('metricQs').textContent = formatNumber(outcome.qsLegal);
+      document.getElementById('metricRealized').textContent = formatNumber(outcome.realizedQ);
+
+      let explain = scenario.description + ' ';
+      if (outcome.binding) {
+        explain += `${getImbalanceLabel(scenario, outcome.imbalanceType)} at the legal ${scenario.marketType === 'labour' ? 'wage' : 'price'} = ${formatNumber(outcome.gap)}. `;
+        explain += scenario.controlType === 'ceiling'
+          ? 'Because the control is a ceiling, sellers or landlords determine the traded quantity.'
+          : (scenario.marketType === 'labour'
+            ? 'Because the control is a floor, employers determine employment by labour demand.'
+            : 'Because the control is a floor, buyers determine the traded quantity by quantity demanded.');
+      } else {
+        explain += 'The legal line does not cross the relevant side of the market before the competitive equilibrium, so the market still clears at E*.';
+      }
+      const panel = document.getElementById('exploreFeedback');
+      panel.className = `feedback-panel ${outcome.binding ? 'feedback-warning-soft' : 'feedback-success-soft'}`;
+      panel.textContent = explain;
+    }
+
+    const exploreState = {
+      presetId: PRESETS[0].id,
+      legalPrice: PRESETS[0].legalPrice,
+      demandShiftQ: 0,
+      supplyShiftQ: 0,
+      draggingLegal: false
+    };
+
+    function syncExploreControls(scenario) {
+      const legal = document.getElementById('legalPriceSlider');
+      legal.min = String(scenario.legalMin);
+      legal.max = String(scenario.legalMax);
+      legal.step = scenario.marketType === 'labour' ? '0.05' : '0.1';
+      legal.value = String(exploreState.legalPrice);
+      const d = document.getElementById('demandShiftSlider');
+      const s = document.getElementById('supplyShiftSlider');
+      d.min = String(scenario.shiftMin);
+      d.max = String(scenario.shiftMax);
+      s.min = String(scenario.shiftMin);
+      s.max = String(scenario.shiftMax);
+      d.value = String(exploreState.demandShiftQ);
+      s.value = String(exploreState.supplyShiftQ);
+    }
+
+    function renderExplorePresetList() {
+      const wrap = document.getElementById('exploreScenarioList');
+      let html = '';
+      let currentGroup = '';
+      PRESETS.forEach(preset => {
+        if (preset.group !== currentGroup) {
+          currentGroup = preset.group;
+          html += `<div class="pill-inline">${currentGroup}</div>`;
+        }
+        html += `<div class="scenario-card ${preset.id === exploreState.presetId ? 'active' : ''}" data-preset="${preset.id}"><strong>${preset.title}</strong>${preset.note}</div>`;
+      });
+      wrap.innerHTML = html;
+      wrap.querySelectorAll('.scenario-card').forEach(card => {
+        card.addEventListener('click', () => selectExplorePreset(card.dataset.preset));
+      });
+    }
+
+    function populateExploreSelect() {
+      const sel = document.getElementById('explorePresetSelect');
+      sel.innerHTML = PRESETS.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+      sel.value = exploreState.presetId;
+    }
+
+    function selectExplorePreset(id) {
+      const scenario = getPreset(id);
+      exploreState.presetId = scenario.id;
+      exploreState.legalPrice = scenario.legalPrice;
+      exploreState.demandShiftQ = 0;
+      exploreState.supplyShiftQ = 0;
+      document.getElementById('explorePresetSelect').value = scenario.id;
+      renderExplorePresetList();
+      syncExploreControls(scenario);
+      renderExplore();
+    }
+
+    function renderExplore() {
+      const scenario = getPreset(exploreState.presetId);
+      const outcome = drawPolicyGraph(document.getElementById('exploreCanvas'), scenario, exploreState);
+      updateExploreUI(outcome, scenario);
+    }
+
+    function randomExplorePreset() {
+      const choice = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+      selectExplorePreset(choice.id);
+    }
+
+    function canvasYToValue(canvas, clientY, min, max) {
+      const rect = canvas.getBoundingClientRect();
+      const y = clientY - rect.top;
+      return EconDraw.yToValue(y, min, max);
+    }
+
+    function setupExploreInteractions() {
+      populateExploreSelect();
+      renderExplorePresetList();
+      syncExploreControls(getPreset(exploreState.presetId));
+      renderExplore();
+
+      document.getElementById('explorePresetSelect').addEventListener('change', (event) => selectExplorePreset(event.target.value));
+      document.getElementById('legalPriceSlider').addEventListener('input', (event) => {
+        exploreState.legalPrice = Number(event.target.value);
+        renderExplore();
+      });
+      document.getElementById('demandShiftSlider').addEventListener('input', (event) => {
+        exploreState.demandShiftQ = Number(event.target.value);
+        renderExplore();
+      });
+      document.getElementById('supplyShiftSlider').addEventListener('input', (event) => {
+        exploreState.supplyShiftQ = Number(event.target.value);
+        renderExplore();
+      });
+      document.getElementById('exploreResetButton').addEventListener('click', () => selectExplorePreset(exploreState.presetId));
+      document.getElementById('exploreRandomButton').addEventListener('click', randomExplorePreset);
+
+      const canvas = document.getElementById('exploreCanvas');
+      canvas.addEventListener('mousedown', (event) => {
+        const scenario = getPreset(exploreState.presetId);
+        const rect = canvas.getBoundingClientRect();
+        const y = event.clientY - rect.top;
+        const lineY = EconDraw.valueToY(exploreState.legalPrice, 0, scenario.yMax);
+        if (Math.abs(y - lineY) <= 10) {
+          exploreState.draggingLegal = true;
+        }
+      });
+      window.addEventListener('mouseup', () => { exploreState.draggingLegal = false; });
+      canvas.addEventListener('mouseleave', () => { exploreState.draggingLegal = false; });
+      canvas.addEventListener('mousemove', (event) => {
+        if (!exploreState.draggingLegal) return;
+        const scenario = getPreset(exploreState.presetId);
+        const value = canvasYToValue(canvas, event.clientY, 0, scenario.yMax);
+        exploreState.legalPrice = clamp(value, scenario.legalMin, scenario.legalMax);
+        document.getElementById('legalPriceSlider').value = String(exploreState.legalPrice);
+        renderExplore();
+      });
+      canvas.addEventListener('touchstart', (event) => {
+        if (!event.touches.length) return;
+        const touch = event.touches[0];
+        const scenario = getPreset(exploreState.presetId);
+        const rect = canvas.getBoundingClientRect();
+        const y = touch.clientY - rect.top;
+        const lineY = EconDraw.valueToY(exploreState.legalPrice, 0, scenario.yMax);
+        if (Math.abs(y - lineY) <= 12) {
+          exploreState.draggingLegal = true;
+          event.preventDefault();
+        }
+      }, { passive: false });
+      canvas.addEventListener('touchmove', (event) => {
+        if (!exploreState.draggingLegal || !event.touches.length) return;
+        const touch = event.touches[0];
+        const scenario = getPreset(exploreState.presetId);
+        const value = canvasYToValue(canvas, touch.clientY, 0, scenario.yMax);
+        exploreState.legalPrice = clamp(value, scenario.legalMin, scenario.legalMax);
+        document.getElementById('legalPriceSlider').value = String(exploreState.legalPrice);
+        renderExplore();
+        event.preventDefault();
+      }, { passive: false });
+      canvas.addEventListener('touchend', () => { exploreState.draggingLegal = false; });
+      canvas.addEventListener('touchcancel', () => { exploreState.draggingLegal = false; });
+    }
+
+    const practiceState = {
+      caseId: PRACTICE_CASES[0].id,
+      revealed: false
+    };
+
+    function populatePracticeSelect() {
+      const sel = document.getElementById('practiceScenarioSelect');
+      sel.innerHTML = PRACTICE_CASES.map(item => `<option value="${item.id}">${item.title}</option>`).join('');
+      sel.value = practiceState.caseId;
+    }
+
+    function getPracticeOutcome() {
+      const caseDef = getPracticeCase(practiceState.caseId);
+      const preset = getPreset(caseDef.presetId);
+      const state = {
+        legalPrice: caseDef.legalPrice,
+        demandShiftQ: caseDef.demandShiftQ,
+        supplyShiftQ: caseDef.supplyShiftQ
+      };
+      return {
+        caseDef,
+        preset,
+        state,
+        outcome: computeOutcome(preset, state.demandShiftQ, state.supplyShiftQ, state.legalPrice)
+      };
+    }
+
+    function renderPracticeTable() {
+      const { preset, outcome } = getPracticeOutcome();
+      const rows = [
+        {
+          label: 'Binding status',
+          user: document.getElementById('answerBinding').value,
+          correct: outcome.binding ? 'binding' : 'nonbinding',
+          display: outcome.binding ? 'Binding' : 'Non-binding'
+        },
+        {
+          label: 'Market imbalance',
+          user: document.getElementById('answerImbalance').value,
+          correct: outcome.binding ? outcome.imbalanceType : 'none',
+          display: outcome.binding ? getImbalanceLabel(preset, outcome.imbalanceType) : 'No imbalance'
+        },
+        {
+          label: 'Realized quantity',
+          user: document.getElementById('answerRealized').value,
+          correct: getRealizedQuantityAnswer(preset, outcome),
+          display: !outcome.binding ? 'Competitive quantity' : (preset.controlType === 'ceiling' ? 'Quantity supplied / landlord supply' : 'Quantity demanded / labour demanded')
+        }
+      ];
+      const labelMap = {
+        binding: 'Binding',
+        nonbinding: 'Non-binding',
+        shortage: 'Shortage',
+        surplus: 'Surplus',
+        none: 'No imbalance',
+        qd: 'Quantity demanded / labour demanded',
+        qs: 'Quantity supplied / labour supplied',
+        qeq: 'Competitive quantity',
+        '': '—'
+      };
+      document.getElementById('practiceResultTable').innerHTML = rows.map(row => `
+        <tr>
+          <td>${row.label}</td>
+          <td>${labelMap[row.user] || '—'}</td>
+          <td>${practiceState.revealed ? row.display : 'Check answer'}</td>
+        </tr>
+      `).join('');
+      return rows;
+    }
+
+    function renderPractice() {
+      const { caseDef, preset, state, outcome } = getPracticeOutcome();
+      drawPolicyGraph(document.getElementById('practiceCanvas'), preset, state, { showGap: practiceState.revealed });
+      const feedback = document.getElementById('practiceFeedback');
+      if (!practiceState.revealed) {
+        feedback.className = 'feedback-panel feedback-neutral';
+        feedback.textContent = caseDef.prompt;
+      }
+      renderPracticeTable();
+    }
+
+    function resetPracticeAnswers() {
+      ['answerBinding', 'answerImbalance', 'answerRealized'].forEach(id => { document.getElementById(id).value = ''; });
+      practiceState.revealed = false;
+      renderPractice();
+    }
+
+    function checkPractice() {
+      const binding = document.getElementById('answerBinding').value;
+      const imbalance = document.getElementById('answerImbalance').value;
+      const realized = document.getElementById('answerRealized').value;
+      if (!binding || !imbalance || !realized) {
+        const feedback = document.getElementById('practiceFeedback');
+        feedback.className = 'feedback-panel feedback-warning-soft';
+        feedback.textContent = 'Complete all three answers before checking.';
+        return;
+      }
+      const { caseDef, preset, outcome } = getPracticeOutcome();
+      practiceState.revealed = true;
+      const correctBinding = outcome.binding ? 'binding' : 'nonbinding';
+      const correctImbalance = outcome.binding ? outcome.imbalanceType : 'none';
+      const correctRealized = getRealizedQuantityAnswer(preset, outcome);
+      const allCorrect = binding === correctBinding && imbalance === correctImbalance && realized === correctRealized;
+      const feedback = document.getElementById('practiceFeedback');
+      feedback.className = `feedback-panel ${allCorrect ? 'feedback-success-soft' : 'feedback-warning-soft'}`;
+      if (allCorrect) {
+        feedback.textContent = `Correct. ${caseDef.prompt} ${outcome.binding ? `${getImbalanceLabel(preset, outcome.imbalanceType)} = ${formatNumber(outcome.gap)} and realized quantity = ${formatNumber(outcome.realizedQ)}.` : 'Because the policy is non-binding, the market stays at the competitive equilibrium.'}`;
+      } else {
+        feedback.textContent = `Not quite. The correct answers are: ${outcome.binding ? 'binding' : 'non-binding'}, ${outcome.binding ? getImbalanceLabel(preset, outcome.imbalanceType).toLowerCase() : 'no imbalance'}, and ${correctRealized === 'qeq' ? 'competitive quantity' : (correctRealized === 'qd' ? 'quantity demanded / labour demanded' : 'quantity supplied / labour supplied')}.`;
+      }
+      renderPractice();
+    }
+
+    function randomPracticeCase() {
+      const choice = PRACTICE_CASES[Math.floor(Math.random() * PRACTICE_CASES.length)];
+      practiceState.caseId = choice.id;
+      document.getElementById('practiceScenarioSelect').value = choice.id;
+      resetPracticeAnswers();
+    }
+
+    function setupPractice() {
+      populatePracticeSelect();
+      renderPractice();
+      document.getElementById('practiceScenarioSelect').addEventListener('change', (event) => {
+        practiceState.caseId = event.target.value;
+        resetPracticeAnswers();
+      });
+      document.getElementById('practiceRandomButton').addEventListener('click', randomPracticeCase);
+      document.getElementById('practiceResetButton').addEventListener('click', resetPracticeAnswers);
+      document.getElementById('practiceCheckButton').addEventListener('click', checkPractice);
+      ['answerBinding', 'answerImbalance', 'answerRealized'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+          if (!practiceState.revealed) renderPracticeTable();
+        });
+      });
+    }
+
+    const caseState = { caseId: CASES[0].id };
+
+    function renderCaseButtons() {
+      const wrap = document.getElementById('caseButtons');
+      wrap.innerHTML = CASES.map(item => `<button class="btn-secondary ${item.id === caseState.caseId ? 'active' : ''}" data-case="${item.id}">${item.id === 'au2024' ? 'Australia 2024' : 'WA 2007'}</button>`).join('');
+      wrap.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+        caseState.caseId = btn.dataset.case;
+        renderCaseModule();
+      }));
+    }
+
+    function renderCaseModule() {
+      renderCaseButtons();
+      const caseDef = getCase(caseState.caseId);
+      const state = { legalPrice: caseDef.legalPrice, demandShiftQ: caseDef.demandShiftQ, supplyShiftQ: caseDef.supplyShiftQ };
+      const outcome = drawPolicyGraph(document.getElementById('caseCanvas'), caseDef, state, { showGap: true });
+      document.getElementById('caseTitle').textContent = caseDef.title;
+      document.getElementById('caseSubtitle').textContent = caseDef.subtitle;
+      document.getElementById('caseGraphNote').textContent = caseDef.graphNote;
+      document.getElementById('caseMinWage').textContent = formatNumber(caseDef.legalPrice);
+      document.getElementById('caseMarketWage').textContent = formatNumber(outcome.pEq);
+      document.getElementById('caseBinding').textContent = getBindingText(outcome);
+      document.getElementById('caseEmploymentEq').textContent = formatNumber(outcome.qEq);
+      document.getElementById('caseEmploymentReal').textContent = formatNumber(outcome.binding ? outcome.realizedQ : outcome.qEq);
+      document.getElementById('caseGap').textContent = outcome.binding ? formatNumber(outcome.gap) : '0';
+      document.getElementById('caseInterpretation').className = `feedback-panel ${outcome.binding ? 'feedback-warning-soft' : 'feedback-success-soft'}`;
+      document.getElementById('caseInterpretation').textContent = caseDef.interpretation;
+      document.getElementById('caseDataGrid').innerHTML = caseDef.dataCards.map(card => `<div class="data-card"><strong>${card.label}</strong>${card.value}</div>`).join('');
+      const ratio = caseDef.legalPrice / outcome.pEq;
+      document.getElementById('ratioText').textContent = `Legal minimum = ${formatNumber(ratio * 100, 1)}% of the stylised market wage.`;
+      document.getElementById('ratioFill').style.width = `${clamp(ratio * 100, 0, 100)}%`;
+      document.getElementById('ratioNote').textContent = caseDef.ratioNote;
+    }
+
+    function setupCaseModule() {
+      renderCaseModule();
+    }
+
+    function setupTabs() {
+      const tabs = Array.from(document.querySelectorAll('.module-tab'));
+      const sections = Array.from(document.querySelectorAll('.module-section'));
+      function activate(targetId) {
+        tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.target === targetId));
+        sections.forEach(section => section.classList.toggle('active', section.id === targetId));
+        if (targetId === 'exploreModule') renderExplore();
+        if (targetId === 'practiceModule') renderPractice();
+        if (targetId === 'caseModule') renderCaseModule();
+      }
+      tabs.forEach(tab => tab.addEventListener('click', () => activate(tab.dataset.target)));
+      activate('exploreModule');
+    }
+
+    setupExploreInteractions();
+    setupPractice();
+    setupCaseModule();
+    setupTabs();
+  </script>
+</body>
+</html>

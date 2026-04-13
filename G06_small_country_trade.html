@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G06_small_country_trade</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .module-tab {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .module-tab:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+
+    .module-tab.active {
+      background: #eef7f1;
+      border-color: var(--color-government);
+      color: var(--color-government);
+    }
+
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 16px 0;
+    }
+
+    .summary-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.58fr) minmax(310px, 0.82fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .graph-stack, .side-stack { display: grid; gap: 16px; }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 12px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 190px;
+    }
+
+    .control-inline.compact { min-width: 150px; }
+
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.3;
+    }
+
+    .legend-line {
+      width: 28px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+
+    .legend-line.demand { border-color: var(--color-demand); }
+    .legend-line.supply { border-color: var(--color-supply); }
+    .legend-line.world {
+      border-color: var(--color-baseline);
+      border-top-style: dashed;
+      border-top-width: 2px;
+    }
+    .legend-line.policy {
+      border-color: var(--color-government);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.guess {
+      border-color: var(--color-guess);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--color-baseline);
+      background: white;
+      display: inline-block;
+    }
+
+    .legend-fill {
+      width: 18px;
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid rgba(31, 41, 55, 0.14);
+      display: inline-block;
+    }
+
+    .legend-fill.cs { background: var(--fill-cs); }
+    .legend-fill.ps { background: var(--fill-ps); }
+    .legend-fill.gov { background: var(--fill-government); }
+    .legend-fill.rent { background: var(--fill-buyer-tax); }
+    .legend-fill.foreign { background: var(--fill-seller-tax); }
+    .legend-fill.dwl { background: var(--fill-dwl); }
+    .legend-fill.case { background: rgba(47, 107, 255, 0.12); }
+
+    .graph-note, .small-muted, .footer-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.5;
+    }
+
+    .status-title { font-weight: 600; margin-bottom: 8px; font-size: 13px; }
+
+    .scenario-list, .data-grid, .step-switch, .info-list, .practice-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .scenario-card, .data-card, .answer-card, .step-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--color-text);
+    }
+
+    .scenario-card, .step-button, .case-switch button {
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+    }
+
+    .scenario-card:hover, .step-button:hover, .case-switch button:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+      border-color: #b8c5d8;
+    }
+
+    .scenario-card.active, .step-button.active, .case-switch button.active {
+      background: #eef7f1;
+      border-color: var(--color-government);
+    }
+
+    .card-title {
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .card-kicker {
+      color: var(--color-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .metric-grid.wide {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .metric-item .metric-value.small {
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .feedback-panel p { margin: 0 0 8px 0; }
+    .feedback-panel p:last-child { margin-bottom: 0; }
+
+    .callout-note {
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: #fff9ed;
+      border: 1px solid #f0d7aa;
+      color: #6b4b12;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .pill-row, .case-switch, .step-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill-inline {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #f5f7fb;
+      border: 1px solid var(--color-frame);
+      font-size: 11px;
+      color: var(--color-muted);
+    }
+
+    .step-button, .case-switch button {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 12px;
+      color: var(--color-text);
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .chart-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      background: white;
+      padding: 12px;
+    }
+
+    .chart-card h3 {
+      margin: 0 0 6px 0;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .chart-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+
+    .table-lite {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .table-lite th, .table-lite td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #e6edf3;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .table-lite th {
+      color: var(--color-muted);
+      font-weight: 600;
+      background: #fbfcfe;
+    }
+
+    .badge-neutral {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid var(--color-frame);
+      color: var(--color-muted);
+      background: white;
+    }
+
+    @media (max-width: 1100px) {
+      .workspace { grid-template-columns: 1fr; }
+      .metric-grid.wide { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .metric-grid.wide { grid-template-columns: 1fr; }
+      .control-inline, .control-inline.compact { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreModule">Explore and measure</button>
+        <button class="module-tab" data-target="practiceModule">Practice and check</button>
+        <button class="module-tab" data-target="caseModule">Real-world case study</button>
+      </div>
+
+      <section id="exploreModule" class="module-section active">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Small-country trade: world price, tariff, quota and export subsidy</h1>
+          <p class="diagram-subtitle">Move the world price and trade policy to see how domestic price, domestic production, domestic consumption, imports or exports, and welfare change when a country is small enough to take the world price as given.</p>
+        </div>
+
+        <div class="summary-strip">
+          <div class="summary-chip">World price versus autarky price</div>
+          <div class="summary-chip">Importing and exporting cases</div>
+          <div class="summary-chip">Tariff revenue and quota rents</div>
+          <div class="summary-chip">Export subsidy cost</div>
+          <div class="summary-chip">Consumer and producer surplus</div>
+          <div class="summary-chip">Deadweight loss</div>
+        </div>
+
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="worldPriceSlider">World price <span id="worldPriceLabel" class="badge-neutral">—</span></label>
+            <input type="range" id="worldPriceSlider" min="20" max="95" step="1" value="40" />
+          </div>
+          <div class="control-inline compact">
+            <label for="policySelect">Policy</label>
+            <select id="policySelect">
+              <option value="free">Free trade</option>
+              <option value="tariff">Import tariff</option>
+              <option value="quota">Import quota</option>
+              <option value="subsidy">Export subsidy</option>
+            </select>
+          </div>
+          <div class="control-inline">
+            <label for="policyAmountSlider">Policy amount <span id="policyAmountLabel" class="badge-neutral">—</span></label>
+            <input type="range" id="policyAmountSlider" min="0" max="25" step="1" value="12" />
+          </div>
+          <div class="control-inline compact">
+            <label for="quotaOwnerSelect">Quota rent owner</label>
+            <select id="quotaOwnerSelect">
+              <option value="government">Government auction</option>
+              <option value="domestic">Domestic licence holders</option>
+              <option value="foreign">Foreign exporters</option>
+            </select>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="resetExploreButton">Reset</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line demand"></span><span>Domestic demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Domestic supply</span></div>
+                <div class="legend-item"><span class="legend-line world"></span><span>World price</span></div>
+                <div class="legend-item"><span class="legend-line policy"></span><span>Domestic price after policy</span></div>
+                <div class="legend-item"><span class="legend-dot"></span><span>Autarky equilibrium</span></div>
+                <div class="legend-item"><span class="legend-fill cs"></span><span>Consumer surplus</span></div>
+                <div class="legend-item"><span class="legend-fill ps"></span><span>Producer surplus</span></div>
+                <div class="legend-item"><span class="legend-fill gov"></span><span>Government revenue / cost</span></div>
+                <div class="legend-item"><span class="legend-fill rent"></span><span>Domestic quota rent</span></div>
+                <div class="legend-item"><span class="legend-fill foreign"></span><span>Foreign quota rent</span></div>
+                <div class="legend-item"><span class="legend-fill dwl"></span><span>Deadweight loss versus free trade</span></div>
+              </div>
+              <div class="graph-note" id="exploreGraphNote">—</div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="metrics-panel">
+              <div class="metric-grid wide">
+                <div class="metric-item">
+                  <div class="metric-label">Free-trade status</div>
+                  <div class="metric-value small" id="metricTradeStatus">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Autarky equilibrium</div>
+                  <div class="metric-value small" id="metricAutarky">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Domestic price after policy</div>
+                  <div class="metric-value small" id="metricDomesticPrice">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Domestic production</div>
+                  <div class="metric-value small" id="metricProduction">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Domestic consumption</div>
+                  <div class="metric-value small" id="metricConsumption">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Trade gap</div>
+                  <div class="metric-value small" id="metricTradeGap">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Consumer surplus</div>
+                  <div class="metric-value small" id="metricCS">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Producer surplus</div>
+                  <div class="metric-value small" id="metricPS">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Government balance</div>
+                  <div class="metric-value small" id="metricGov">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Quota rent</div>
+                  <div class="metric-value small" id="metricRent">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Total domestic welfare</div>
+                  <div class="metric-value small" id="metricTotal">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Deadweight loss</div>
+                  <div class="metric-value small" id="metricDWL">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="exploreFeedback">—</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceModule" class="module-section">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Practice and check</h1>
+          <p class="diagram-subtitle">Choose a scenario, decide how the small-country trade model works in that case, and then reveal the policy line and welfare effects.</p>
+        </div>
+
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="practiceScenarioSelect">Scenario</label>
+            <select id="practiceScenarioSelect"></select>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceResetButton">Reset answers</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="practiceCheckButton">Check answer</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line demand"></span><span>Domestic demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Domestic supply</span></div>
+                <div class="legend-item"><span class="legend-line world"></span><span>World price</span></div>
+                <div class="legend-item"><span class="legend-line policy"></span><span>Revealed domestic price</span></div>
+                <div class="legend-item"><span class="legend-fill cs"></span><span>Consumer surplus after reveal</span></div>
+                <div class="legend-item"><span class="legend-fill ps"></span><span>Producer surplus after reveal</span></div>
+                <div class="legend-item"><span class="legend-fill gov"></span><span>Government balance after reveal</span></div>
+                <div class="legend-item"><span class="legend-fill rent"></span><span>Domestic quota rent after reveal</span></div>
+                <div class="legend-item"><span class="legend-fill dwl"></span><span>Deadweight loss after reveal</span></div>
+              </div>
+              <div class="graph-note" id="practiceGraphNote">—</div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="notes-panel">
+              <div class="status-title">Scenario prompt</div>
+              <div id="practicePrompt" class="small-muted">—</div>
+              <div class="pill-row" id="practicePromptPills" style="margin-top:10px;"></div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="practice-grid">
+                <div class="answer-card">
+                  <div class="card-title">1. Under free trade at this world price, the country is</div>
+                  <select id="ansTradeStatus">
+                    <option value="">Choose</option>
+                    <option value="import">An importer</option>
+                    <option value="export">An exporter</option>
+                    <option value="none">Neither importer nor exporter</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <div class="card-title">2. After the policy, domestic price is</div>
+                  <select id="ansPriceRelation">
+                    <option value="">Choose</option>
+                    <option value="above">Above world price</option>
+                    <option value="equal">Equal to world price</option>
+                    <option value="below">Below world price</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <div class="card-title">3. After the policy, the country</div>
+                  <select id="ansTradeAfter">
+                    <option value="">Choose</option>
+                    <option value="import">Imports</option>
+                    <option value="export">Exports</option>
+                    <option value="none">Does not trade</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <div class="card-title">4. Consumer surplus versus free trade</div>
+                  <select id="ansCS">
+                    <option value="">Choose</option>
+                    <option value="increase">Increases</option>
+                    <option value="decrease">Decreases</option>
+                    <option value="no_change">No change</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <div class="card-title">5. Producer surplus versus free trade</div>
+                  <select id="ansPS">
+                    <option value="">Choose</option>
+                    <option value="increase">Increases</option>
+                    <option value="decrease">Decreases</option>
+                    <option value="no_change">No change</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <div class="card-title">6. Government balance versus free trade</div>
+                  <select id="ansGov">
+                    <option value="">Choose</option>
+                    <option value="increase">Increases</option>
+                    <option value="decrease">Decreases</option>
+                    <option value="no_change">No change</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <div class="card-title">7. Total domestic welfare versus free trade</div>
+                  <select id="ansTotal">
+                    <option value="">Choose</option>
+                    <option value="increase">Increases</option>
+                    <option value="decrease">Decreases</option>
+                    <option value="no_change">No change</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="practiceFeedback">Choose a scenario, answer the seven questions, and then check your answer.</div>
+
+            <div class="notes-panel">
+              <div class="status-title">Correct answers after reveal</div>
+              <table class="table-lite" id="practiceAnswerTable"></table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseModule" class="module-section">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Real-world case study: Australia’s passenger motor vehicle tariff liberalisation</h1>
+          <p class="diagram-subtitle">This case translates Australia’s passenger vehicle tariff cuts and growing import penetration into the G06 small-country trade diagram. The evidence cards use published data; the graph is a stylised teaching calibration rather than a causal econometric estimate.</p>
+        </div>
+
+        <div class="summary-strip">
+          <div class="summary-chip">Australia as a small car-market buyer</div>
+          <div class="summary-chip">General tariff 15% → 10% → 5%</div>
+          <div class="summary-chip">Thai-origin vehicle tariffs removed in 2005</div>
+          <div class="summary-chip">Vehicle-price disinflation in 2010</div>
+          <div class="summary-chip">Nearly 90% imported by 2013</div>
+        </div>
+
+        <div class="callout-note" id="caseBanner">—</div>
+        <div class="case-switch" id="caseButtons" style="margin: 12px 0 8px 0;"></div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line demand"></span><span>Domestic demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Domestic supply</span></div>
+                <div class="legend-item"><span class="legend-line world"></span><span>World price benchmark</span></div>
+                <div class="legend-item"><span class="legend-line policy"></span><span>Domestic price with tariff</span></div>
+                <div class="legend-item"><span class="legend-fill case"></span><span>Stylised evidence translation</span></div>
+              </div>
+              <div class="graph-note" id="caseGraphNote">—</div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="metrics-panel">
+              <div class="metric-grid wide">
+                <div class="metric-item">
+                  <div class="metric-label">Current step</div>
+                  <div class="metric-value small" id="caseStepTitle">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Observed quantity evidence</div>
+                  <div class="metric-value small" id="caseObservedQuantity">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Observed price evidence</div>
+                  <div class="metric-value small" id="caseObservedPrice">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Stylised domestic price</div>
+                  <div class="metric-value small" id="caseDomesticPrice">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Stylised imports</div>
+                  <div class="metric-value small" id="caseImports">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Consumer impact</div>
+                  <div class="metric-value small" id="caseConsumerEffect">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="notes-panel">
+              <div class="status-title">Evidence cards</div>
+              <div class="data-grid" id="caseDataGrid"></div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="caseInterpretation">—</div>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-card">
+            <h3>Total new vehicle sales in Australia</h3>
+            <canvas id="caseSalesCanvas" class="chart-canvas" width="460" height="240"></canvas>
+            <div class="small-muted">Exact BITRE financial-year observations used in the case discussion.</div>
+          </div>
+          <div class="chart-card">
+            <h3>Motor-vehicle CPI movements during 2010</h3>
+            <canvas id="casePriceCanvas" class="chart-canvas" width="460" height="240"></canvas>
+            <div class="small-muted">ABS quarterly changes, used as direct price evidence around the 2010 tariff cut.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const BASE_PRESET = {
+      id: 'baselineTrade',
+      title: 'Small-country trade',
+      xMax: 120,
+      yMax: 120,
+      a: 110,
+      b: 0.8,
+      c: 20,
+      d: 0.7,
+      worldPriceMin: 20,
+      worldPriceMax: 95,
+      defaultWorldPrice: 40
+    };
+
+    const CASE_PRESET = {
+      id: 'australiaCars',
+      title: 'Australia passenger motor vehicles',
+      xMax: 1400,
+      yMax: 180,
+      a: 220,
+      b: 0.1,
+      c: 40,
+      d: 0.1,
+      worldPriceMin: 80,
+      worldPriceMax: 120,
+      defaultWorldPrice: 100
+    };
+
+    const PRACTICE_SCENARIOS = [
+      {
+        id: 'freeImport',
+        label: 'Free trade importer',
+        prompt: 'The world price is well below the autarky price. No policy is imposed.',
+        state: { worldPrice: 40, policyType: 'free', policyAmount: 0, quotaOwner: 'government' }
+      },
+      {
+        id: 'tariffImport',
+        label: 'Import tariff',
+        prompt: 'The country is an importer at the chosen world price. A tariff of 12 is imposed on imports.',
+        state: { worldPrice: 40, policyType: 'tariff', policyAmount: 12, quotaOwner: 'government' }
+      },
+      {
+        id: 'quotaBinding',
+        label: 'Binding import quota',
+        prompt: 'A binding quota restricts imports to 12 units, and the quota rent is captured by the government.',
+        state: { worldPrice: 40, policyType: 'quota', policyAmount: 12, quotaOwner: 'government' }
+      },
+      {
+        id: 'quotaForeign',
+        label: 'Quota rent to foreign exporters',
+        prompt: 'A binding quota restricts imports to 12 units, but foreign exporters capture the quota rent.',
+        state: { worldPrice: 40, policyType: 'quota', policyAmount: 12, quotaOwner: 'foreign' }
+      },
+      {
+        id: 'quotaNonBinding',
+        label: 'Non-binding import quota',
+        prompt: 'The quota is set above free-trade imports, so it should not change the market outcome.',
+        state: { worldPrice: 40, policyType: 'quota', policyAmount: 40, quotaOwner: 'government' }
+      },
+      {
+        id: 'exportSubsidy',
+        label: 'Export subsidy',
+        prompt: 'The world price is above the autarky price so the country exports under free trade. An export subsidy of 10 is added.',
+        state: { worldPrice: 82, policyType: 'subsidy', policyAmount: 10, quotaOwner: 'government' }
+      }
+    ];
+
+    const CASE_STEPS = [
+      {
+        id: 'pre2005',
+        buttonLabel: '2003–04 baseline',
+        title: 'Before the 2005 tariff cut: 15% passenger-vehicle tariff',
+        note: 'This starting point represents the higher pre-2005 passenger motor vehicle tariff in Australia. The stylised graph uses a larger wedge between world and domestic price.',
+        state: { worldPrice: 100, policyType: 'tariff', policyAmount: 15, quotaOwner: 'government', demandShiftP: 0, supplyShiftP: 0 },
+        observedQuantity: 'New vehicle sales 940.1k in 2003–04',
+        observedPrice: 'Higher domestic price wedge from 15% tariff',
+        cards: [
+          { label: 'Tariff setting', value: '15%', detail: 'Prior to 1 January 2005, Australia’s passenger motor vehicle tariff was 15%.' },
+          { label: 'Sales evidence', value: '940.1k vehicles', detail: 'BITRE reports total new vehicle sales of 940.1 thousand in 2003–04.' },
+          { label: 'Teaching point', value: 'Domestic price above world price', detail: 'In the small-country model, a tariff raises the domestic price above the world price and compresses imports.' }
+        ],
+        interpretation: 'This step shows the classic tariff wedge: consumers face a higher domestic price, domestic producers gain protection, and imports are smaller than under freer trade.'
+      },
+      {
+        id: 'year2005',
+        buttonLabel: '2005 tariff drop',
+        title: '2005: general automotive tariff cut to 10%, with Thai-origin vehicles entering duty free',
+        note: 'The stylised price wedge narrows from 15 to 10. Evidence cards also note that Thai-origin passenger vehicles were immediately tariff free under TAFTA.',
+        state: { worldPrice: 100, policyType: 'tariff', policyAmount: 10, quotaOwner: 'government', demandShiftP: 0, supplyShiftP: 0 },
+        observedQuantity: 'New vehicle sales 971.4k in 2005–06',
+        observedPrice: 'Lower import-price wedge than pre-2005',
+        cards: [
+          { label: 'General tariff', value: '10%', detail: 'DFAT’s trade timeline records the automotive tariff rate falling to 10% in 2005.' },
+          { label: 'Thai-origin vehicles', value: '0% tariff', detail: 'Under TAFTA, Australia eliminated tariffs on passenger vehicles of Thai origin on entry into force.' },
+          { label: 'Sales evidence', value: '971.4k vehicles', detail: 'BITRE reports total new vehicle sales of 971.4 thousand in 2005–06.' }
+        ],
+        interpretation: 'Relative to the pre-2005 position, the smaller wedge pulls domestic price closer to the world price. Consumers gain from cheaper imports and greater choice, while domestic producers face stronger competitive pressure.'
+      },
+      {
+        id: 'year2010',
+        buttonLabel: '2010 rate cut to 5%',
+        title: '2010: general passenger-vehicle tariff cut to 5%',
+        note: 'The tariff wedge narrows again. The evidence cards combine the 5% statutory tariff with RBA and ABS price evidence showing downward pressure on motor-vehicle prices through 2010.',
+        state: { worldPrice: 100, policyType: 'tariff', policyAmount: 5, quotaOwner: 'government', demandShiftP: 2, supplyShiftP: 0 },
+        observedQuantity: 'Sales 1,013.3k in 2009–10 and 1,000.6k in 2010–11',
+        observedPrice: 'Motor-vehicle CPI: –0.6%, –0.2%, –0.8%, –1.0% across 2010 quarters',
+        cards: [
+          { label: 'Tariff setting', value: '5%', detail: 'DFAT’s trade timeline records the Australian car-industry tariff rate falling to 5% on 1 January 2010.' },
+          { label: 'Price evidence', value: 'Vehicle prices fell through 2010', detail: 'ABS recorded quarterly motor-vehicle CPI falls of 0.6% in March, 0.2% in June, 0.8% in September and 1.0% in December 2010.' },
+          { label: 'Quantity evidence', value: '≈1.0 million sales', detail: 'BITRE reports 1,013.3 thousand total new vehicle sales in 2009–10 and 1,000.6 thousand in 2010–11.' }
+        ],
+        interpretation: 'The smaller tariff wedge moves domestic price closer to the world price. In the model, that raises consumption and imports while reducing the protective shelter enjoyed by domestic producers. The observed 2010 price declines match the direction predicted by the trade diagram.'
+      },
+      {
+        id: 'year2013',
+        buttonLabel: '2013 import dominance',
+        title: '2013: an import-dominated Australian market',
+        note: 'This step adds a leftward shift in domestic supply to translate the fact that local producers were high-cost and losing market share. The 5% tariff remains, but the import gap becomes much larger.',
+        state: { worldPrice: 100, policyType: 'tariff', policyAmount: 5, quotaOwner: 'government', demandShiftP: 5, supplyShiftP: 16 },
+        observedQuantity: 'Just over 1 million sales; just over 200k local production',
+        observedPrice: 'Imported vehicles almost 90% of new sales',
+        cards: [
+          { label: 'Market size', value: 'Just over 1m sales', detail: 'The Productivity Commission reports Australia’s new vehicle sales were just over 1 million units in 2013.' },
+          { label: 'Import share', value: 'Nearly 90% imported', detail: 'The Productivity Commission reports nearly 90% of new vehicle sales in Australia were imported in 2013.' },
+          { label: 'Local production', value: 'Just over 200k units', detail: 'The Productivity Commission reports Australia’s share of global production was just over 200,000 vehicles in 2013.' }
+        ],
+        interpretation: 'By 2013 the Australian market looked highly open and import-dominated. The trade diagram captures that with a wide import gap at a domestic price disciplined by the world market, even though a small 5% tariff remained.'
+      }
+    ];
+
+    const CASE_SALES_DATA = [
+      { label: '2003–04', value: 940.1 },
+      { label: '2005–06', value: 971.4 },
+      { label: '2008–09', value: 924.7 },
+      { label: '2009–10', value: 1013.3 },
+      { label: '2010–11', value: 1000.6 }
+    ];
+
+    const CASE_PRICE_DATA = [
+      { label: 'Mar 2010', value: -0.6 },
+      { label: 'Jun 2010', value: -0.2 },
+      { label: 'Sep 2010', value: -0.8 },
+      { label: 'Dec 2010', value: -1.0 }
+    ];
+
+    const exploreState = {
+      worldPrice: BASE_PRESET.defaultWorldPrice,
+      policyType: 'free',
+      policyAmount: 12,
+      quotaOwner: 'government',
+      demandShiftP: 0,
+      supplyShiftP: 0
+    };
+
+    const practiceState = {
+      scenarioId: PRACTICE_SCENARIOS[0].id,
+      revealed: false
+    };
+
+    const caseState = { stepId: CASE_STEPS[0].id };
+
+    function numberFmt(value, digits = 1) {
+      const rounded = Math.abs(value) < 1e-9 ? 0 : value;
+      return Number(rounded).toFixed(digits).replace(/\.0+$|(?<=\.[0-9])0+$/g, '');
+    }
+
+    function signedFmt(value, digits = 1) {
+      const prefix = value > 1e-9 ? '+' : '';
+      return `${prefix}${numberFmt(value, digits)}`;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function makeTicks(min, max, count, axis, formatter = (v) => numberFmt(v, 0)) {
+      const ticks = [];
+      for (let i = 0; i <= count; i += 1) {
+        const value = min + (i / count) * (max - min);
+        ticks.push({
+          label: formatter(value),
+          x: axis === 'x' ? EconDraw.valueToX(value, min, max) : undefined,
+          y: axis === 'y' ? EconDraw.valueToY(value, min, max) : undefined
+        });
+      }
+      return ticks;
+    }
+
+    function qd(market, price) {
+      return clamp((market.a - price) / market.b, 0, market.xMax);
+    }
+
+    function qs(market, price) {
+      return clamp((price - market.c) / market.d, 0, market.xMax);
+    }
+
+    function demandPrice(market, q) {
+      return market.a - market.b * q;
+    }
+
+    function supplyPrice(market, q) {
+      return market.c + market.d * q;
+    }
+
+    function demandIntegral(market, q) {
+      return market.a * q - 0.5 * market.b * q * q;
+    }
+
+    function supplyIntegral(market, q) {
+      return market.c * q + 0.5 * market.d * q * q;
+    }
+
+    function autarky(market) {
+      const q = clamp((market.a - market.c) / (market.b + market.d), 0, market.xMax);
+      const p = demandPrice(market, q);
+      return { q, p };
+    }
+
+    function freeTradeOutcome(market, worldPrice) {
+      const qdValue = qd(market, worldPrice);
+      const qsValue = qs(market, worldPrice);
+      const imports = Math.max(0, qdValue - qsValue);
+      const exports = Math.max(0, qsValue - qdValue);
+      return {
+        priceDomestic: worldPrice,
+        qd: qdValue,
+        qs: qsValue,
+        imports,
+        exports,
+        tradeType: imports > 1e-6 ? 'import' : exports > 1e-6 ? 'export' : 'none'
+      };
+    }
+
+    function computeSurplus(market, price, qdValue, qsValue) {
+      return {
+        cs: Math.max(0, demandIntegral(market, qdValue) - price * qdValue),
+        ps: Math.max(0, price * qsValue - supplyIntegral(market, qsValue))
+      };
+    }
+
+    function totalDomesticWelfare(parts) {
+      return parts.cs + parts.ps + parts.government + parts.domesticRent;
+    }
+
+    function getMarket(preset, state) {
+      return {
+        xMax: preset.xMax,
+        yMax: preset.yMax,
+        a: preset.a + (state.demandShiftP || 0),
+        b: preset.b,
+        c: preset.c + (state.supplyShiftP || 0),
+        d: preset.d
+      };
+    }
+
+    function solveTradeOutcome(preset, state) {
+      const market = getMarket(preset, state);
+      const aut = autarky(market);
+      const ftFlow = freeTradeOutcome(market, state.worldPrice);
+      const ftSurplus = computeSurplus(market, state.worldPrice, ftFlow.qd, ftFlow.qs);
+      const ft = {
+        ...ftFlow,
+        ...ftSurplus,
+        government: 0,
+        domesticRent: 0,
+        foreignRent: 0,
+        quotaRent: 0,
+        totalDomestic: totalDomesticWelfare({ ...ftSurplus, government: 0, domesticRent: 0 })
+      };
+
+      const outcome = {
+        market,
+        autarky: aut,
+        freeTrade: ft,
+        policyType: state.policyType,
+        priceDomestic: state.worldPrice,
+        qd: ft.qd,
+        qs: ft.qs,
+        imports: ft.imports,
+        exports: ft.exports,
+        tradeType: ft.tradeType,
+        government: 0,
+        domesticRent: 0,
+        foreignRent: 0,
+        quotaRent: 0,
+        binding: false,
+        note: 'At the chosen world price, the country trades freely at the world price.',
+        applicable: true,
+        quotaOwner: state.quotaOwner || 'government',
+        worldPrice: state.worldPrice,
+        policyAmount: state.policyAmount || 0
+      };
+
+      if (state.policyType === 'tariff') {
+        if (ft.tradeType !== 'import') {
+          outcome.note = 'An import tariff only matters when the country would import at the chosen world price. Here it is not active, so the market stays at free trade.';
+          outcome.applicable = false;
+        } else {
+          const targetPrice = state.worldPrice + state.policyAmount;
+          const priceDomestic = Math.min(aut.p, targetPrice);
+          const qdValue = qd(market, priceDomestic);
+          const qsValue = qs(market, priceDomestic);
+          const imports = Math.max(0, qdValue - qsValue);
+          const effectiveTariff = imports > 1e-6 ? priceDomestic - state.worldPrice : 0;
+          Object.assign(outcome, {
+            priceDomestic,
+            qd: qdValue,
+            qs: qsValue,
+            imports,
+            exports: 0,
+            tradeType: imports > 1e-6 ? 'import' : 'none',
+            government: effectiveTariff * imports,
+            note: imports > 1e-6
+              ? 'The import tariff raises domestic price above the world price, increases domestic production, reduces domestic consumption, and shrinks imports.'
+              : 'The tariff is prohibitive: domestic price returns to the autarky level and imports disappear.'
+          });
+        }
+      } else if (state.policyType === 'quota') {
+        if (ft.tradeType !== 'import') {
+          outcome.note = 'An import quota only matters when the country would import at the chosen world price. Here it is not active, so the market stays at free trade.';
+          outcome.applicable = false;
+        } else {
+          const quota = clamp(state.policyAmount, 0, preset.xMax);
+          if (quota >= ft.imports - 1e-6) {
+            outcome.note = 'The quota is set above free-trade imports, so it is non-binding and leaves the market at the world price.';
+            outcome.binding = false;
+          } else {
+            const priceDomestic = clamp((market.a - market.c - quota) / (market.b + market.d), state.worldPrice, aut.p);
+            const qdValue = qd(market, priceDomestic);
+            const qsValue = qs(market, priceDomestic);
+            const imports = Math.max(0, qdValue - qsValue);
+            const rent = Math.max(0, (priceDomestic - state.worldPrice) * imports);
+            outcome.priceDomestic = priceDomestic;
+            outcome.qd = qdValue;
+            outcome.qs = qsValue;
+            outcome.imports = imports;
+            outcome.exports = 0;
+            outcome.tradeType = 'import';
+            outcome.binding = true;
+            outcome.quotaRent = rent;
+            if (outcome.quotaOwner === 'government') outcome.government = rent;
+            if (outcome.quotaOwner === 'domestic') outcome.domesticRent = rent;
+            if (outcome.quotaOwner === 'foreign') outcome.foreignRent = rent;
+            outcome.note = `The quota binds, so domestic price rises above the world price until imports are squeezed down to the legal cap of ${numberFmt(quota, 1)}.`;
+          }
+        }
+      } else if (state.policyType === 'subsidy') {
+        if (ft.tradeType !== 'export') {
+          outcome.note = 'An export subsidy is only active when the country would export at the chosen world price. Here it is not active, so the market stays at free trade.';
+          outcome.applicable = false;
+        } else {
+          const priceDomestic = state.worldPrice + state.policyAmount;
+          const qdValue = qd(market, priceDomestic);
+          const qsValue = qs(market, priceDomestic);
+          const exports = Math.max(0, qsValue - qdValue);
+          Object.assign(outcome, {
+            priceDomestic,
+            qd: qdValue,
+            qs: qsValue,
+            imports: 0,
+            exports,
+            tradeType: exports > 1e-6 ? 'export' : 'none',
+            government: -state.policyAmount * exports,
+            note: 'The export subsidy pushes domestic price above the world price, encourages extra domestic production, reduces domestic consumption, expands exports, and costs the government money.'
+          });
+        }
+      }
+
+      const surpluses = computeSurplus(market, outcome.priceDomestic, outcome.qd, outcome.qs);
+      outcome.cs = surpluses.cs;
+      outcome.ps = surpluses.ps;
+      outcome.totalDomestic = totalDomesticWelfare({
+        cs: outcome.cs,
+        ps: outcome.ps,
+        government: outcome.government,
+        domesticRent: outcome.domesticRent
+      });
+      outcome.dwl = Math.max(0, ft.totalDomestic - outcome.totalDomestic);
+      outcome.deltaCS = outcome.cs - ft.cs;
+      outcome.deltaPS = outcome.ps - ft.ps;
+      outcome.deltaGov = outcome.government - ft.government;
+      outcome.deltaTotal = outcome.totalDomestic - ft.totalDomestic;
+
+      return outcome;
+    }
+
+    function pricePolygon(market, qMax, price, type) {
+      const points = [];
+      if (type === 'cs') {
+        points.push({ x: EconDraw.valueToX(0, 0, market.xMax), y: EconDraw.valueToY(demandPrice(market, 0), 0, market.yMax) });
+        for (let q = 0; q <= qMax; q += market.xMax / 200) {
+          points.push({ x: EconDraw.valueToX(q, 0, market.xMax), y: EconDraw.valueToY(demandPrice(market, q), 0, market.yMax) });
+        }
+        points.push({ x: EconDraw.valueToX(qMax, 0, market.xMax), y: EconDraw.valueToY(price, 0, market.yMax) });
+        points.push({ x: EconDraw.valueToX(0, 0, market.xMax), y: EconDraw.valueToY(price, 0, market.yMax) });
+      } else {
+        points.push({ x: EconDraw.valueToX(0, 0, market.xMax), y: EconDraw.valueToY(price, 0, market.yMax) });
+        points.push({ x: EconDraw.valueToX(qMax, 0, market.xMax), y: EconDraw.valueToY(price, 0, market.yMax) });
+        for (let q = qMax; q >= 0; q -= market.xMax / 200) {
+          points.push({ x: EconDraw.valueToX(q, 0, market.xMax), y: EconDraw.valueToY(supplyPrice(market, q), 0, market.yMax) });
+        }
+      }
+      return points;
+    }
+
+    function rectPolygon(x1, x2, y1, y2, market) {
+      return [
+        { x: EconDraw.valueToX(x1, 0, market.xMax), y: EconDraw.valueToY(y1, 0, market.yMax) },
+        { x: EconDraw.valueToX(x2, 0, market.xMax), y: EconDraw.valueToY(y1, 0, market.yMax) },
+        { x: EconDraw.valueToX(x2, 0, market.xMax), y: EconDraw.valueToY(y2, 0, market.yMax) },
+        { x: EconDraw.valueToX(x1, 0, market.xMax), y: EconDraw.valueToY(y2, 0, market.yMax) }
+      ];
+    }
+
+    function drawHorizontalLine(ctx, price, label, color, dash, market) {
+      const x1 = EconDraw.valueToX(0, 0, market.xMax);
+      const x2 = EconDraw.valueToX(market.xMax, 0, market.xMax);
+      const y = EconDraw.valueToY(price, 0, market.yMax);
+      EconDraw.drawLine(ctx, [{ x: x1, y }, { x: x2, y }], { color, dash, lineWidth: 2.5 });
+      EconDraw.drawText(ctx, label, x2 - 6, y - 8, { size: 13, weight: '600', color, align: 'right' });
+    }
+
+    function drawGapMarkers(ctx, quantityA, quantityB, label, market) {
+      if (Math.abs(quantityA - quantityB) < 0.01) return;
+      const x1 = EconDraw.valueToX(quantityA, 0, market.xMax);
+      const x2 = EconDraw.valueToX(quantityB, 0, market.xMax);
+      const y = EconDraw.valueToY(6, 0, market.yMax);
+      const color = ECON_THEME.color.government;
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x1, y);
+      ctx.lineTo(x2, y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x1, y - 5);
+      ctx.lineTo(x1, y + 5);
+      ctx.moveTo(x2, y - 5);
+      ctx.lineTo(x2, y + 5);
+      ctx.stroke();
+      ctx.restore();
+
+      EconDraw.drawText(ctx, label, (x1 + x2) / 2, y - 8, { size: 12, weight: '600', color, align: 'center' });
+    }
+
+    function drawDWL(ctx, outcome, market) {
+      if (outcome.dwl <= 1e-6) return;
+      const ft = outcome.freeTrade;
+      const wp = outcome.worldPrice;
+      const dp = outcome.priceDomestic;
+
+      if (outcome.policyType === 'tariff' || (outcome.policyType === 'quota' && outcome.binding)) {
+        if (ft.tradeType !== 'import') return;
+        if (outcome.qs > ft.qs + 1e-6) {
+          EconDraw.fillPolygon(ctx, [
+            { x: EconDraw.valueToX(ft.qs, 0, market.xMax), y: EconDraw.valueToY(wp, 0, market.yMax) },
+            { x: EconDraw.valueToX(outcome.qs, 0, market.xMax), y: EconDraw.valueToY(wp, 0, market.yMax) },
+            { x: EconDraw.valueToX(outcome.qs, 0, market.xMax), y: EconDraw.valueToY(dp, 0, market.yMax) }
+          ], { fill: ECON_THEME.color.dwlFill });
+        }
+        if (outcome.qd < ft.qd - 1e-6) {
+          EconDraw.fillPolygon(ctx, [
+            { x: EconDraw.valueToX(ft.qd, 0, market.xMax), y: EconDraw.valueToY(wp, 0, market.yMax) },
+            { x: EconDraw.valueToX(outcome.qd, 0, market.xMax), y: EconDraw.valueToY(wp, 0, market.yMax) },
+            { x: EconDraw.valueToX(outcome.qd, 0, market.xMax), y: EconDraw.valueToY(dp, 0, market.yMax) }
+          ], { fill: ECON_THEME.color.dwlFill });
+        }
+      }
+
+      if (outcome.policyType === 'subsidy' && ft.tradeType === 'export') {
+        if (outcome.qd < ft.qd - 1e-6) {
+          EconDraw.fillPolygon(ctx, [
+            { x: EconDraw.valueToX(outcome.qd, 0, market.xMax), y: EconDraw.valueToY(wp, 0, market.yMax) },
+            { x: EconDraw.valueToX(ft.qd, 0, market.xMax), y: EconDraw.valueToY(wp, 0, market.yMax) },
+            { x: EconDraw.valueToX(outcome.qd, 0, market.xMax), y: EconDraw.valueToY(dp, 0, market.yMax) }
+          ], { fill: ECON_THEME.color.dwlFill });
+        }
+        if (outcome.qs > ft.qs + 1e-6) {
+          EconDraw.fillPolygon(ctx, [
+            { x: EconDraw.valueToX(ft.qs, 0, market.xMax), y: EconDraw.valueToY(wp, 0, market.yMax) },
+            { x: EconDraw.valueToX(outcome.qs, 0, market.xMax), y: EconDraw.valueToY(wp, 0, market.yMax) },
+            { x: EconDraw.valueToX(outcome.qs, 0, market.xMax), y: EconDraw.valueToY(dp, 0, market.yMax) }
+          ], { fill: ECON_THEME.color.dwlFill });
+        }
+      }
+    }
+
+    function curvePoints(market, fn) {
+      const points = [];
+      for (let q = 0; q <= market.xMax; q += market.xMax / 240) {
+        const price = fn(market, q);
+        points.push({
+          x: EconDraw.valueToX(q, 0, market.xMax),
+          y: EconDraw.valueToY(price, 0, market.yMax)
+        });
+      }
+      return points;
+    }
+
+    function drawTradeDiagram(canvas, preset, state, opts = {}) {
+      const ctx = canvas.getContext('2d');
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+      const outcome = solveTradeOutcome(preset, state);
+      const market = outcome.market;
+      const xTicks = makeTicks(0, market.xMax, 6, 'x', (v) => numberFmt(v, market.xMax > 200 ? 0 : 0));
+      const yTicks = makeTicks(0, market.yMax, 6, 'y', (v) => numberFmt(v, 0));
+      EconDraw.drawAxes(ctx, { xLabel: 'Quantity', yLabel: 'Price', xTicks, yTicks });
+
+      const showOutcome = opts.showOutcome !== false;
+      const showWelfare = opts.showWelfare !== false && showOutcome;
+      const showPolicy = opts.showPolicy !== false && showOutcome;
+      const display = showOutcome ? outcome : outcome.freeTrade;
+      const displayPrice = showOutcome ? outcome.priceDomestic : outcome.worldPrice;
+
+      if (showWelfare) {
+        EconDraw.fillPolygon(ctx, pricePolygon(market, display.qd, displayPrice, 'cs'), { fill: ECON_THEME.color.csFill });
+        EconDraw.fillPolygon(ctx, pricePolygon(market, display.qs, displayPrice, 'ps'), { fill: ECON_THEME.color.psFill });
+
+        if (showPolicy && outcome.policyType === 'tariff' && outcome.imports > 1e-6) {
+          EconDraw.fillPolygon(ctx, rectPolygon(outcome.qs, outcome.qd, outcome.worldPrice, outcome.priceDomestic, market), { fill: ECON_THEME.color.govtFill });
+        }
+
+        if (showPolicy && outcome.policyType === 'quota' && outcome.binding && outcome.imports > 1e-6) {
+          const fill = outcome.quotaOwner === 'government'
+            ? ECON_THEME.color.govtFill
+            : outcome.quotaOwner === 'domestic'
+              ? ECON_THEME.color.buyerTaxFill
+              : ECON_THEME.color.sellerTaxFill;
+          EconDraw.fillPolygon(ctx, rectPolygon(outcome.qs, outcome.qd, outcome.worldPrice, outcome.priceDomestic, market), { fill });
+        }
+
+        if (showPolicy && outcome.policyType === 'subsidy' && outcome.exports > 1e-6) {
+          EconDraw.fillPolygon(ctx, rectPolygon(outcome.qd, outcome.qs, outcome.worldPrice, outcome.priceDomestic, market), { fill: ECON_THEME.color.govtFill });
+        }
+
+        if (showPolicy) drawDWL(ctx, outcome, market);
+      }
+
+      EconDraw.drawLine(ctx, curvePoints(market, demandPrice), { color: ECON_THEME.color.demand });
+      EconDraw.drawLine(ctx, curvePoints(market, supplyPrice), { color: ECON_THEME.color.supply });
+      EconDraw.drawText(ctx, 'D', EconDraw.valueToX(market.xMax * 0.88, 0, market.xMax), EconDraw.valueToY(demandPrice(market, market.xMax * 0.88), 0, market.yMax) - 8, { weight: '600', size: 14, color: ECON_THEME.color.demand });
+      EconDraw.drawText(ctx, 'S', EconDraw.valueToX(market.xMax * 0.88, 0, market.xMax), EconDraw.valueToY(supplyPrice(market, market.xMax * 0.88), 0, market.yMax) - 8, { weight: '600', size: 14, color: ECON_THEME.color.supply });
+
+      drawHorizontalLine(ctx, outcome.worldPrice, 'Pᵂ', ECON_THEME.color.baseline, ECON_THEME.dash.baseline, market);
+      if (showPolicy && Math.abs(outcome.priceDomestic - outcome.worldPrice) > 1e-6) {
+        drawHorizontalLine(ctx, outcome.priceDomestic, 'Pᴅ', ECON_THEME.color.government, ECON_THEME.dash.policy, market);
+      }
+
+      EconDraw.drawCircle(ctx, EconDraw.valueToX(outcome.autarky.q, 0, market.xMax), EconDraw.valueToY(outcome.autarky.p, 0, market.yMax), {
+        radius: 5,
+        fill: '#ffffff',
+        stroke: ECON_THEME.color.baseline,
+        lineWidth: 2
+      });
+      EconDraw.drawText(ctx, 'Eₐ', EconDraw.valueToX(outcome.autarky.q, 0, market.xMax) + 8, EconDraw.valueToY(outcome.autarky.p, 0, market.yMax) - 10, { size: 13, weight: '600', color: ECON_THEME.color.baseline });
+
+      ctx.save();
+      ctx.strokeStyle = '#9aa6b2';
+      ctx.setLineDash(ECON_THEME.dash.guide);
+      ctx.lineWidth = 1.4;
+      for (const q of [display.qs, display.qd]) {
+        const x = EconDraw.valueToX(q, 0, market.xMax);
+        ctx.beginPath();
+        ctx.moveTo(x, EconDraw.valueToY(0, 0, market.yMax));
+        ctx.lineTo(x, EconDraw.valueToY(displayPrice, 0, market.yMax));
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      if (display.tradeType === 'import') {
+        drawGapMarkers(ctx, display.qs, display.qd, `Imports = ${numberFmt(display.imports, market.xMax > 200 ? 0 : 1)}`, market);
+      } else if (display.tradeType === 'export') {
+        drawGapMarkers(ctx, display.qd, display.qs, `Exports = ${numberFmt(display.exports, market.xMax > 200 ? 0 : 1)}`, market);
+      }
+
+      EconDraw.drawText(ctx, `Qₛ = ${numberFmt(display.qs, market.xMax > 200 ? 0 : 1)}`, EconDraw.valueToX(display.qs, 0, market.xMax), EconDraw.valueToY(0, 0, market.yMax) + 22, { size: 12, color: ECON_THEME.color.text, align: 'center' });
+      EconDraw.drawText(ctx, `Q_d = ${numberFmt(display.qd, market.xMax > 200 ? 0 : 1)}`, EconDraw.valueToX(display.qd, 0, market.xMax), EconDraw.valueToY(0, 0, market.yMax) + 22, { size: 12, color: ECON_THEME.color.text, align: 'center' });
+
+      return outcome;
+    }
+
+    function directionLabel(delta) {
+      if (delta > 1e-6) return 'increase';
+      if (delta < -1e-6) return 'decrease';
+      return 'no_change';
+    }
+
+    function friendlyDirection(value) {
+      if (value === 'increase') return 'increases';
+      if (value === 'decrease') return 'decreases';
+      return 'is unchanged';
+    }
+
+    function tradeTypeText(tradeType) {
+      if (tradeType === 'import') return 'Importer';
+      if (tradeType === 'export') return 'Exporter';
+      return 'No trade';
+    }
+
+    function priceRelationText(outcome) {
+      if (outcome.priceDomestic > outcome.worldPrice + 1e-6) return 'Above world price';
+      if (outcome.priceDomestic < outcome.worldPrice - 1e-6) return 'Below world price';
+      return 'Equal to world price';
+    }
+
+    function tradeAfterText(outcome) {
+      if (outcome.tradeType === 'import') return 'Imports';
+      if (outcome.tradeType === 'export') return 'Exports';
+      return 'No trade';
+    }
+
+    function updateExploreControls() {
+      const policy = exploreState.policyType;
+      const amountSlider = document.getElementById('policyAmountSlider');
+      const amountLabel = document.getElementById('policyAmountLabel');
+      const quotaOwnerSelect = document.getElementById('quotaOwnerSelect');
+
+      if (policy === 'quota') {
+        amountSlider.min = '0';
+        amountSlider.max = '40';
+        amountSlider.step = '1';
+        if (Number(amountSlider.value) > 40) amountSlider.value = '40';
+        exploreState.policyAmount = Number(amountSlider.value);
+        amountLabel.textContent = `Quota = ${numberFmt(exploreState.policyAmount, 1)}`;
+        quotaOwnerSelect.disabled = false;
+      } else if (policy === 'subsidy') {
+        amountSlider.min = '0';
+        amountSlider.max = '20';
+        amountSlider.step = '1';
+        if (Number(amountSlider.value) > 20) amountSlider.value = '10';
+        exploreState.policyAmount = Number(amountSlider.value);
+        amountLabel.textContent = `Subsidy = ${numberFmt(exploreState.policyAmount, 1)}`;
+        quotaOwnerSelect.disabled = true;
+      } else if (policy === 'tariff') {
+        amountSlider.min = '0';
+        amountSlider.max = '25';
+        amountSlider.step = '1';
+        if (Number(amountSlider.value) > 25) amountSlider.value = '12';
+        exploreState.policyAmount = Number(amountSlider.value);
+        amountLabel.textContent = `Tariff = ${numberFmt(exploreState.policyAmount, 1)}`;
+        quotaOwnerSelect.disabled = true;
+      } else {
+        amountSlider.min = '0';
+        amountSlider.max = '25';
+        amountSlider.step = '1';
+        amountLabel.textContent = 'No policy wedge';
+        quotaOwnerSelect.disabled = true;
+      }
+
+      document.getElementById('worldPriceLabel').textContent = numberFmt(exploreState.worldPrice, 1);
+    }
+
+    function renderExplore() {
+      updateExploreControls();
+      const outcome = drawTradeDiagram(document.getElementById('exploreCanvas'), BASE_PRESET, exploreState, { showOutcome: true, showPolicy: true, showWelfare: true });
+      document.getElementById('exploreGraphNote').textContent = outcome.note;
+      document.getElementById('metricTradeStatus').textContent = tradeTypeText(outcome.freeTrade.tradeType);
+      document.getElementById('metricAutarky').textContent = `P = ${numberFmt(outcome.autarky.p, 1)}, Q = ${numberFmt(outcome.autarky.q, 1)}`;
+      document.getElementById('metricDomesticPrice').textContent = `${numberFmt(outcome.priceDomestic, 1)} (${priceRelationText(outcome)})`;
+      document.getElementById('metricProduction').textContent = numberFmt(outcome.qs, 1);
+      document.getElementById('metricConsumption').textContent = numberFmt(outcome.qd, 1);
+      document.getElementById('metricTradeGap').textContent = outcome.tradeType === 'import'
+        ? `Imports ${numberFmt(outcome.imports, 1)}`
+        : outcome.tradeType === 'export'
+          ? `Exports ${numberFmt(outcome.exports, 1)}`
+          : 'No trade';
+      document.getElementById('metricCS').textContent = numberFmt(outcome.cs, 1);
+      document.getElementById('metricPS').textContent = numberFmt(outcome.ps, 1);
+      document.getElementById('metricGov').textContent = signedFmt(outcome.government, 1);
+      document.getElementById('metricRent').textContent = outcome.quotaRent > 0 ? numberFmt(outcome.quotaRent, 1) : '0';
+      document.getElementById('metricTotal').textContent = numberFmt(outcome.totalDomestic, 1);
+      document.getElementById('metricDWL').textContent = numberFmt(outcome.dwl, 1);
+
+      const rentSentence = outcome.quotaRent > 0
+        ? outcome.quotaOwner === 'government'
+          ? `Quota rent flows to the government as auction revenue.`
+          : outcome.quotaOwner === 'domestic'
+            ? `Quota rent accrues to domestic licence holders and stays inside domestic welfare.`
+            : `Quota rent is captured by foreign exporters, so domestic welfare is lower than if domestic residents held the licences.`
+        : 'There is no quota rent in the current state.';
+
+      document.getElementById('exploreFeedback').innerHTML = `
+        <p><strong>Economic reading:</strong> ${outcome.note}</p>
+        <p>Compared with free trade at the same world price, consumer surplus ${friendlyDirection(directionLabel(outcome.deltaCS))}, producer surplus ${friendlyDirection(directionLabel(outcome.deltaPS))}, government balance ${friendlyDirection(directionLabel(outcome.deltaGov))}, and total domestic welfare ${friendlyDirection(directionLabel(outcome.deltaTotal))}.</p>
+        <p>${rentSentence}</p>
+      `;
+    }
+
+    function getPracticeScenario() {
+      return PRACTICE_SCENARIOS.find((item) => item.id === practiceState.scenarioId) || PRACTICE_SCENARIOS[0];
+    }
+
+    function renderPracticeScenarioOptions() {
+      const select = document.getElementById('practiceScenarioSelect');
+      select.innerHTML = PRACTICE_SCENARIOS.map((scenario) => `<option value="${scenario.id}">${scenario.label}</option>`).join('');
+      select.value = practiceState.scenarioId;
+    }
+
+    function renderPractice() {
+      const scenario = getPracticeScenario();
+      const outcome = solveTradeOutcome(BASE_PRESET, scenario.state);
+      drawTradeDiagram(document.getElementById('practiceCanvas'), BASE_PRESET, scenario.state, {
+        showOutcome: practiceState.revealed,
+        showPolicy: practiceState.revealed,
+        showWelfare: practiceState.revealed
+      });
+
+      document.getElementById('practicePrompt').textContent = scenario.prompt;
+      document.getElementById('practicePromptPills').innerHTML = [
+        `<span class="pill-inline">World price = ${numberFmt(scenario.state.worldPrice, 1)}</span>`,
+        `<span class="pill-inline">Policy = ${scenario.label}</span>`
+      ].join('');
+      document.getElementById('practiceGraphNote').textContent = practiceState.revealed
+        ? outcome.note
+        : 'Before checking, the graph shows the domestic demand and supply curves plus the world price. After checking, the policy price line, welfare shading and trade gap are revealed.';
+
+      const answers = {
+        tradeStatus: outcome.freeTrade.tradeType,
+        priceRelation: outcome.priceDomestic > outcome.worldPrice + 1e-6 ? 'above' : outcome.priceDomestic < outcome.worldPrice - 1e-6 ? 'below' : 'equal',
+        tradeAfter: outcome.tradeType,
+        cs: directionLabel(outcome.deltaCS),
+        ps: directionLabel(outcome.deltaPS),
+        gov: directionLabel(outcome.deltaGov),
+        total: directionLabel(outcome.deltaTotal)
+      };
+
+      const rows = [
+        ['Free-trade status', answers.tradeStatus === 'import' ? 'Importer' : answers.tradeStatus === 'export' ? 'Exporter' : 'No trade'],
+        ['Domestic price after policy', answers.priceRelation === 'above' ? 'Above world price' : answers.priceRelation === 'below' ? 'Below world price' : 'Equal to world price'],
+        ['Trade after policy', answers.tradeAfter === 'import' ? 'Imports' : answers.tradeAfter === 'export' ? 'Exports' : 'No trade'],
+        ['Consumer surplus', answers.cs === 'increase' ? 'Increases' : answers.cs === 'decrease' ? 'Decreases' : 'No change'],
+        ['Producer surplus', answers.ps === 'increase' ? 'Increases' : answers.ps === 'decrease' ? 'Decreases' : 'No change'],
+        ['Government balance', answers.gov === 'increase' ? 'Increases' : answers.gov === 'decrease' ? 'Decreases' : 'No change'],
+        ['Total domestic welfare', answers.total === 'increase' ? 'Increases' : answers.total === 'decrease' ? 'Decreases' : 'No change']
+      ];
+      document.getElementById('practiceAnswerTable').innerHTML = `
+        <tr><th>Measure</th><th>Correct answer</th></tr>
+        ${rows.map((row) => `<tr><td>${row[0]}</td><td>${practiceState.revealed ? row[1] : 'Check answer to reveal'}</td></tr>`).join('')}
+      `;
+    }
+
+    function resetPracticeAnswers() {
+      ['ansTradeStatus','ansPriceRelation','ansTradeAfter','ansCS','ansPS','ansGov','ansTotal'].forEach((id) => {
+        document.getElementById(id).value = '';
+      });
+      practiceState.revealed = false;
+      document.getElementById('practiceFeedback').className = 'feedback-panel feedback-neutral';
+      document.getElementById('practiceFeedback').textContent = 'Choose a scenario, answer the seven questions, and then check your answer.';
+      renderPractice();
+    }
+
+    function checkPracticeAnswers() {
+      const scenario = getPracticeScenario();
+      const outcome = solveTradeOutcome(BASE_PRESET, scenario.state);
+      const expected = {
+        tradeStatus: outcome.freeTrade.tradeType,
+        priceRelation: outcome.priceDomestic > outcome.worldPrice + 1e-6 ? 'above' : outcome.priceDomestic < outcome.worldPrice - 1e-6 ? 'below' : 'equal',
+        tradeAfter: outcome.tradeType,
+        cs: directionLabel(outcome.deltaCS),
+        ps: directionLabel(outcome.deltaPS),
+        gov: directionLabel(outcome.deltaGov),
+        total: directionLabel(outcome.deltaTotal)
+      };
+
+      const given = {
+        tradeStatus: document.getElementById('ansTradeStatus').value,
+        priceRelation: document.getElementById('ansPriceRelation').value,
+        tradeAfter: document.getElementById('ansTradeAfter').value,
+        cs: document.getElementById('ansCS').value,
+        ps: document.getElementById('ansPS').value,
+        gov: document.getElementById('ansGov').value,
+        total: document.getElementById('ansTotal').value
+      };
+
+      const missing = Object.values(given).some((value) => !value);
+      if (missing) {
+        document.getElementById('practiceFeedback').className = 'feedback-panel feedback-warning';
+        document.getElementById('practiceFeedback').textContent = 'Complete all seven fields before checking your answer.';
+        return;
+      }
+
+      const wrong = [];
+      Object.keys(expected).forEach((key) => {
+        if (expected[key] !== given[key]) wrong.push(key);
+      });
+
+      practiceState.revealed = true;
+      renderPractice();
+
+      if (!wrong.length) {
+        document.getElementById('practiceFeedback').className = 'feedback-panel feedback-success';
+        document.getElementById('practiceFeedback').innerHTML = `Correct. ${outcome.note} Consumer surplus ${friendlyDirection(directionLabel(outcome.deltaCS))}, producer surplus ${friendlyDirection(directionLabel(outcome.deltaPS))}, government balance ${friendlyDirection(directionLabel(outcome.deltaGov))}, and total domestic welfare ${friendlyDirection(directionLabel(outcome.deltaTotal))}.`;
+      } else {
+        const lookup = {
+          tradeStatus: 'free-trade status',
+          priceRelation: 'domestic price relation',
+          tradeAfter: 'trade direction after policy',
+          cs: 'consumer surplus',
+          ps: 'producer surplus',
+          gov: 'government balance',
+          total: 'total domestic welfare'
+        };
+        document.getElementById('practiceFeedback').className = 'feedback-panel feedback-warning';
+        document.getElementById('practiceFeedback').innerHTML = `Not quite. Revisit ${wrong.map((key) => lookup[key]).join(', ')}. ${outcome.note}`;
+      }
+    }
+
+    function getCaseStep() {
+      return CASE_STEPS.find((step) => step.id === caseState.stepId) || CASE_STEPS[0];
+    }
+
+    function renderCaseButtons() {
+      const wrap = document.getElementById('caseButtons');
+      wrap.innerHTML = CASE_STEPS.map((step) => `<button class="btn-secondary ${step.id === caseState.stepId ? 'active' : ''}" data-step="${step.id}">${step.buttonLabel}</button>`).join('');
+      wrap.querySelectorAll('button').forEach((button) => {
+        button.addEventListener('click', () => {
+          caseState.stepId = button.dataset.step;
+          renderCase();
+        });
+      });
+    }
+
+    function renderCase() {
+      const step = getCaseStep();
+      const outcome = drawTradeDiagram(document.getElementById('caseCanvas'), CASE_PRESET, step.state, { showOutcome: true, showPolicy: true, showWelfare: true });
+      document.getElementById('caseBanner').textContent = 'Source-backed context: DFAT records automotive tariff reductions to 10% in 2005 and 5% in 2010; BITRE provides the new-vehicle sales series; ABS and the RBA provide the 2010 price evidence; and the Productivity Commission documents the import-dominated market structure by 2013.';
+      document.getElementById('caseGraphNote').textContent = step.note;
+      document.getElementById('caseStepTitle').textContent = step.title;
+      document.getElementById('caseObservedQuantity').textContent = step.observedQuantity;
+      document.getElementById('caseObservedPrice').textContent = step.observedPrice;
+      document.getElementById('caseDomesticPrice').textContent = numberFmt(outcome.priceDomestic, 1);
+      document.getElementById('caseImports').textContent = numberFmt(outcome.imports, 0);
+      document.getElementById('caseConsumerEffect').textContent = directionLabel(outcome.deltaCS) === 'increase'
+        ? 'Consumers gain relative to the earlier, higher-tariff step.'
+        : directionLabel(outcome.deltaCS) === 'decrease'
+          ? 'Consumers lose relative to the freer benchmark.'
+          : 'Near the freer-trade benchmark.';
+      document.getElementById('caseDataGrid').innerHTML = step.cards.map((card) => `
+        <div class="data-card">
+          <div class="card-kicker">Evidence</div>
+          <div class="card-title">${card.label}</div>
+          <div><strong>${card.value}</strong></div>
+          <div class="small-muted" style="margin-top:4px;">${card.detail}</div>
+        </div>
+      `).join('');
+      document.getElementById('caseInterpretation').textContent = step.interpretation;
+    }
+
+    function drawSimpleBarChart(canvasId, data, color, zeroLine = null, yLabel = '') {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const margin = { top: 18, right: 14, bottom: 42, left: 42 };
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = '#d9dee5';
+      ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+      const values = data.map((d) => d.value);
+      const baselineValue = zeroLine !== null ? zeroLine : 0;
+      const rawMin = Math.min(...values, baselineValue);
+      const rawMax = Math.max(...values, baselineValue);
+      const padding = (rawMax - rawMin || 1) * 0.08;
+      const minValue = rawMin - padding;
+      const maxValue = rawMax + padding;
+      const plotW = w - margin.left - margin.right;
+      const plotH = h - margin.top - margin.bottom;
+      const yToPx = (v) => margin.top + (1 - (v - minValue) / (maxValue - minValue || 1)) * plotH;
+      const xStep = plotW / data.length;
+      const base = yToPx(baselineValue);
+
+      ctx.strokeStyle = '#444444';
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, margin.top);
+      ctx.lineTo(margin.left, h - margin.bottom);
+      ctx.lineTo(w - margin.right, h - margin.bottom);
+      ctx.stroke();
+
+      if (zeroLine !== null) {
+        ctx.strokeStyle = '#a3aab5';
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.moveTo(margin.left, base);
+        ctx.lineTo(w - margin.right, base);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      ctx.font = '11px Inter, Arial, sans-serif';
+      ctx.fillStyle = '#6b7280';
+      ctx.textAlign = 'center';
+      data.forEach((item, idx) => {
+        const barW = xStep * 0.6;
+        const x = margin.left + idx * xStep + xStep * 0.2;
+        const valueY = yToPx(item.value);
+        ctx.fillStyle = color;
+        ctx.fillRect(x, Math.min(valueY, base), barW, Math.abs(base - valueY));
+        ctx.fillStyle = '#1f2937';
+        ctx.fillText(item.label, x + barW / 2, h - margin.bottom + 16);
+        const labelY = item.value >= baselineValue ? Math.min(valueY, base) - 6 : Math.max(valueY, base) + 14;
+        ctx.fillText(numberFmt(item.value, 1), x + barW / 2, labelY);
+      });
+
+      ctx.save();
+      ctx.translate(14, h / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#6b7280';
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+    }
+
+    function bindModuleTabs() {
+      document.querySelectorAll('.module-tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.module-tab').forEach((item) => item.classList.remove('active'));
+          document.querySelectorAll('.module-section').forEach((item) => item.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById(tab.dataset.target).classList.add('active');
+          if (tab.dataset.target === 'exploreModule') renderExplore();
+          if (tab.dataset.target === 'practiceModule') renderPractice();
+          if (tab.dataset.target === 'caseModule') renderCase();
+        });
+      });
+    }
+
+    function init() {
+      bindModuleTabs();
+      renderPracticeScenarioOptions();
+      renderCaseButtons();
+      drawSimpleBarChart('caseSalesCanvas', CASE_SALES_DATA, ECON_THEME.color.output, null, 'Thousand vehicles');
+      drawSimpleBarChart('casePriceCanvas', CASE_PRICE_DATA, ECON_THEME.color.inflation, 0, 'Quarterly % change');
+
+      document.getElementById('worldPriceSlider').addEventListener('input', (event) => {
+        exploreState.worldPrice = Number(event.target.value);
+        renderExplore();
+      });
+      document.getElementById('policySelect').addEventListener('change', (event) => {
+        exploreState.policyType = event.target.value;
+        renderExplore();
+      });
+      document.getElementById('policyAmountSlider').addEventListener('input', (event) => {
+        exploreState.policyAmount = Number(event.target.value);
+        renderExplore();
+      });
+      document.getElementById('quotaOwnerSelect').addEventListener('change', (event) => {
+        exploreState.quotaOwner = event.target.value;
+        renderExplore();
+      });
+      document.getElementById('resetExploreButton').addEventListener('click', () => {
+        exploreState.worldPrice = BASE_PRESET.defaultWorldPrice;
+        exploreState.policyType = 'free';
+        exploreState.policyAmount = 12;
+        exploreState.quotaOwner = 'government';
+        document.getElementById('worldPriceSlider').value = String(BASE_PRESET.defaultWorldPrice);
+        document.getElementById('policySelect').value = 'free';
+        document.getElementById('policyAmountSlider').value = '12';
+        document.getElementById('quotaOwnerSelect').value = 'government';
+        renderExplore();
+      });
+
+      document.getElementById('practiceScenarioSelect').addEventListener('change', (event) => {
+        practiceState.scenarioId = event.target.value;
+        resetPracticeAnswers();
+      });
+      document.getElementById('practiceResetButton').addEventListener('click', resetPracticeAnswers);
+      document.getElementById('practiceCheckButton').addEventListener('click', checkPracticeAnswers);
+
+      renderExplore();
+      renderPractice();
+      renderCase();
+    }
+
+    init();
+  </script>
+</body>
+</html>

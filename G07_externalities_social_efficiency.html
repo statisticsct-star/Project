@@ -1,0 +1,2217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G07_externalities_social_efficiency</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .module-tab {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .module-tab:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+
+    .module-tab.active {
+      background: #eef7f1;
+      border-color: var(--color-government);
+      color: var(--color-government);
+    }
+
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 16px 0;
+    }
+
+    .summary-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.85fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .graph-stack, .side-stack { display: grid; gap: 16px; }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 12px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 190px;
+    }
+
+    .control-inline.compact { min-width: 150px; }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 8px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.3;
+    }
+
+    .legend-line {
+      width: 28px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+
+    .legend-line.benefit { border-color: var(--color-demand); }
+    .legend-line.cost { border-color: var(--color-supply); }
+    .legend-line.social {
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.policy {
+      border-color: var(--color-government);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.guess {
+      border-color: var(--color-guess);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--color-baseline);
+      background: white;
+      display: inline-block;
+    }
+
+    .legend-fill {
+      width: 18px;
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid rgba(31, 41, 55, 0.14);
+      display: inline-block;
+    }
+
+    .legend-fill.cs { background: var(--fill-cs); }
+    .legend-fill.ps { background: var(--fill-ps); }
+    .legend-fill.gov { background: var(--fill-government); }
+    .legend-fill.external { background: rgba(201,123,0,0.18); }
+    .legend-fill.dwl { background: var(--fill-dwl); }
+    .legend-fill.case { background: rgba(47,107,255,0.12); }
+
+    .graph-note, .small-muted, .footer-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.5;
+    }
+
+    .status-title { font-weight: 600; margin-bottom: 8px; font-size: 13px; }
+    .scenario-list, .data-grid, .step-switch, .info-list, .answer-grid, .builder-editor {
+      display: grid;
+      gap: 8px;
+    }
+
+    .scenario-card, .data-card, .answer-card, .step-button, .builder-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--color-text);
+    }
+
+    .scenario-card, .step-button, .case-switch button, .module-tab {
+      cursor: pointer;
+    }
+
+    .scenario-card:hover, .step-button:hover, .case-switch button:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+      border-color: #b8c5d8;
+    }
+
+    .scenario-card.active, .step-button.active, .case-switch button.active {
+      background: #eef7f1;
+      border-color: var(--color-government);
+    }
+
+    .card-title {
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .card-kicker {
+      color: var(--color-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+
+    .metric-grid.wide {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .metric-grid.wider {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .metric-item .metric-value.small {
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .metric-item .metric-value.tiny {
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .answer-card label, .builder-card label, .inline-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text);
+      margin-bottom: 6px;
+    }
+
+    .answer-card select,
+    .builder-card select,
+    .builder-card input[type="text"],
+    .builder-card input[type="range"],
+    .builder-card textarea {
+      width: 100%;
+      font-size: 13px;
+    }
+
+    .builder-card textarea {
+      min-height: 54px;
+      resize: vertical;
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      font-family: var(--font-family-base);
+    }
+
+    .builder-row {
+      display: grid;
+      grid-template-columns: 1.3fr 0.9fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+      align-items: end;
+    }
+
+    .builder-row.policy {
+      grid-template-columns: 1.25fr 1fr;
+    }
+
+    .builder-card .small-muted {
+      margin-top: 6px;
+    }
+
+    .case-switch, .step-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .case-switch button, .step-button {
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .step-button {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .step-summary {
+      font-size: 11px;
+      color: var(--color-muted);
+      font-weight: 400;
+    }
+
+    .callout-note {
+      margin: 0 0 12px 0;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #cfe0cf;
+      background: #f3fbf5;
+      color: #2f4f3e;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .chart-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 12px;
+      background: white;
+    }
+
+    .chart-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--color-text);
+    }
+
+    .chart-canvas {
+      width: 100%;
+      max-width: 460px;
+      height: auto;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      display: block;
+      background: white;
+    }
+
+    .case-pane { display: none; }
+    .case-pane.active { display: block; }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 999px;
+      background: #f4f6f9;
+      color: var(--color-muted);
+      border: 1px solid var(--color-frame);
+    }
+
+    .split-note {
+      display: grid;
+      gap: 8px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 980px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .metric-grid.wider {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .builder-row, .builder-row.policy {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreModule">Explore</button>
+        <button class="module-tab" data-target="practiceModule">Practice and check</button>
+        <button class="module-tab" data-target="caseModule">Real-world case study</button>
+      </div>
+
+      <section id="exploreModule" class="module-section active">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Negative and positive externalities, Pigouvian policy, and emission limits</h1>
+          <p class="diagram-subtitle">Switch between negative and positive externalities, compare the private market outcome with the socially efficient quantity, and then test corrective instruments such as Pigouvian taxes, Pigouvian subsidies, and binding emission caps.</p>
+        </div>
+        <div class="summary-strip">
+          <div class="summary-chip">Private vs social curves</div>
+          <div class="summary-chip">Market equilibrium vs efficient quantity</div>
+          <div class="summary-chip">Pigouvian taxes and subsidies</div>
+          <div class="summary-chip">Emission caps as quantity controls</div>
+          <div class="summary-chip">Live CS, PS, policy balance and DWL</div>
+          <div class="summary-chip">Case-study sequence builder</div>
+        </div>
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="exploreType">Externality type</label>
+            <select id="exploreType">
+              <option value="negative">Negative externality</option>
+              <option value="positive">Positive externality</option>
+            </select>
+          </div>
+          <div class="control-inline">
+            <label for="explorePolicy">Instrument</label>
+            <select id="explorePolicy"></select>
+          </div>
+          <div class="control-inline">
+            <label for="exploreExternality" id="exploreExternalityText">External cost per unit</label>
+            <input type="range" id="exploreExternality" min="0" max="8" step="0.25" value="4" />
+          </div>
+          <div class="control-inline">
+            <label for="explorePolicySize" id="explorePolicyText">Policy magnitude</label>
+            <input type="range" id="explorePolicySize" min="0" max="8" step="0.25" value="3" />
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="exploreCorrectiveButton">Use corrective level</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="exploreResetButton">Reset</button>
+          </div>
+        </div>
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line benefit"></span><span>Private marginal benefit</span></div>
+                <div class="legend-item"><span class="legend-line benefit social"></span><span>Social marginal benefit</span></div>
+                <div class="legend-item"><span class="legend-line cost"></span><span>Private marginal cost</span></div>
+                <div class="legend-item"><span class="legend-line cost social"></span><span>Social marginal cost</span></div>
+                <div class="legend-item"><span class="legend-line policy"></span><span>Policy wedge or cap</span></div>
+                <div class="legend-item"><span class="legend-fill cs"></span><span>Consumer surplus</span></div>
+                <div class="legend-item"><span class="legend-fill ps"></span><span>Producer surplus</span></div>
+                <div class="legend-item"><span class="legend-fill gov"></span><span>Government revenue or cost</span></div>
+                <div class="legend-item"><span class="legend-fill external"></span><span>External cost or benefit</span></div>
+                <div class="legend-item"><span class="legend-fill dwl"></span><span>Deadweight loss</span></div>
+              </div>
+              <div class="graph-note" id="exploreGraphNote">—</div>
+            </div>
+          </div>
+          <div class="side-stack">
+            <div class="feedback-panel feedback-neutral" id="exploreStatus">—</div>
+            <div class="metrics-panel">
+              <div class="metric-grid wider">
+                <div class="metric-item">
+                  <div class="metric-label">Market equilibrium</div>
+                  <div class="metric-value small" id="exploreMarketMetric">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Social optimum</div>
+                  <div class="metric-value small" id="exploreEfficientMetric">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Current outcome</div>
+                  <div class="metric-value small" id="exploreCurrentMetric">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Market distortion</div>
+                  <div class="metric-value small" id="exploreGapMetric">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">External cost or benefit</div>
+                  <div class="metric-value small" id="exploreExternalMetric">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Government balance</div>
+                  <div class="metric-value small" id="exploreGovMetric">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Current social welfare</div>
+                  <div class="metric-value small" id="exploreWelfareMetric">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Optimal social welfare</div>
+                  <div class="metric-value small" id="exploreOptimalMetric">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Corrective benchmark</div>
+                  <div class="metric-value small" id="exploreCorrectiveMetric">—</div>
+                </div>
+              </div>
+            </div>
+            <div class="feedback-panel feedback-neutral" id="exploreInterpretation">—</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceModule" class="module-section">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Practice and check: identify the externality and the corrective policy</h1>
+          <p class="diagram-subtitle">Choose a scenario, decide whether the market overproduces or underproduces, identify which social curve differs from the private curve, and then reveal the correct graph and corrective instrument.</p>
+        </div>
+        <div class="summary-strip">
+          <div class="summary-chip">Negative vs positive externalities</div>
+          <div class="summary-chip">Overproduction vs underproduction</div>
+          <div class="summary-chip">MSC above MPC vs MSB above MPB</div>
+          <div class="summary-chip">Pigouvian policy</div>
+          <div class="summary-chip">Emission cap as an alternative for negative cases</div>
+        </div>
+        <div class="control-row">
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceRandomButton">Random scenario</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceResetButton">Reset answers</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="practiceCheckButton">Check answer</button>
+          </div>
+        </div>
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line benefit"></span><span>Private marginal benefit</span></div>
+                <div class="legend-item"><span class="legend-line cost"></span><span>Private marginal cost</span></div>
+                <div class="legend-item"><span class="legend-line guess"></span><span>Revealed social curve</span></div>
+                <div class="legend-item"><span class="legend-line policy"></span><span>Revealed corrective instrument</span></div>
+                <div class="legend-item"><span class="legend-fill dwl"></span><span>Revealed deadweight loss</span></div>
+              </div>
+              <div class="graph-note" id="practiceGraphNote">Before checking, use the scenario description and answer fields. After checking, the social curve, the efficient quantity, and the recommended policy are revealed.</div>
+            </div>
+          </div>
+          <div class="side-stack">
+            <div class="feedback-panel feedback-neutral" id="practicePrompt">—</div>
+            <div class="scenario-list" id="practiceScenarioList"></div>
+            <div class="answer-grid">
+              <div class="answer-card">
+                <label for="practiceTypeAnswer">Externality type</label>
+                <select id="practiceTypeAnswer">
+                  <option value="">Choose</option>
+                  <option value="negative">Negative externality</option>
+                  <option value="positive">Positive externality</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="practiceQuantityAnswer">Market quantity relative to the social optimum</label>
+                <select id="practiceQuantityAnswer">
+                  <option value="">Choose</option>
+                  <option value="too_high">Too high</option>
+                  <option value="too_low">Too low</option>
+                  <option value="equal">Already efficient</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="practiceCurveAnswer">Which social curve differs from the private curve?</label>
+                <select id="practiceCurveAnswer">
+                  <option value="">Choose</option>
+                  <option value="msc_above">MSC is above MPC</option>
+                  <option value="msb_above">MSB is above MPB</option>
+                  <option value="none">Neither</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="practicePolicyAnswer">Most direct Pigouvian instrument</label>
+                <select id="practicePolicyAnswer">
+                  <option value="">Choose</option>
+                  <option value="tax">Pigouvian tax</option>
+                  <option value="subsidy">Pigouvian subsidy</option>
+                  <option value="none">No intervention</option>
+                </select>
+              </div>
+              <div class="answer-card">
+                <label for="practiceCapAnswer">Could a binding emission cap target the efficient quantity in this graph?</label>
+                <select id="practiceCapAnswer">
+                  <option value="">Choose</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </div>
+            <div class="feedback-panel feedback-neutral" id="practiceFeedback">—</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseModule" class="module-section">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Real-world case study: Australia’s carbon pricing mechanism</h1>
+          <p class="diagram-subtitle">The built-in case traces the 2012–2014 carbon pricing mechanism and the 2014 repeal using Australian evidence. The blank case-study builder lets students create their own multi-step sequence by specifying curve movements and policy settings event by event.</p>
+        </div>
+        <div class="summary-strip">
+          <div class="summary-chip">Australian carbon tax 2012–2014</div>
+          <div class="summary-chip">Electricity prices and emissions evidence</div>
+          <div class="summary-chip">Pigouvian tax vs emission limit</div>
+          <div class="summary-chip">Blank case-study sequence</div>
+        </div>
+        <div class="case-switch" id="caseModeButtons">
+          <button class="active" data-case-pane="realCasePane">Australian carbon tax</button>
+          <button data-case-pane="builderPane">Blank case study</button>
+        </div>
+
+        <div id="realCasePane" class="case-pane active">
+          <div class="callout-note" id="caseBanner">—</div>
+          <div class="step-buttons" id="caseStepButtons"></div>
+          <div class="workspace">
+            <div class="graph-stack">
+              <div class="graph-frame">
+                <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+              </div>
+              <div class="legend-panel">
+                <div class="legend-row">
+                  <div class="legend-item"><span class="legend-line benefit"></span><span>MPB / electricity demand</span></div>
+                  <div class="legend-item"><span class="legend-line cost"></span><span>MPC / dirty supply</span></div>
+                  <div class="legend-item"><span class="legend-line cost social"></span><span>MSC / climate damage included</span></div>
+                  <div class="legend-item"><span class="legend-line policy"></span><span>Carbon tax or cap equivalent</span></div>
+                  <div class="legend-item"><span class="legend-fill case"></span><span>Stylised evidence translation</span></div>
+                </div>
+                <div class="graph-note" id="caseGraphNote">—</div>
+              </div>
+              <div class="chart-row">
+                <div class="chart-card">
+                  <div class="chart-title">Retail electricity price impact in 2012–13</div>
+                  <canvas id="casePriceImpactCanvas" class="chart-canvas" width="460" height="240"></canvas>
+                  <div class="small-muted">Selected AER jurisdiction estimates of the carbon-price contribution to retail bill increases.</div>
+                </div>
+                <div class="chart-card">
+                  <div class="chart-title">NEM emissions intensity around the policy window</div>
+                  <canvas id="caseIntensityCanvas" class="chart-canvas" width="460" height="240"></canvas>
+                  <div class="small-muted">The final point applies the AER’s reported 2.4% rebound to the 2013–14 emissions-intensity benchmark, so it is an implied indicator rather than a separate direct AER annual observation.</div>
+                </div>
+              </div>
+              <div class="footer-note">Evidence anchors in this case-study panel come from the Prime Minister’s 2012 launch materials, AER State of the Energy Market reports, the ACCC’s repeal pass-through review, Parliament’s repeal record, and ANU/O’Gorman–Jotzo analysis.</div>
+            </div>
+            <div class="side-stack">
+              <div class="metrics-panel">
+                <div class="metric-grid wider">
+                  <div class="metric-item">
+                    <div class="metric-label">Selected step</div>
+                    <div class="metric-value small" id="caseStepTitle">—</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Observed price signal</div>
+                    <div class="metric-value tiny" id="caseObservedPrice">—</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Observed quantity / emissions signal</div>
+                    <div class="metric-value tiny" id="caseObservedQuantity">—</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Model quantity</div>
+                    <div class="metric-value small" id="caseModelQuantity">—</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Model current price</div>
+                    <div class="metric-value small" id="caseModelPrice">—</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Social-welfare gap</div>
+                    <div class="metric-value small" id="caseWelfareGap">—</div>
+                  </div>
+                </div>
+              </div>
+              <div class="data-grid" id="caseEvidenceCards"></div>
+              <div class="feedback-panel feedback-neutral" id="caseInterpretation">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="builderPane" class="case-pane">
+          <div class="control-row">
+            <div class="control-inline">
+              <label for="builderType">Case type</label>
+              <select id="builderType">
+                <option value="negative">Negative externality sequence</option>
+                <option value="positive">Positive externality sequence</option>
+              </select>
+            </div>
+            <div class="control-inline">
+              <label for="builderExternality" id="builderExternalityText">Baseline external cost or benefit</label>
+              <input type="range" id="builderExternality" min="0" max="8" step="0.25" value="4" />
+            </div>
+            <div class="control-inline compact">
+              <label>&nbsp;</label>
+              <button class="btn-secondary" id="builderResetButton">Reset blank case</button>
+            </div>
+          </div>
+          <div class="workspace">
+            <div class="graph-stack">
+              <div class="graph-frame">
+                <canvas id="builderCanvas" class="graph-canvas" width="960" height="600"></canvas>
+              </div>
+              <div class="legend-panel">
+                <div class="legend-row">
+                  <div class="legend-item"><span class="legend-line benefit"></span><span>Private marginal benefit</span></div>
+                  <div class="legend-item"><span class="legend-line benefit social"></span><span>Social marginal benefit</span></div>
+                  <div class="legend-item"><span class="legend-line cost"></span><span>Private marginal cost</span></div>
+                  <div class="legend-item"><span class="legend-line cost social"></span><span>Social marginal cost</span></div>
+                  <div class="legend-item"><span class="legend-line policy"></span><span>Policy applied in the selected event</span></div>
+                </div>
+                <div class="graph-note" id="builderGraphNote">—</div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">Case-study sequence path</div>
+                <canvas id="builderPathCanvas" class="chart-canvas" width="460" height="240"></canvas>
+                <div class="small-muted">The two lines track the current market quantity and the socially efficient quantity across the event sequence you build.</div>
+              </div>
+            </div>
+            <div class="side-stack">
+              <div class="metrics-panel">
+                <div class="metric-grid wider">
+                  <div class="metric-item">
+                    <div class="metric-label">Displayed event</div>
+                    <div class="metric-value small" id="builderStepMetric">—</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Current quantity</div>
+                    <div class="metric-value small" id="builderCurrentMetric">—</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Efficient quantity</div>
+                    <div class="metric-value small" id="builderEfficientMetric">—</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Current price</div>
+                    <div class="metric-value small" id="builderPriceMetric">—</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Selected policy</div>
+                    <div class="metric-value small" id="builderPolicyMetric">—</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Social-welfare gap</div>
+                    <div class="metric-value small" id="builderWelfareMetric">—</div>
+                  </div>
+                </div>
+              </div>
+              <div class="step-buttons" id="builderStepButtons"></div>
+              <div class="builder-editor" id="builderEditor"></div>
+              <div class="feedback-panel feedback-neutral" id="builderInterpretation">—</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const AXIS = { qMin: 0, qMax: 18, pMin: 0, pMax: 22 };
+    const BASE = { mpb: 18, mpc: 3, b: 1.0, d: 0.9 };
+    const PLOT_THEME = ECON_THEME;
+
+    const EXTRA_COLORS = {
+      external: 'rgba(201,123,0,0.18)',
+      externalStroke: '#c97b00',
+      current: '#111827',
+      efficient: ECON_THEME.color.government,
+      market: ECON_THEME.color.baseline,
+      policy: ECON_THEME.color.government
+    };
+
+    const POLICY_OPTIONS = {
+      negative: [
+        { value: 'none', label: 'No intervention' },
+        { value: 'tax', label: 'Pigouvian tax' },
+        { value: 'cap', label: 'Emission cap' }
+      ],
+      positive: [
+        { value: 'none', label: 'No intervention' },
+        { value: 'subsidy', label: 'Pigouvian subsidy' }
+      ]
+    };
+
+    const CURVE_SHIFT_OPTIONS = [
+      { value: 'none', label: 'No curve shift' },
+      { value: 'demand_both', label: 'Demand (MPB & MSB)' },
+      { value: 'cost_both', label: 'Cost (MPC & MSC)' },
+      { value: 'MPB', label: 'MPB only' },
+      { value: 'MSB', label: 'MSB only' },
+      { value: 'MPC', label: 'MPC only' },
+      { value: 'MSC', label: 'MSC only' }
+    ];
+
+    const PRACTICE_SCENARIOS = [
+      {
+        id: 'coal_power',
+        title: 'Coal-fired electricity and climate damage',
+        kicker: 'Negative externality',
+        description: 'A generator sells electricity, but the carbon damage is not fully priced into the firm’s private cost.',
+        type: 'negative',
+        curveAnswer: 'msc_above',
+        quantityAnswer: 'too_high',
+        policyAnswer: 'tax',
+        capAnswer: 'yes',
+        explanation: 'Unpriced climate damage means private marginal cost is below social marginal cost. The market therefore overproduces relative to the social optimum. A Pigouvian tax—or a binding emissions cap at the efficient quantity—can reduce the overproduction.'
+      },
+      {
+        id: 'river_dumping',
+        title: 'Industrial dumping into a river',
+        kicker: 'Negative externality',
+        description: 'A factory treats waste disposal as if the downstream damage to fishers and residents does not count in its own decision making.',
+        type: 'negative',
+        curveAnswer: 'msc_above',
+        quantityAnswer: 'too_high',
+        policyAnswer: 'tax',
+        capAnswer: 'yes',
+        explanation: 'The factory’s private cost excludes downstream environmental damage, so social marginal cost is above private marginal cost. The market quantity is too high, and a Pigouvian tax or a binding cap can move quantity toward the social optimum.'
+      },
+      {
+        id: 'vaccination',
+        title: 'Vaccination with herd-immunity spillovers',
+        kicker: 'Positive externality',
+        description: 'Individuals consider their own private protection, but each vaccination also reduces infection risk for others.',
+        type: 'positive',
+        curveAnswer: 'msb_above',
+        quantityAnswer: 'too_low',
+        policyAnswer: 'subsidy',
+        capAnswer: 'no',
+        explanation: 'Each extra vaccination benefits other people, so social marginal benefit lies above private marginal benefit. The market underprovides the activity, and a Pigouvian subsidy can raise quantity toward the social optimum.'
+      },
+      {
+        id: 'training',
+        title: 'Firm-funded worker training with spillovers',
+        kicker: 'Positive externality',
+        description: 'A company pays for training, but part of the benefit later spills over to other firms and future employers.',
+        type: 'positive',
+        curveAnswer: 'msb_above',
+        quantityAnswer: 'too_low',
+        policyAnswer: 'subsidy',
+        capAnswer: 'no',
+        explanation: 'Because trained workers create benefits beyond the original employer, the social marginal benefit of training exceeds the private marginal benefit. The private market therefore underprovides training relative to the social optimum.'
+      },
+      {
+        id: 'bees',
+        title: 'Bee-keeping and crop pollination',
+        kicker: 'Positive externality',
+        description: 'Bee-keepers are paid for honey, but nearby orchards also gain from extra pollination.',
+        type: 'positive',
+        curveAnswer: 'msb_above',
+        quantityAnswer: 'too_low',
+        policyAnswer: 'subsidy',
+        capAnswer: 'no',
+        explanation: 'Pollination benefits extend beyond the beekeeper’s own revenue, so social marginal benefit lies above private marginal benefit. A subsidy can encourage more activity and reduce the underprovision.'
+      }
+    ];
+
+    const CASE_STEPS = [
+      {
+        id: 'baseline',
+        buttonLabel: '1. Pre-2012',
+        title: '2011–12: no carbon price',
+        note: 'Stylised market for emissions-intensive electricity before the carbon price. Private supply omits the climate damage cost, so the market quantity is above the socially efficient quantity.',
+        observedPrice: 'NEM spot prices were at record lows or near record lows before 1 July 2012.',
+        observedQuantity: 'Pre-price NEM emissions intensity: 0.903 tCO₂-e/MWh.',
+        state: {
+          type: 'negative',
+          externality: 4.6,
+          policyType: 'none',
+          policySize: 0,
+          shifts: { MPB: 0, MSB: 0, MPC: 0, MSC: 0 }
+        },
+        cards: [
+          {
+            kicker: 'Policy context',
+            title: 'No carbon price yet',
+            body: 'Before July 2012, the climate damage from emissions-intensive electricity was not priced directly through the federal carbon-pricing mechanism.'
+          },
+          {
+            kicker: 'Observed market',
+            title: 'Low pre-policy prices',
+            body: 'The AER reported that electricity spot prices had fallen steadily up to the introduction of carbon pricing, with record or near-record lows in 2011–12.'
+          }
+        ],
+        interpretation: 'This starting point is the standard negative-externality benchmark: the private market clears where MPB meets MPC, but the efficient quantity is lower because MSC lies above MPC.'
+      },
+      {
+        id: 'intro',
+        buttonLabel: '2. 1 Jul 2012',
+        title: '1 July 2012: carbon price starts at $23/tCO₂-e',
+        note: 'The tax wedge raises the private cost faced by covered emitters. In the stylised graph, the policy moves the market toward the efficient quantity but does not necessarily eliminate the entire welfare gap.',
+        observedPrice: 'AER: spot electricity prices lifted about 21%; retail bills rose 5–13% in 2012–13 depending on jurisdiction.',
+        observedQuantity: 'Liability began at $23 per tonne of pollution; around 500 businesses were covered.',
+        state: {
+          type: 'negative',
+          externality: 4.6,
+          policyType: 'tax',
+          policySize: 3.2,
+          shifts: { MPB: 0, MSB: 0, MPC: 0, MSC: 0 }
+        },
+        cards: [
+          {
+            kicker: 'Policy design',
+            title: 'Fixed-price phase',
+            body: 'The scheme began with a fixed price of $23/t from 1 July 2012 and was designed to rise in real terms before transitioning to a trading scheme.'
+          },
+          {
+            kicker: 'Observed prices',
+            title: 'Immediate electricity-price effects',
+            body: 'The AER attributed an average 21% uplift in wholesale spot prices to carbon pricing and recorded one-off retail bill increases of 5–13% in 2012–13.'
+          }
+        ],
+        interpretation: 'This is the classic Pigouvian-tax logic: by raising the private cost of emissions-intensive generation, the tax reduces the privately chosen quantity and narrows the gap between the market outcome and the social optimum.'
+      },
+      {
+        id: 'adjustment',
+        buttonLabel: '3. 2012–14',
+        title: '2012–13 to 2013–14: demand softens and the dirty mix contracts',
+        note: 'The step adds a modest leftward shift of demand for emissions-intensive output, representing lower electricity demand, more efficiency, and substitution toward lower-emissions generation while the carbon price remains in place.',
+        observedPrice: 'ANU estimates: household retail prices +10%, industrial electricity prices +15%, wholesale prices +59% relative to the two pre-price years.',
+        observedQuantity: 'AER and ANU: coal generation −11%, NEM demand −3.8%, emissions intensity 0.903→0.861, total electricity emissions −10.3% over the two years.',
+        state: {
+          type: 'negative',
+          externality: 4.6,
+          policyType: 'tax',
+          policySize: 3.2,
+          shifts: { MPB: -0.9, MSB: -0.9, MPC: 0, MSC: 0 }
+        },
+        cards: [
+          {
+            kicker: 'Generation mix',
+            title: 'Coal down, hydro and gas up',
+            body: 'AER reported coal-fired generation fell 11% over the two years of the scheme, while hydro output was 36% above the pre-price year in both years and gas share also rose.'
+          },
+          {
+            kicker: 'Emissions evidence',
+            title: 'Clear emissions decline',
+            body: 'AER reported NEM generation emissions intensity falling from 0.903 to 0.861 tCO₂-e/MWh, while ANU estimated cumulative carbon-price abatement of 11–17 million tonnes.'
+          }
+        ],
+        interpretation: 'The carbon price did not act in isolation. It coincided with weaker electricity demand, more fuel switching, and a cleaner generation mix. In the diagram, that combination looks like a corrective tax plus a leftward shift in demand for emissions-intensive output.'
+      },
+      {
+        id: 'repeal',
+        buttonLabel: '4. Repeal',
+        title: '17 July 2014: repeal passed, backdated to 1 July 2014',
+        note: 'Removing the tax shifts the private outcome back toward the unpriced market equilibrium. The graph keeps some of the earlier demand softening, but the corrective wedge disappears.',
+        observedPrice: 'ACCC: direct electricity and gas cost savings of $153–$269 were passed through after repeal.',
+        observedQuantity: 'The repeal legislation passed on 17 July 2014 and removed the carbon-pricing mechanism.',
+        state: {
+          type: 'negative',
+          externality: 4.6,
+          policyType: 'none',
+          policySize: 0,
+          shifts: { MPB: -0.6, MSB: -0.6, MPC: 0, MSC: 0 }
+        },
+        cards: [
+          {
+            kicker: 'Legislation',
+            title: 'Carbon Tax Repeal Act',
+            body: 'Parliament passed the Clean Energy Legislation (Carbon Tax Repeal) Act on 17 July 2014, backdated to 1 July 2014.'
+          },
+          {
+            kicker: 'Consumer pass-through',
+            title: 'Retail savings after repeal',
+            body: 'The ACCC concluded that electricity and gas suppliers passed through all direct cost savings attributable to the repeal.'
+          }
+        ],
+        interpretation: 'Repeal removes the corrective wedge. Even if broader demand pressures remain softer than in the initial baseline, the negative externality again becomes underpriced relative to the socially efficient benchmark.'
+      },
+      {
+        id: 'rebound',
+        buttonLabel: '5. Rebound',
+        title: 'Late 2014: emissions rebound after repeal',
+        note: 'The final step adds a modest rightward demand shift and a small downward private-cost shift to represent stronger demand and coal reclaiming market share after the tax was removed.',
+        observedPrice: 'AER: abolition lowered wholesale prices; ACCC also documented direct retail cost savings after repeal.',
+        observedQuantity: 'AER: NEM carbon emissions +3.2 Mt in the next five months, with demand +2.4% and emissions intensity +2.4% compared with the relevant benchmarks.',
+        state: {
+          type: 'negative',
+          externality: 4.6,
+          policyType: 'none',
+          policySize: 0,
+          shifts: { MPB: -0.2, MSB: -0.2, MPC: -0.25, MSC: 0 }
+        },
+        cards: [
+          {
+            kicker: 'Post-repeal evidence',
+            title: 'Dirty generation share rises again',
+            body: 'The AER reported that coal-fired generation regained market share after repeal, lifting both emissions and emissions intensity.'
+          },
+          {
+            kicker: 'Pedagogical reading',
+            title: 'A partial equilibrium translation',
+            body: 'The graph is a stylised teaching translation of the post-repeal rebound, not a structural estimate of the entire electricity market.'
+          }
+        ],
+        interpretation: 'The rebound step emphasises the policy lesson: once the tax was removed, the market shifted back toward a higher private quantity of emissions-intensive output and the negative externality widened again.'
+      }
+    ];
+
+    const CASE_PRICE_IMPACT_DATA = [
+      { label: 'QLD', value: 10.6 },
+      { label: 'NSW', value: 8.9 },
+      { label: 'SA', value: 4.5 },
+      { label: 'TAS', value: 5.6 },
+      { label: 'ACT', value: 14.0 }
+    ];
+
+    const CASE_INTENSITY_SERIES = {
+      labels: ['2011–12', '2013–14', 'Post-repeal\nindicator'],
+      series: [
+        {
+          name: 'NEM emissions intensity',
+          color: ECON_THEME.color.supply,
+          values: [0.903, 0.861, 0.882]
+        }
+      ]
+    };
+
+    function numberFmt(value, decimals = 2) {
+      if (!Number.isFinite(value)) return '—';
+      const rounded = Math.abs(value) < 1e-9 ? 0 : value;
+      return rounded.toFixed(decimals).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
+    }
+
+    function signedFmt(value, decimals = 2) {
+      if (!Number.isFinite(value)) return '—';
+      const sign = value > 0 ? '+' : '';
+      return `${sign}${numberFmt(value, decimals)}`;
+    }
+
+    function moneyFmt(value) {
+      if (!Number.isFinite(value)) return '—';
+      return `$${numberFmt(value, 2)}`;
+    }
+
+    function clone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function qToX(q) {
+      return EconDraw.valueToX(q, AXIS.qMin, AXIS.qMax, PLOT_THEME);
+    }
+
+    function pToY(p) {
+      return EconDraw.valueToY(p, AXIS.pMin, AXIS.pMax, PLOT_THEME);
+    }
+
+    function point(q, p) {
+      return { x: qToX(q), y: pToY(p) };
+    }
+
+    function makeLinearTicks(min, max, step, axis) {
+      const ticks = [];
+      for (let value = min; value <= max + 1e-9; value += step) {
+        ticks.push({
+          label: numberFmt(value, 0),
+          x: axis === 'x' ? EconDraw.valueToX(value, min, max, PLOT_THEME) : undefined,
+          y: axis === 'y' ? EconDraw.valueToY(value, min, max, PLOT_THEME) : undefined
+        });
+      }
+      return ticks;
+    }
+
+    function downwardPrice(intercept, slope, q) {
+      return intercept - slope * q;
+    }
+
+    function upwardPrice(intercept, slope, q) {
+      return intercept + slope * q;
+    }
+
+    function integralDown(intercept, slope, q) {
+      return intercept * q - 0.5 * slope * q * q;
+    }
+
+    function integralUp(intercept, slope, q) {
+      return intercept * q + 0.5 * slope * q * q;
+    }
+
+    function solveIntersection(downIntercept, downSlope, upIntercept, upSlope) {
+      const qRaw = (downIntercept - upIntercept) / (downSlope + upSlope);
+      const q = EconDraw.clamp(qRaw, AXIS.qMin, AXIS.qMax);
+      const p = downwardPrice(downIntercept, downSlope, q);
+      return { q, p };
+    }
+
+    function buildModel(config) {
+      const type = config.type || 'negative';
+      const gap = Number(config.externality || 0);
+      const shifts = config.shifts || {};
+      const mpbInt = BASE.mpb + (Number(shifts.MPB) || 0);
+      const msbBase = type === 'positive' ? BASE.mpb + gap : BASE.mpb;
+      const msbInt = msbBase + (Number(shifts.MSB) || 0);
+      const mpcInt = BASE.mpc + (Number(shifts.MPC) || 0);
+      const mscBase = type === 'negative' ? BASE.mpc + gap : BASE.mpc;
+      const mscInt = mscBase + (Number(shifts.MSC) || 0);
+      return {
+        type,
+        gap,
+        b: BASE.b,
+        d: BASE.d,
+        mpbInt,
+        msbInt,
+        mpcInt,
+        mscInt
+      };
+    }
+
+    function curveValue(model, key, q) {
+      if (key === 'MPB') return downwardPrice(model.mpbInt, model.b, q);
+      if (key === 'MSB') return downwardPrice(model.msbInt, model.b, q);
+      if (key === 'MPC') return upwardPrice(model.mpcInt, model.d, q);
+      return upwardPrice(model.mscInt, model.d, q);
+    }
+
+    function curveIntegral(model, key, q) {
+      if (key === 'MPB') return integralDown(model.mpbInt, model.b, q);
+      if (key === 'MSB') return integralDown(model.msbInt, model.b, q);
+      if (key === 'MPC') return integralUp(model.mpcInt, model.d, q);
+      return integralUp(model.mscInt, model.d, q);
+    }
+
+    function socialWelfare(model, q) {
+      return curveIntegral(model, 'MSB', q) - curveIntegral(model, 'MSC', q);
+    }
+
+    function consumerSurplus(model, q, buyerPrice) {
+      return Math.max(0, curveIntegral(model, 'MPB', q) - buyerPrice * q);
+    }
+
+    function producerSurplus(model, q, sellerPrice) {
+      return Math.max(0, sellerPrice * q - curveIntegral(model, 'MPC', q));
+    }
+
+    function externalComponent(model, q) {
+      if (model.type === 'negative') {
+        return Math.max(0, (model.mscInt - model.mpcInt) * q);
+      }
+      return Math.max(0, (model.msbInt - model.mpbInt) * q);
+    }
+
+    function correctiveGap(model) {
+      if (model.type === 'negative') return Math.max(0, model.mscInt - model.mpcInt);
+      return Math.max(0, model.msbInt - model.mpbInt);
+    }
+
+    function computeOutcome(config) {
+      const model = buildModel(config);
+      const marketEq = solveIntersection(model.mpbInt, model.b, model.mpcInt, model.d);
+      const efficientEq = solveIntersection(model.msbInt, model.b, model.mscInt, model.d);
+      const policyType = config.policyType || 'none';
+      const policySize = Number(config.policySize || 0);
+      let current = {
+        q: marketEq.q,
+        buyerPrice: marketEq.p,
+        sellerPrice: marketEq.p,
+        kind: 'market',
+        policyType,
+        binding: false,
+        capQuantity: null
+      };
+
+      if (policyType === 'tax') {
+        const q = solveIntersection(model.mpbInt, model.b, model.mpcInt + policySize, model.d).q;
+        const buyerPrice = curveValue(model, 'MPB', q);
+        current = {
+          q,
+          buyerPrice,
+          sellerPrice: buyerPrice - policySize,
+          kind: 'policy',
+          policyType,
+          binding: policySize > 0,
+          capQuantity: null
+        };
+      } else if (policyType === 'subsidy') {
+        const q = solveIntersection(model.mpbInt + policySize, model.b, model.mpcInt, model.d).q;
+        const buyerPrice = curveValue(model, 'MPB', q);
+        current = {
+          q,
+          buyerPrice,
+          sellerPrice: buyerPrice + policySize,
+          kind: 'policy',
+          policyType,
+          binding: policySize > 0,
+          capQuantity: null
+        };
+      } else if (policyType === 'cap') {
+        const capQuantity = EconDraw.clamp(marketEq.q - policySize, 0.4, AXIS.qMax);
+        const binding = capQuantity < marketEq.q - 1e-6;
+        const q = binding ? capQuantity : marketEq.q;
+        const buyerPrice = curveValue(model, 'MPB', q);
+        current = {
+          q,
+          buyerPrice,
+          sellerPrice: buyerPrice,
+          kind: 'policy',
+          policyType,
+          binding,
+          capQuantity
+        };
+      }
+
+      const cs = consumerSurplus(model, current.q, current.buyerPrice);
+      const ps = producerSurplus(model, current.q, current.sellerPrice);
+      const government = policyType === 'tax' ? policySize * current.q : (policyType === 'subsidy' ? -policySize * current.q : 0);
+      const privateTotal = cs + ps + government;
+      const socialCurrent = socialWelfare(model, current.q);
+      const socialOptimal = socialWelfare(model, efficientEq.q);
+      const dwl = Math.max(0, socialOptimal - socialCurrent);
+      const outputGap = current.q - efficientEq.q;
+      const marketGap = marketEq.q - efficientEq.q;
+      return {
+        model,
+        marketEq,
+        efficientEq,
+        current,
+        cs,
+        ps,
+        government,
+        privateTotal,
+        socialCurrent,
+        socialOptimal,
+        dwl,
+        externalAmount: externalComponent(model, current.q),
+        correctiveGap: correctiveGap(model),
+        outputGap,
+        marketGap
+      };
+    }
+
+    function curvePoints(model, key) {
+      const points = [];
+      for (let q = AXIS.qMin; q <= AXIS.qMax + 1e-9; q += 0.1) {
+        const p = curveValue(model, key, q);
+        points.push(point(q, p));
+      }
+      return points;
+    }
+
+    function fillBetweenCurves(ctx, model, keyA, keyB, q0, q1, fill) {
+      if (q1 <= q0 + 1e-6) return;
+      const pts = [];
+      for (let q = q0; q <= q1 + 1e-9; q += 0.08) {
+        pts.push(point(q, curveValue(model, keyA, q)));
+      }
+      for (let q = q1; q >= q0 - 1e-9; q -= 0.08) {
+        pts.push(point(q, curveValue(model, keyB, q)));
+      }
+      EconDraw.fillPolygon(ctx, pts, { fill });
+    }
+
+    function drawGuide(ctx, q, p, qLabel, pLabel, color) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 1.3;
+      ctx.setLineDash(ECON_THEME.dash.guide);
+      ctx.beginPath();
+      ctx.moveTo(qToX(q), pToY(p));
+      ctx.lineTo(qToX(q), pToY(AXIS.pMin));
+      ctx.moveTo(qToX(q), pToY(p));
+      ctx.lineTo(qToX(AXIS.qMin), pToY(p));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = `12px ${ECON_THEME.font.family}`;
+      ctx.textAlign = 'center';
+      ctx.fillText(qLabel, qToX(q), pToY(AXIS.pMin) + 18);
+      ctx.textAlign = 'right';
+      ctx.fillText(pLabel, qToX(AXIS.qMin) - 10, pToY(p) + 4);
+      ctx.restore();
+    }
+
+    function drawCurveLabel(ctx, model, key, label, color, qPosition, yOffset = -10) {
+      const q = qPosition;
+      const p = curveValue(model, key, q);
+      EconDraw.drawText(ctx, label, qToX(q), pToY(p) + yOffset, {
+        color,
+        size: 13,
+        weight: '600'
+      });
+    }
+
+    function drawWedge(ctx, outcome, label) {
+      const { q, buyerPrice, sellerPrice } = outcome.current;
+      if (Math.abs(buyerPrice - sellerPrice) < 0.05) return;
+      ctx.save();
+      ctx.strokeStyle = EXTRA_COLORS.policy;
+      ctx.lineWidth = ECON_THEME.line.policy;
+      ctx.setLineDash(ECON_THEME.dash.policy);
+      ctx.beginPath();
+      ctx.moveTo(qToX(q), pToY(buyerPrice));
+      ctx.lineTo(qToX(q), pToY(sellerPrice));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      EconDraw.drawText(ctx, label, qToX(q) + 10, (pToY(buyerPrice) + pToY(sellerPrice)) / 2 - 4, {
+        color: EXTRA_COLORS.policy,
+        size: 13,
+        weight: '600'
+      });
+      ctx.restore();
+    }
+
+    function drawCapLine(ctx, q, label) {
+      ctx.save();
+      ctx.strokeStyle = EXTRA_COLORS.policy;
+      ctx.lineWidth = ECON_THEME.line.policy;
+      ctx.setLineDash(ECON_THEME.dash.policy);
+      ctx.beginPath();
+      ctx.moveTo(qToX(q), pToY(AXIS.pMin));
+      ctx.lineTo(qToX(q), pToY(AXIS.pMax));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      EconDraw.drawText(ctx, label, qToX(q) + 8, pToY(AXIS.pMax) + 18, {
+        color: EXTRA_COLORS.policy,
+        size: 13,
+        weight: '600'
+      });
+      ctx.restore();
+    }
+
+    function setPanelTone(panel, tone, text) {
+      panel.className = `feedback-panel ${tone}`;
+      panel.textContent = text;
+    }
+
+    function distinctCurve(model, keyA, keyB) {
+      return Math.abs(curveValue(model, keyA, 0) - curveValue(model, keyB, 0)) > 0.04;
+    }
+
+    function drawExternalityDiagram(canvas, config, options = {}) {
+      const ctx = canvas.getContext('2d');
+      const outcome = computeOutcome(config);
+      const model = outcome.model;
+      const revealSocial = options.revealSocial !== false;
+      const showPolicy = options.showPolicy !== false;
+      const showWelfare = options.showWelfare !== false;
+      const showMarket = options.showMarket !== false;
+      const showEfficient = options.showEfficient !== false;
+      const noteRole = config.diagramRole || 'generic';
+
+      EconDraw.clearCanvas(ctx, PLOT_THEME);
+      EconDraw.drawFrame(ctx, PLOT_THEME);
+      EconDraw.drawAxes(ctx, {
+        theme: PLOT_THEME,
+        xLabel: 'Quantity',
+        yLabel: 'Price / marginal value / marginal cost',
+        xTicks: makeLinearTicks(AXIS.qMin, AXIS.qMax, 3, 'x'),
+        yTicks: makeLinearTicks(AXIS.pMin, AXIS.pMax, 4, 'y')
+      });
+
+      if (showWelfare) {
+        if (model.type === 'negative') {
+          fillBetweenCurves(ctx, model, 'MSC', 'MPC', AXIS.qMin, outcome.current.q, EXTRA_COLORS.external);
+        } else {
+          fillBetweenCurves(ctx, model, 'MSB', 'MPB', AXIS.qMin, outcome.current.q, EXTRA_COLORS.external);
+        }
+        fillBetweenCurves(ctx, model, 'MPB', 'MPC', AXIS.qMin, outcome.current.q, ECON_THEME.color.csFill);
+        fillBetweenCurves(ctx, { ...model, mpcInt: outcome.current.buyerPrice, d: 0, mpbInt: outcome.current.buyerPrice, b: 0 }, 'MPB', 'MPC', AXIS.qMin, 0, 'rgba(0,0,0,0)');
+
+        const csPoly = [{ x: qToX(0), y: pToY(curveValue(model, 'MPB', 0)) }];
+        for (let q = 0; q <= outcome.current.q + 1e-9; q += 0.08) {
+          csPoly.push(point(q, curveValue(model, 'MPB', q)));
+        }
+        csPoly.push(point(outcome.current.q, outcome.current.buyerPrice));
+        csPoly.push(point(0, outcome.current.buyerPrice));
+        EconDraw.fillPolygon(ctx, csPoly, { fill: ECON_THEME.color.csFill });
+
+        const psPoly = [point(0, outcome.current.sellerPrice), point(outcome.current.q, outcome.current.sellerPrice)];
+        for (let q = outcome.current.q; q >= 0 - 1e-9; q -= 0.08) {
+          psPoly.push(point(q, curveValue(model, 'MPC', q)));
+        }
+        EconDraw.fillPolygon(ctx, psPoly, { fill: ECON_THEME.color.psFill });
+
+        if (Math.abs(outcome.current.buyerPrice - outcome.current.sellerPrice) > 0.05) {
+          const govPoly = [
+            point(0, outcome.current.buyerPrice),
+            point(outcome.current.q, outcome.current.buyerPrice),
+            point(outcome.current.q, outcome.current.sellerPrice),
+            point(0, outcome.current.sellerPrice)
+          ];
+          EconDraw.fillPolygon(ctx, govPoly, { fill: ECON_THEME.color.govtFill });
+        }
+
+        fillBetweenCurves(ctx, model, 'MSB', 'MSC', Math.min(outcome.current.q, outcome.efficientEq.q), Math.max(outcome.current.q, outcome.efficientEq.q), ECON_THEME.color.dwlFill);
+      }
+
+      EconDraw.drawLine(ctx, curvePoints(model, 'MPB'), { color: ECON_THEME.color.demand, lineWidth: ECON_THEME.line.main, theme: PLOT_THEME });
+      EconDraw.drawLine(ctx, curvePoints(model, 'MPC'), { color: ECON_THEME.color.supply, lineWidth: ECON_THEME.line.main, theme: PLOT_THEME });
+
+      const showMSB = revealSocial && distinctCurve(model, 'MSB', 'MPB');
+      const showMSC = revealSocial && distinctCurve(model, 'MSC', 'MPC');
+
+      if (showMSB) {
+        EconDraw.drawLine(ctx, curvePoints(model, 'MSB'), {
+          color: ECON_THEME.color.demand,
+          lineWidth: ECON_THEME.line.baseline,
+          dash: ECON_THEME.dash.baseline,
+          theme: PLOT_THEME
+        });
+      }
+      if (showMSC) {
+        EconDraw.drawLine(ctx, curvePoints(model, 'MSC'), {
+          color: ECON_THEME.color.supply,
+          lineWidth: ECON_THEME.line.baseline,
+          dash: ECON_THEME.dash.baseline,
+          theme: PLOT_THEME
+        });
+      }
+
+      drawCurveLabel(ctx, model, 'MPB', showMSB ? 'MPB' : (model.type === 'positive' ? 'MPB' : 'MPB = MSB'), ECON_THEME.color.demand, 1.0, -10);
+      if (showMSB) drawCurveLabel(ctx, model, 'MSB', 'MSB', ECON_THEME.color.demand, 2.8, -18);
+      drawCurveLabel(ctx, model, 'MPC', showMSC ? 'MPC' : (model.type === 'negative' ? 'MPC' : 'MPC = MSC'), ECON_THEME.color.supply, 12.8, -8);
+      if (showMSC) drawCurveLabel(ctx, model, 'MSC', 'MSC', ECON_THEME.color.supply, 11.0, -18);
+
+      if (showPolicy && outcome.current.policyType === 'tax') {
+        drawWedge(ctx, outcome, 'Tax');
+      } else if (showPolicy && outcome.current.policyType === 'subsidy') {
+        drawWedge(ctx, outcome, 'Subsidy');
+      } else if (showPolicy && outcome.current.policyType === 'cap' && outcome.current.binding) {
+        drawCapLine(ctx, outcome.current.capQuantity, 'Cap');
+      }
+
+      if (showMarket) {
+        drawGuide(ctx, outcome.marketEq.q, outcome.marketEq.p, 'Qm', 'Pm', EXTRA_COLORS.market);
+        EconDraw.drawCircle(ctx, qToX(outcome.marketEq.q), pToY(outcome.marketEq.p), {
+          stroke: EXTRA_COLORS.market,
+          fill: '#ffffff',
+          radius: ECON_THEME.radius.marker,
+          lineWidth: 2,
+          theme: PLOT_THEME
+        });
+        EconDraw.drawText(ctx, 'Eₘ', qToX(outcome.marketEq.q) + 8, pToY(outcome.marketEq.p) - 10, {
+          color: EXTRA_COLORS.market,
+          size: 13,
+          weight: '600'
+        });
+      }
+
+      if (showEfficient && revealSocial) {
+        drawGuide(ctx, outcome.efficientEq.q, outcome.efficientEq.p, 'Q*', 'P*', EXTRA_COLORS.efficient);
+        EconDraw.drawCircle(ctx, qToX(outcome.efficientEq.q), pToY(outcome.efficientEq.p), {
+          stroke: EXTRA_COLORS.efficient,
+          fill: '#ffffff',
+          radius: ECON_THEME.radius.marker,
+          lineWidth: 2,
+          theme: PLOT_THEME
+        });
+        EconDraw.drawText(ctx, 'E*', qToX(outcome.efficientEq.q) + 8, pToY(outcome.efficientEq.p) - 10, {
+          color: EXTRA_COLORS.efficient,
+          size: 13,
+          weight: '600'
+        });
+      }
+
+      const needsCurrentPoint = outcome.current.policyType !== 'none' || noteRole === 'case' || options.forceCurrentPoint;
+      if (needsCurrentPoint) {
+        const currentPointPrice = outcome.current.policyType === 'cap' ? outcome.current.buyerPrice : (outcome.current.buyerPrice + outcome.current.sellerPrice) / 2;
+        drawGuide(ctx, outcome.current.q, currentPointPrice, 'Q₁', Math.abs(outcome.current.buyerPrice - outcome.current.sellerPrice) > 0.05 ? 'P₁' : 'P₁', EXTRA_COLORS.current);
+        EconDraw.drawCircle(ctx, qToX(outcome.current.q), pToY(currentPointPrice), {
+          stroke: EXTRA_COLORS.current,
+          fill: EXTRA_COLORS.current,
+          radius: ECON_THEME.radius.marker,
+          lineWidth: 1,
+          theme: PLOT_THEME
+        });
+        EconDraw.drawText(ctx, 'E₁', qToX(outcome.current.q) + 8, pToY(currentPointPrice) - 10, {
+          color: EXTRA_COLORS.current,
+          size: 13,
+          weight: '600'
+        });
+      }
+
+      if (showPolicy && outcome.current.policyType === 'cap' && outcome.current.binding) {
+        const yCost = curveValue(model, 'MPC', outcome.current.q);
+        ctx.save();
+        ctx.strokeStyle = EXTRA_COLORS.policy;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(qToX(outcome.current.q), pToY(outcome.current.buyerPrice));
+        ctx.lineTo(qToX(outcome.current.q), pToY(yCost));
+        ctx.stroke();
+        ctx.setLineDash([]);
+        EconDraw.drawText(ctx, 'Higher price under cap', qToX(outcome.current.q) + 10, (pToY(outcome.current.buyerPrice) + pToY(yCost)) / 2 - 10, {
+          color: EXTRA_COLORS.policy,
+          size: 12,
+          weight: '500'
+        });
+        ctx.restore();
+      }
+
+      return outcome;
+    }
+
+    function outcomeSummaryText(outcome) {
+      if (outcome.outputGap > 0.08) {
+        return `Current quantity exceeds the social optimum by ${numberFmt(outcome.outputGap, 2)} units.`;
+      }
+      if (outcome.outputGap < -0.08) {
+        return `Current quantity is ${numberFmt(Math.abs(outcome.outputGap), 2)} units below the social optimum.`;
+      }
+      return 'Current quantity is essentially at the social optimum.';
+    }
+
+    function policyLabel(type) {
+      if (type === 'tax') return 'Pigouvian tax';
+      if (type === 'subsidy') return 'Pigouvian subsidy';
+      if (type === 'cap') return 'Emission cap';
+      return 'No intervention';
+    }
+
+    function populatePolicySelect(select, type) {
+      const current = select.value;
+      select.innerHTML = POLICY_OPTIONS[type].map((item) => `<option value="${item.value}">${item.label}</option>`).join('');
+      const allowed = POLICY_OPTIONS[type].map((item) => item.value);
+      select.value = allowed.includes(current) ? current : allowed[0];
+    }
+
+    function correctiveLabelForType(type) {
+      return type === 'negative' ? 'Corrective tax or equivalent cap' : 'Corrective subsidy';
+    }
+
+    const exploreState = {
+      type: 'negative',
+      externality: 4,
+      policyType: 'none',
+      policySize: 3
+    };
+
+    function updateExploreControls() {
+      const type = exploreState.type;
+      populatePolicySelect(document.getElementById('explorePolicy'), type);
+      document.getElementById('explorePolicy').value = exploreState.policyType;
+      document.getElementById('exploreExternalityText').textContent = type === 'negative' ? 'External cost per unit' : 'External benefit per unit';
+      document.getElementById('explorePolicyText').textContent = exploreState.policyType === 'cap' ? 'Cap set below market quantity' : 'Policy magnitude';
+      document.getElementById('exploreCorrectiveButton').textContent = type === 'negative'
+        ? (exploreState.policyType === 'cap' ? 'Set cap at Q*' : 'Use corrective tax')
+        : 'Use corrective subsidy';
+    }
+
+    function renderExplore() {
+      updateExploreControls();
+      const config = {
+        type: exploreState.type,
+        externality: exploreState.externality,
+        policyType: exploreState.policyType,
+        policySize: exploreState.policySize,
+        shifts: { MPB: 0, MSB: 0, MPC: 0, MSC: 0 },
+        diagramRole: 'generic'
+      };
+      const outcome = drawExternalityDiagram(document.getElementById('exploreCanvas'), config, { revealSocial: true, showPolicy: true, showWelfare: true, showMarket: true, showEfficient: true, forceCurrentPoint: exploreState.policyType !== 'none' });
+      const gapText = outcome.marketGap > 0.08
+        ? `Private market overproduces by ${numberFmt(outcome.marketGap, 2)}`
+        : (outcome.marketGap < -0.08 ? `Private market underproduces by ${numberFmt(Math.abs(outcome.marketGap), 2)}` : 'No gap');
+
+      document.getElementById('exploreStatus').textContent = exploreState.type === 'negative'
+        ? `Negative externality mode. The private market ignores the external cost, so the market quantity tends to be too high unless a corrective tax or a binding cap reduces output.`
+        : `Positive externality mode. The private market ignores the external benefit, so the market quantity tends to be too low unless a corrective subsidy raises output.`;
+
+      document.getElementById('exploreMarketMetric').textContent = `Pm = ${moneyFmt(outcome.marketEq.p)}, Qm = ${numberFmt(outcome.marketEq.q, 2)}`;
+      document.getElementById('exploreEfficientMetric').textContent = `P* = ${moneyFmt(outcome.efficientEq.p)}, Q* = ${numberFmt(outcome.efficientEq.q, 2)}`;
+      if (Math.abs(outcome.current.buyerPrice - outcome.current.sellerPrice) > 0.05) {
+        document.getElementById('exploreCurrentMetric').textContent = `Pb = ${moneyFmt(outcome.current.buyerPrice)}, Ps = ${moneyFmt(outcome.current.sellerPrice)}, Q1 = ${numberFmt(outcome.current.q, 2)}`;
+      } else {
+        document.getElementById('exploreCurrentMetric').textContent = `P1 = ${moneyFmt(outcome.current.buyerPrice)}, Q1 = ${numberFmt(outcome.current.q, 2)}`;
+      }
+      document.getElementById('exploreGapMetric').textContent = gapText;
+      document.getElementById('exploreExternalMetric').textContent = moneyFmt(outcome.externalAmount);
+      document.getElementById('exploreGovMetric').textContent = moneyFmt(outcome.government);
+      document.getElementById('exploreWelfareMetric').textContent = moneyFmt(outcome.socialCurrent);
+      document.getElementById('exploreOptimalMetric').textContent = moneyFmt(outcome.socialOptimal);
+      document.getElementById('exploreCorrectiveMetric').textContent = exploreState.policyType === 'cap'
+        ? `Cap should cut market output by ${numberFmt(outcome.marketEq.q - outcome.efficientEq.q, 2)}`
+        : moneyFmt(outcome.correctiveGap);
+
+      const instrumentExplanation = exploreState.policyType === 'none'
+        ? 'No corrective policy is active, so the current outcome equals the private market equilibrium.'
+        : (exploreState.policyType === 'tax'
+          ? 'The tax creates a wedge between what buyers pay and what sellers keep. When the tax equals the marginal external cost, the private market outcome coincides with the social optimum.'
+          : (exploreState.policyType === 'subsidy'
+            ? 'The subsidy creates a wedge that raises the privately chosen quantity. When the subsidy equals the marginal external benefit, the market outcome matches the social optimum.'
+            : 'The emission cap works through quantity rather than price. If the cap is set at Q*, it achieves the same efficient quantity as the corrective tax, but the market price adjusts endogenously.'));
+
+      document.getElementById('exploreInterpretation').textContent = `${outcomeSummaryText(outcome)} ${instrumentExplanation} Current DWL = ${moneyFmt(outcome.dwl)}.`;
+      document.getElementById('exploreGraphNote').textContent = exploreState.type === 'negative'
+        ? 'In negative-externality mode, MPB and MSB coincide while MSC lies above MPC. The orange shaded band measures the external damage associated with the current output.'
+        : 'In positive-externality mode, MPC and MSC coincide while MSB lies above MPB. The orange shaded band measures the spillover benefit associated with the current output.';
+    }
+
+    const practiceState = {
+      scenarioId: PRACTICE_SCENARIOS[0].id,
+      revealed: false
+    };
+
+    function currentPracticeScenario() {
+      return PRACTICE_SCENARIOS.find((item) => item.id === practiceState.scenarioId) || PRACTICE_SCENARIOS[0];
+    }
+
+    function renderPracticeScenarioList() {
+      const wrap = document.getElementById('practiceScenarioList');
+      wrap.innerHTML = PRACTICE_SCENARIOS.map((scenario) => `
+        <div class="scenario-card ${scenario.id === practiceState.scenarioId ? 'active' : ''}" data-scenario="${scenario.id}">
+          <div class="card-kicker">${scenario.kicker}</div>
+          <div class="card-title">${scenario.title}</div>
+          <div>${scenario.description}</div>
+        </div>
+      `).join('');
+      wrap.querySelectorAll('.scenario-card').forEach((card) => {
+        card.addEventListener('click', () => {
+          practiceState.scenarioId = card.dataset.scenario;
+          practiceState.revealed = false;
+          resetPracticeAnswers();
+          renderPractice();
+        });
+      });
+    }
+
+    function resetPracticeAnswers() {
+      ['practiceTypeAnswer', 'practiceQuantityAnswer', 'practiceCurveAnswer', 'practicePolicyAnswer', 'practiceCapAnswer'].forEach((id) => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('practiceFeedback').className = 'feedback-panel feedback-neutral';
+      document.getElementById('practiceFeedback').textContent = 'Choose your answers, then click “Check answer”.';
+    }
+
+    function renderPractice() {
+      renderPracticeScenarioList();
+      const scenario = currentPracticeScenario();
+      document.getElementById('practicePrompt').textContent = scenario.description;
+      const config = {
+        type: scenario.type,
+        externality: 4,
+        policyType: practiceState.revealed ? (scenario.type === 'negative' ? 'tax' : 'subsidy') : 'none',
+        policySize: 4,
+        shifts: { MPB: 0, MSB: 0, MPC: 0, MSC: 0 },
+        diagramRole: 'practice'
+      };
+      drawExternalityDiagram(document.getElementById('practiceCanvas'), config, {
+        revealSocial: practiceState.revealed,
+        showPolicy: practiceState.revealed,
+        showWelfare: practiceState.revealed,
+        showMarket: true,
+        showEfficient: practiceState.revealed,
+        forceCurrentPoint: practiceState.revealed
+      });
+      document.getElementById('practiceGraphNote').textContent = practiceState.revealed
+        ? `Revealed answer: ${scenario.explanation}`
+        : 'Use the scenario description and the answer fields. After checking, the diagram reveals the correct social curve and the recommended corrective policy.';
+    }
+
+    function checkPracticeAnswers() {
+      const scenario = currentPracticeScenario();
+      const answers = {
+        type: document.getElementById('practiceTypeAnswer').value,
+        quantity: document.getElementById('practiceQuantityAnswer').value,
+        curve: document.getElementById('practiceCurveAnswer').value,
+        policy: document.getElementById('practicePolicyAnswer').value,
+        cap: document.getElementById('practiceCapAnswer').value
+      };
+      const missing = Object.values(answers).some((value) => !value);
+      if (missing) {
+        setPanelTone(document.getElementById('practiceFeedback'), 'feedback-warning', 'Complete all five answer fields before checking.');
+        return;
+      }
+      const correct = answers.type === scenario.type
+        && answers.quantity === scenario.quantityAnswer
+        && answers.curve === scenario.curveAnswer
+        && answers.policy === scenario.policyAnswer
+        && answers.cap === scenario.capAnswer;
+      practiceState.revealed = true;
+      renderPractice();
+      const specifics = [];
+      if (answers.type !== scenario.type) specifics.push(`the case is a ${scenario.type} externality`);
+      if (answers.quantity !== scenario.quantityAnswer) specifics.push(`the market quantity is ${scenario.quantityAnswer.replace('_', ' ')}`);
+      if (answers.curve !== scenario.curveAnswer) specifics.push(`${scenario.curveAnswer === 'msc_above' ? 'MSC is above MPC' : 'MSB is above MPB'}`);
+      if (answers.policy !== scenario.policyAnswer) specifics.push(`the direct Pigouvian instrument is a ${scenario.policyAnswer}`);
+      if (answers.cap !== scenario.capAnswer) specifics.push(`the emission-cap answer is ${scenario.capAnswer}`);
+      const message = correct
+        ? `Correct. ${scenario.explanation}`
+        : `Not quite. In this scenario, ${specifics.join('; ')}. ${scenario.explanation}`;
+      setPanelTone(document.getElementById('practiceFeedback'), correct ? 'feedback-success' : 'feedback-warning', message);
+    }
+
+    const caseState = { stepId: CASE_STEPS[0].id };
+
+    function currentCaseStep() {
+      return CASE_STEPS.find((item) => item.id === caseState.stepId) || CASE_STEPS[0];
+    }
+
+    function renderCaseStepButtons() {
+      const wrap = document.getElementById('caseStepButtons');
+      wrap.innerHTML = CASE_STEPS.map((step) => `
+        <button class="step-button ${step.id === caseState.stepId ? 'active' : ''}" data-step="${step.id}">
+          <span>${step.buttonLabel}</span>
+          <span class="step-summary">${step.title}</span>
+        </button>
+      `).join('');
+      wrap.querySelectorAll('button').forEach((button) => {
+        button.addEventListener('click', () => {
+          caseState.stepId = button.dataset.step;
+          renderRealCase();
+        });
+      });
+    }
+
+    function renderRealCase() {
+      renderCaseStepButtons();
+      const step = currentCaseStep();
+      const outcome = drawExternalityDiagram(document.getElementById('caseCanvas'), { ...step.state, diagramRole: 'case' }, {
+        revealSocial: true,
+        showPolicy: true,
+        showWelfare: true,
+        showMarket: true,
+        showEfficient: true,
+        forceCurrentPoint: true
+      });
+      document.getElementById('caseBanner').textContent = 'This case treats the graph as a stylised market for emissions-intensive electricity. The evidence comes from the Australian Energy Regulator, the ACCC, Parliament, and ANU research; the graph itself is a teaching calibration rather than a structural estimate of the entire National Electricity Market.';
+      document.getElementById('caseGraphNote').textContent = step.note;
+      document.getElementById('caseStepTitle').textContent = step.title;
+      document.getElementById('caseObservedPrice').textContent = step.observedPrice;
+      document.getElementById('caseObservedQuantity').textContent = step.observedQuantity;
+      document.getElementById('caseModelQuantity').textContent = `Q1 = ${numberFmt(outcome.current.q, 2)} (Q* = ${numberFmt(outcome.efficientEq.q, 2)})`;
+      document.getElementById('caseModelPrice').textContent = Math.abs(outcome.current.buyerPrice - outcome.current.sellerPrice) > 0.05
+        ? `Pb ${moneyFmt(outcome.current.buyerPrice)}, Ps ${moneyFmt(outcome.current.sellerPrice)}`
+        : `P1 = ${moneyFmt(outcome.current.buyerPrice)}`;
+      document.getElementById('caseWelfareGap').textContent = moneyFmt(outcome.dwl);
+      document.getElementById('caseEvidenceCards').innerHTML = step.cards.map((card) => `
+        <div class="data-card">
+          <div class="card-kicker">${card.kicker}</div>
+          <div class="card-title">${card.title}</div>
+          <div>${card.body}</div>
+        </div>
+      `).join('');
+      document.getElementById('caseInterpretation').textContent = `${step.interpretation} In the current calibration, the social-welfare gap is ${moneyFmt(outcome.dwl)}.`;
+    }
+
+    function createDefaultBuilderSteps() {
+      return Array.from({ length: 4 }, (_, index) => ({
+        title: `Event ${index + 1}`,
+        note: '',
+        shiftAcurve: 'none',
+        shiftAdir: 'up',
+        shiftAsize: 0,
+        shiftBcurve: 'none',
+        shiftBdir: 'up',
+        shiftBsize: 0,
+        policy: 'none',
+        policySize: 0
+      }));
+    }
+
+    const builderState = {
+      type: 'negative',
+      externality: 4,
+      selectedStep: 0,
+      steps: createDefaultBuilderSteps()
+    };
+
+    function describeShiftChoice(curve, dir, size) {
+      if (!curve || curve === 'none' || Number(size) <= 0.001) return 'no shift';
+      const option = CURVE_SHIFT_OPTIONS.find((item) => item.value === curve);
+      const dirText = dir === 'down' ? 'down' : 'up';
+      return `${option ? option.label : curve} ${dirText} ${numberFmt(Number(size), 1)}`;
+    }
+
+    function populatePolicyOptionsForBuilder(type, current) {
+      const options = POLICY_OPTIONS[type];
+      return options.map((item) => `<option value="${item.value}" ${item.value === current ? 'selected' : ''}>${item.label}</option>`).join('');
+    }
+
+    function renderBuilderStepButtons() {
+      const wrap = document.getElementById('builderStepButtons');
+      wrap.innerHTML = builderState.steps.map((step, index) => `
+        <button class="step-button ${index === builderState.selectedStep ? 'active' : ''}" data-step="${index}">
+          <span>${step.title || `Event ${index + 1}`}</span>
+          <span class="step-summary">${describeShiftChoice(step.shiftAcurve, step.shiftAdir, step.shiftAsize)}; ${describeShiftChoice(step.shiftBcurve, step.shiftBdir, step.shiftBsize)}</span>
+        </button>
+      `).join('');
+      wrap.querySelectorAll('button').forEach((button) => {
+        button.addEventListener('click', () => {
+          builderState.selectedStep = Number(button.dataset.step);
+          renderBuilder();
+        });
+      });
+    }
+
+    function curveOptionsHtml(selected) {
+      return CURVE_SHIFT_OPTIONS.map((item) => `<option value="${item.value}" ${item.value === selected ? 'selected' : ''}>${item.label}</option>`).join('');
+    }
+
+    function renderBuilderEditor() {
+      const wrap = document.getElementById('builderEditor');
+      wrap.innerHTML = builderState.steps.map((step, index) => `
+        <div class="builder-card" data-card-step="${index}">
+          <div class="card-kicker">Case-study event ${index + 1}</div>
+          <label>Event title
+            <input type="text" data-step="${index}" data-field="title" value="${(step.title || '').replace(/"/g, '&quot;')}" />
+          </label>
+          <label>Event note
+            <textarea data-step="${index}" data-field="note">${step.note || ''}</textarea>
+          </label>
+          <div class="builder-row">
+            <div class="inline-group">
+              <label>Shift A</label>
+              <select data-step="${index}" data-field="shiftAcurve">${curveOptionsHtml(step.shiftAcurve)}</select>
+            </div>
+            <div class="inline-group">
+              <label>Direction</label>
+              <select data-step="${index}" data-field="shiftAdir">
+                <option value="up" ${step.shiftAdir === 'up' ? 'selected' : ''}>Up / right</option>
+                <option value="down" ${step.shiftAdir === 'down' ? 'selected' : ''}>Down / left</option>
+              </select>
+            </div>
+            <div class="inline-group">
+              <label>Size (${numberFmt(step.shiftAsize, 1)})</label>
+              <input type="range" min="0" max="6" step="0.25" value="${step.shiftAsize}" data-step="${index}" data-field="shiftAsize" />
+            </div>
+          </div>
+          <div class="builder-row">
+            <div class="inline-group">
+              <label>Shift B</label>
+              <select data-step="${index}" data-field="shiftBcurve">${curveOptionsHtml(step.shiftBcurve)}</select>
+            </div>
+            <div class="inline-group">
+              <label>Direction</label>
+              <select data-step="${index}" data-field="shiftBdir">
+                <option value="up" ${step.shiftBdir === 'up' ? 'selected' : ''}>Up / right</option>
+                <option value="down" ${step.shiftBdir === 'down' ? 'selected' : ''}>Down / left</option>
+              </select>
+            </div>
+            <div class="inline-group">
+              <label>Size (${numberFmt(step.shiftBsize, 1)})</label>
+              <input type="range" min="0" max="6" step="0.25" value="${step.shiftBsize}" data-step="${index}" data-field="shiftBsize" />
+            </div>
+          </div>
+          <div class="builder-row policy">
+            <div class="inline-group">
+              <label>Policy in this event</label>
+              <select data-step="${index}" data-field="policy">${populatePolicyOptionsForBuilder(builderState.type, step.policy)}</select>
+            </div>
+            <div class="inline-group">
+              <label>Policy size (${numberFmt(step.policySize, 1)})</label>
+              <input type="range" min="0" max="6" step="0.25" value="${step.policySize}" data-step="${index}" data-field="policySize" />
+            </div>
+          </div>
+          <div class="small-muted">Use “Demand (MPB &amp; MSB)” or “Cost (MPC &amp; MSC)” when the entire demand or cost side shifts. Use the individual-curve options when only the private or social curve should move.</div>
+        </div>
+      `).join('');
+    }
+
+    function applyShift(target, curve, dir, size) {
+      const magnitude = (dir === 'down' ? -1 : 1) * Number(size || 0);
+      if (!curve || curve === 'none' || Math.abs(magnitude) < 1e-9) return;
+      if (curve === 'demand_both') {
+        target.MPB += magnitude;
+        target.MSB += magnitude;
+        return;
+      }
+      if (curve === 'cost_both') {
+        target.MPC += magnitude;
+        target.MSC += magnitude;
+        return;
+      }
+      target[curve] += magnitude;
+    }
+
+    function builderSnapshot(stepIndex) {
+      const shifts = { MPB: 0, MSB: 0, MPC: 0, MSC: 0 };
+      for (let i = 0; i <= stepIndex; i += 1) {
+        const step = builderState.steps[i];
+        applyShift(shifts, step.shiftAcurve, step.shiftAdir, step.shiftAsize);
+        applyShift(shifts, step.shiftBcurve, step.shiftBdir, step.shiftBsize);
+      }
+      const step = builderState.steps[stepIndex];
+      return {
+        type: builderState.type,
+        externality: builderState.externality,
+        policyType: step.policy,
+        policySize: Number(step.policySize || 0),
+        shifts,
+        diagramRole: 'builder'
+      };
+    }
+
+    function renderBuilderPathChart() {
+      const labels = builderState.steps.map((step, index) => step.title || `Event ${index + 1}`);
+      const currentSeries = [];
+      const efficientSeries = [];
+      for (let i = 0; i < builderState.steps.length; i += 1) {
+        const outcome = computeOutcome(builderSnapshot(i));
+        currentSeries.push(outcome.current.q);
+        efficientSeries.push(outcome.efficientEq.q);
+      }
+      drawLineChart('builderPathCanvas', {
+        labels,
+        series: [
+          { name: 'Current quantity', color: ECON_THEME.color.output, values: currentSeries },
+          { name: 'Efficient quantity', color: ECON_THEME.color.government, values: efficientSeries }
+        ],
+        yLabel: 'Quantity'
+      });
+    }
+
+    function renderBuilder() {
+      document.getElementById('builderExternalityText').textContent = builderState.type === 'negative' ? 'Baseline external cost' : 'Baseline external benefit';
+      renderBuilderStepButtons();
+      renderBuilderEditor();
+      const snapshot = builderSnapshot(builderState.selectedStep);
+      const outcome = drawExternalityDiagram(document.getElementById('builderCanvas'), snapshot, {
+        revealSocial: true,
+        showPolicy: true,
+        showWelfare: true,
+        showMarket: true,
+        showEfficient: true,
+        forceCurrentPoint: true
+      });
+      document.getElementById('builderStepMetric').textContent = builderState.steps[builderState.selectedStep].title || `Event ${builderState.selectedStep + 1}`;
+      document.getElementById('builderCurrentMetric').textContent = numberFmt(outcome.current.q, 2);
+      document.getElementById('builderEfficientMetric').textContent = numberFmt(outcome.efficientEq.q, 2);
+      document.getElementById('builderPriceMetric').textContent = Math.abs(outcome.current.buyerPrice - outcome.current.sellerPrice) > 0.05
+        ? `Pb ${moneyFmt(outcome.current.buyerPrice)} / Ps ${moneyFmt(outcome.current.sellerPrice)}`
+        : moneyFmt(outcome.current.buyerPrice);
+      document.getElementById('builderPolicyMetric').textContent = policyLabel(snapshot.policyType);
+      document.getElementById('builderWelfareMetric').textContent = moneyFmt(outcome.dwl);
+      document.getElementById('builderGraphNote').textContent = 'The displayed graph shows the cumulative curve shifts up to the selected event. The policy setting comes from the selected event itself, so students can create a sequence of developments and then inspect each step one at a time.';
+      document.getElementById('builderInterpretation').textContent = `${outcomeSummaryText(outcome)} If you want a broad demand shock, shift both MPB and MSB together. If you want a broad cost shock, shift both MPC and MSC together. Use the individual-curve controls when only the private or social curve should move.`;
+      renderBuilderPathChart();
+    }
+
+    function builderEditorInputHandler(event) {
+      const target = event.target;
+      const stepIndex = Number(target.dataset.step);
+      const field = target.dataset.field;
+      if (!Number.isFinite(stepIndex) || !field) return;
+      const step = builderState.steps[stepIndex];
+      if (field === 'title' || field === 'note') {
+        step[field] = target.value;
+      } else if (field.endsWith('size') || field === 'policySize') {
+        step[field] = Number(target.value);
+      } else {
+        step[field] = target.value;
+      }
+      renderBuilder();
+    }
+
+    function drawBarChart(canvasId, data, yLabel, color) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const margin = { top: 16, right: 16, bottom: 46, left: 42 };
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = '#d9dee5';
+      ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+      const values = data.map((item) => item.value);
+      const maxValue = Math.max(...values, 1);
+      const plotW = w - margin.left - margin.right;
+      const plotH = h - margin.top - margin.bottom;
+      const baseY = h - margin.bottom;
+      const barW = plotW / data.length * 0.58;
+      ctx.strokeStyle = '#444444';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, margin.top);
+      ctx.lineTo(margin.left, baseY);
+      ctx.lineTo(w - margin.right, baseY);
+      ctx.stroke();
+      ctx.font = '11px Inter, Arial, sans-serif';
+      ctx.textAlign = 'center';
+      data.forEach((item, index) => {
+        const x = margin.left + index * (plotW / data.length) + (plotW / data.length - barW) / 2;
+        const barH = (item.value / maxValue) * (plotH * 0.88);
+        const y = baseY - barH;
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, barW, barH);
+        ctx.fillStyle = '#1f2937';
+        ctx.fillText(item.label, x + barW / 2, baseY + 16);
+        ctx.fillText(numberFmt(item.value, 1), x + barW / 2, y - 6);
+      });
+      ctx.save();
+      ctx.translate(14, h / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#6b7280';
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+    }
+
+    function drawLineChart(canvasId, spec) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const margin = { top: 18, right: 16, bottom: 52, left: 48 };
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = '#d9dee5';
+      ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+      const values = spec.series.flatMap((series) => series.values);
+      const minValue = Math.min(...values);
+      const maxValue = Math.max(...values);
+      const padding = (maxValue - minValue || 1) * 0.14;
+      const yMin = minValue - padding;
+      const yMax = maxValue + padding;
+      const plotW = w - margin.left - margin.right;
+      const plotH = h - margin.top - margin.bottom;
+      const xStep = spec.labels.length > 1 ? plotW / (spec.labels.length - 1) : plotW;
+      const yToPx = (value) => margin.top + (1 - (value - yMin) / (yMax - yMin || 1)) * plotH;
+      ctx.strokeStyle = '#444444';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(margin.left, margin.top);
+      ctx.lineTo(margin.left, h - margin.bottom);
+      ctx.lineTo(w - margin.right, h - margin.bottom);
+      ctx.stroke();
+      ctx.font = '11px Inter, Arial, sans-serif';
+      ctx.textAlign = 'center';
+      spec.labels.forEach((label, index) => {
+        const x = margin.left + index * xStep;
+        const lines = String(label).split('\n');
+        lines.forEach((line, lineIndex) => {
+          ctx.fillStyle = '#1f2937';
+          ctx.fillText(line, x, h - margin.bottom + 14 + lineIndex * 12);
+        });
+      });
+      spec.series.forEach((series) => {
+        ctx.strokeStyle = series.color;
+        ctx.lineWidth = 2.3;
+        ctx.beginPath();
+        series.values.forEach((value, index) => {
+          const x = margin.left + index * xStep;
+          const y = yToPx(value);
+          if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        series.values.forEach((value, index) => {
+          const x = margin.left + index * xStep;
+          const y = yToPx(value);
+          ctx.fillStyle = series.color;
+          ctx.beginPath();
+          ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillText(numberFmt(value, 3), x, y - 8);
+        });
+      });
+      ctx.save();
+      ctx.translate(14, h / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#6b7280';
+      ctx.fillText(spec.yLabel, 0, 0);
+      ctx.restore();
+      const legendY = margin.top + 10;
+      let legendX = w - margin.right - 150;
+      spec.series.forEach((series) => {
+        ctx.strokeStyle = series.color;
+        ctx.lineWidth = 2.3;
+        ctx.beginPath();
+        ctx.moveTo(legendX, legendY);
+        ctx.lineTo(legendX + 20, legendY);
+        ctx.stroke();
+        ctx.fillStyle = '#1f2937';
+        ctx.textAlign = 'left';
+        ctx.fillText(series.name, legendX + 26, legendY + 4);
+        legendX += 96;
+      });
+    }
+
+    function renderStaticCaseCharts() {
+      drawBarChart('casePriceImpactCanvas', CASE_PRICE_IMPACT_DATA, 'Per cent', ECON_THEME.color.inflation);
+      drawLineChart('caseIntensityCanvas', {
+        labels: CASE_INTENSITY_SERIES.labels,
+        series: CASE_INTENSITY_SERIES.series,
+        yLabel: 'tCO₂-e / MWh'
+      });
+    }
+
+    function bindModuleTabs() {
+      document.querySelectorAll('.module-tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.module-tab').forEach((item) => item.classList.remove('active'));
+          document.querySelectorAll('.module-section').forEach((section) => section.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById(tab.dataset.target).classList.add('active');
+          if (tab.dataset.target === 'exploreModule') renderExplore();
+          if (tab.dataset.target === 'practiceModule') renderPractice();
+          if (tab.dataset.target === 'caseModule') {
+            renderRealCase();
+            renderBuilder();
+          }
+        });
+      });
+    }
+
+    function bindCasePaneButtons() {
+      document.querySelectorAll('#caseModeButtons button').forEach((button) => {
+        button.addEventListener('click', () => {
+          document.querySelectorAll('#caseModeButtons button').forEach((item) => item.classList.remove('active'));
+          document.querySelectorAll('.case-pane').forEach((pane) => pane.classList.remove('active'));
+          button.classList.add('active');
+          document.getElementById(button.dataset.casePane).classList.add('active');
+          if (button.dataset.casePane === 'realCasePane') renderRealCase(); else renderBuilder();
+        });
+      });
+    }
+
+    function initEventHandlers() {
+      const exploreType = document.getElementById('exploreType');
+      const explorePolicy = document.getElementById('explorePolicy');
+      const exploreExternality = document.getElementById('exploreExternality');
+      const explorePolicySize = document.getElementById('explorePolicySize');
+
+      populatePolicySelect(explorePolicy, exploreState.type);
+      explorePolicy.value = exploreState.policyType;
+
+      exploreType.addEventListener('change', () => {
+        exploreState.type = exploreType.value;
+        exploreState.policyType = POLICY_OPTIONS[exploreState.type][0].value;
+        renderExplore();
+      });
+      explorePolicy.addEventListener('change', () => {
+        exploreState.policyType = explorePolicy.value;
+        renderExplore();
+      });
+      exploreExternality.addEventListener('input', () => {
+        exploreState.externality = Number(exploreExternality.value);
+        renderExplore();
+      });
+      explorePolicySize.addEventListener('input', () => {
+        exploreState.policySize = Number(explorePolicySize.value);
+        renderExplore();
+      });
+      document.getElementById('exploreCorrectiveButton').addEventListener('click', () => {
+        const gap = exploreState.externality;
+        if (exploreState.policyType === 'cap') {
+          const marketEq = computeOutcome({ type: exploreState.type, externality: gap, policyType: 'none', policySize: 0, shifts: {} }).marketEq;
+          const efficientEq = computeOutcome({ type: exploreState.type, externality: gap, policyType: 'none', policySize: 0, shifts: {} }).efficientEq;
+          exploreState.policySize = Math.max(0, marketEq.q - efficientEq.q);
+          document.getElementById('explorePolicySize').value = String(exploreState.policySize);
+        } else {
+          exploreState.policySize = gap;
+          document.getElementById('explorePolicySize').value = String(gap);
+        }
+        renderExplore();
+      });
+      document.getElementById('exploreResetButton').addEventListener('click', () => {
+        exploreState.type = 'negative';
+        exploreState.externality = 4;
+        exploreState.policyType = 'none';
+        exploreState.policySize = 3;
+        document.getElementById('exploreType').value = 'negative';
+        document.getElementById('exploreExternality').value = '4';
+        document.getElementById('explorePolicySize').value = '3';
+        renderExplore();
+      });
+
+      document.getElementById('practiceRandomButton').addEventListener('click', () => {
+        const random = PRACTICE_SCENARIOS[Math.floor(Math.random() * PRACTICE_SCENARIOS.length)];
+        practiceState.scenarioId = random.id;
+        practiceState.revealed = false;
+        resetPracticeAnswers();
+        renderPractice();
+      });
+      document.getElementById('practiceResetButton').addEventListener('click', () => {
+        practiceState.revealed = false;
+        resetPracticeAnswers();
+        renderPractice();
+      });
+      document.getElementById('practiceCheckButton').addEventListener('click', checkPracticeAnswers);
+
+      document.getElementById('builderType').addEventListener('change', (event) => {
+        builderState.type = event.target.value;
+        builderState.steps.forEach((step) => {
+          const allowed = POLICY_OPTIONS[builderState.type].map((item) => item.value);
+          if (!allowed.includes(step.policy)) step.policy = 'none';
+        });
+        renderBuilder();
+      });
+      document.getElementById('builderExternality').addEventListener('input', (event) => {
+        builderState.externality = Number(event.target.value);
+        renderBuilder();
+      });
+      document.getElementById('builderResetButton').addEventListener('click', () => {
+        builderState.type = 'negative';
+        builderState.externality = 4;
+        builderState.selectedStep = 0;
+        builderState.steps = createDefaultBuilderSteps();
+        document.getElementById('builderType').value = 'negative';
+        document.getElementById('builderExternality').value = '4';
+        renderBuilder();
+      });
+      document.getElementById('builderEditor').addEventListener('input', builderEditorInputHandler);
+      document.getElementById('builderEditor').addEventListener('change', builderEditorInputHandler);
+    }
+
+    bindModuleTabs();
+    bindCasePaneButtons();
+    initEventHandlers();
+    resetPracticeAnswers();
+    renderExplore();
+    renderPractice();
+    renderStaticCaseCharts();
+    renderRealCase();
+    renderBuilder();
+  </script>
+</body>
+</html>

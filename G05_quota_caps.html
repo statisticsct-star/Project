@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G05_quota_caps</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .module-tab {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .module-tab:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+
+    .module-tab.active {
+      background: #eef7f1;
+      border-color: var(--color-government);
+      color: var(--color-government);
+    }
+
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 16px 0;
+    }
+
+    .summary-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.58fr) minmax(310px, 0.82fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .graph-stack,
+    .side-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 12px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 185px;
+    }
+
+    .control-inline.compact {
+      min-width: 150px;
+    }
+
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.3;
+    }
+
+    .legend-line {
+      width: 28px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+
+    .legend-line.demand { border-color: var(--color-demand); }
+    .legend-line.supply { border-color: var(--color-supply); }
+    .legend-line.policy {
+      border-color: var(--color-government);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+    .legend-line.guess {
+      border-color: var(--color-guess);
+      border-top-style: dashed;
+      border-top-width: 2.5px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--color-baseline);
+      background: white;
+      display: inline-block;
+    }
+
+    .legend-dot.current {
+      background: var(--color-text);
+      border-color: var(--color-text);
+    }
+
+    .legend-fill {
+      width: 18px;
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid rgba(31, 41, 55, 0.14);
+      display: inline-block;
+    }
+
+    .legend-fill.cs { background: var(--fill-cs); }
+    .legend-fill.ps { background: var(--fill-ps); }
+    .legend-fill.gov { background: var(--fill-government); }
+    .legend-fill.private { background: var(--fill-buyer-tax); }
+    .legend-fill.producer { background: var(--fill-seller-tax); }
+    .legend-fill.dwl { background: var(--fill-dwl); }
+    .legend-fill.case { background: rgba(47, 107, 255, 0.12); }
+
+    .graph-note,
+    .small-muted,
+    .footer-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.5;
+    }
+
+    .status-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .scenario-list,
+    .data-grid,
+    .step-switch,
+    .info-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .scenario-card,
+    .data-card,
+    .answer-card,
+    .step-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--color-text);
+    }
+
+    .scenario-card,
+    .step-button,
+    .case-switch button {
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+    }
+
+    .scenario-card:hover,
+    .step-button:hover,
+    .case-switch button:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+      border-color: #b8c5d8;
+    }
+
+    .scenario-card.active,
+    .step-button.active,
+    .case-switch button.active {
+      background: #eef7f1;
+      border-color: var(--color-government);
+      color: var(--color-government);
+    }
+
+    .scenario-card strong,
+    .data-card strong,
+    .answer-card strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--color-text);
+    }
+
+    .metric-item.emphasis { border-left: 3px solid var(--color-government); }
+    .metric-item.warn { border-left: 3px solid var(--color-inflation); }
+    .metric-item.info { border-left: 3px solid var(--color-demand); }
+    .metric-value.small { font-size: 13px; font-weight: 600; }
+
+    .owner-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .pill-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 11px;
+      color: var(--color-muted);
+      padding: 4px 8px;
+    }
+
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .result-table th,
+    .result-table td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #e8edf4;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .result-table th:nth-child(2),
+    .result-table th:nth-child(3),
+    .result-table td:nth-child(2),
+    .result-table td:nth-child(3) {
+      text-align: left;
+    }
+
+    .case-switch,
+    .step-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .case-banner {
+      padding: 12px 14px;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      background: #fbfcfe;
+      margin-bottom: 12px;
+    }
+
+    .case-banner.warning {
+      border-left: 4px solid var(--color-inflation);
+    }
+
+    .step-button,
+    .case-switch button {
+      border: 1px solid var(--color-frame);
+      border-radius: 999px;
+      background: white;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .answer-card select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--color-frame);
+      font-family: var(--font-family-base);
+      font-size: 13px;
+      background: white;
+    }
+
+    .practice-answer-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .delta-positive { color: var(--color-government); font-weight: 600; }
+    .delta-negative { color: var(--color-supply); font-weight: 600; }
+    .delta-neutral { color: var(--color-muted); font-weight: 600; }
+
+    .callout-note {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #fffaf5;
+      border: 1px solid #f0d7ba;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #7a4d12;
+    }
+
+    @media (max-width: 1040px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .practice-answer-grid {
+        grid-template-columns: 1fr;
+      }
+      .control-inline,
+      .control-inline.compact {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreModule">Explore and compare</button>
+        <button class="module-tab" data-target="practiceModule">Practice and check</button>
+        <button class="module-tab" data-target="caseModule">Real-world case studies</button>
+      </div>
+
+      <section id="exploreModule" class="module-section active">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Quotas, quantity caps and partial-equilibrium welfare</h1>
+          <p class="diagram-subtitle">Use one common quota diagram for fishing limits, emissions caps, and import quotas. Move the vertical cap, switch the quota-rent recipient, and compare the effect on consumers, producers, quota rent, and deadweight loss.</p>
+        </div>
+
+        <div class="summary-strip">
+          <div class="summary-chip">Binding versus non-binding quantity caps</div>
+          <div class="summary-chip">Quota rent and who receives it</div>
+          <div class="summary-chip">Fishing limits</div>
+          <div class="summary-chip">Emission caps</div>
+          <div class="summary-chip">Import quotas</div>
+          <div class="summary-chip">Consumer and producer effects</div>
+        </div>
+
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="explorePresetSelect">Preset market</label>
+            <select id="explorePresetSelect"></select>
+          </div>
+          <div class="control-inline">
+            <label for="exploreQuotaSlider">Legal quantity / quota</label>
+            <input id="exploreQuotaSlider" type="range" min="0" max="10" step="0.1" value="5" />
+          </div>
+          <div class="control-inline compact">
+            <label for="exploreDemandSlider">Demand shift</label>
+            <input id="exploreDemandSlider" type="range" min="-3" max="3" step="0.1" value="0" />
+          </div>
+          <div class="control-inline compact">
+            <label for="exploreSupplySlider">Supply shift</label>
+            <input id="exploreSupplySlider" type="range" min="-3" max="3" step="0.1" value="0" />
+          </div>
+          <div class="control-inline compact">
+            <label for="quotaOwnerSelect">Quota-rent recipient</label>
+            <select id="quotaOwnerSelect">
+              <option value="producers">Producers / quota holders</option>
+              <option value="government">Government (auction revenue)</option>
+              <option value="permitHolders">Private permit holders / license holders</option>
+            </select>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="exploreResetButton">Reset</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="exploreRandomButton">Random preset</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line demand"></span><span>Demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Supply</span></div>
+                <div class="legend-item"><span class="legend-line policy"></span><span>Quota / legal cap</span></div>
+                <div class="legend-item"><span class="legend-dot"></span><span>Competitive equilibrium E*</span></div>
+                <div class="legend-item"><span class="legend-dot current"></span><span>Realized outcome under the cap</span></div>
+                <div class="legend-item"><span class="legend-fill cs"></span><span>Consumer surplus</span></div>
+                <div class="legend-item"><span class="legend-fill ps"></span><span>Producer gain excluding rent</span></div>
+                <div class="legend-item"><span class="legend-fill gov"></span><span>Government or auction revenue</span></div>
+                <div class="legend-item"><span class="legend-fill private"></span><span>Private license-holder rent</span></div>
+                <div class="legend-item"><span class="legend-fill producer"></span><span>Producer-owned quota rent</span></div>
+                <div class="legend-item"><span class="legend-fill dwl"></span><span>Deadweight loss</span></div>
+              </div>
+              <div class="graph-note">Drag the green quota line directly on the graph or use the slider. If the quota is below the competitive quantity, quantity is fixed at the legal cap and price adjusts upward along demand. The rent rectangle depends on who controls the quota rights.</div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="metrics-panel">
+              <div class="metric-grid">
+                <div class="metric-item info">
+                  <div class="metric-label">Competitive benchmark</div>
+                  <div class="metric-value small" id="metricCompetitive">—</div>
+                </div>
+                <div class="metric-item emphasis">
+                  <div class="metric-label">Quota setting</div>
+                  <div class="metric-value small" id="metricQuota">—</div>
+                </div>
+                <div class="metric-item warn">
+                  <div class="metric-label">Binding status</div>
+                  <div class="metric-value small" id="metricBinding">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Consumer price at the cap</div>
+                  <div class="metric-value small" id="metricConsumerPrice">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Supply-side price at the cap</div>
+                  <div class="metric-value small" id="metricProducerPrice">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Total quota rent</div>
+                  <div class="metric-value small" id="metricRent">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Consumer surplus</div>
+                  <div class="metric-value small" id="metricCS">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Producer gain</div>
+                  <div class="metric-value small" id="metricPS">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Deadweight loss</div>
+                  <div class="metric-value small" id="metricDWL">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="exploreFeedback">Choose a preset and move the quota. The panel will explain whether the cap binds and how the rent is split between consumers, producers, and the quota-rent recipient.</div>
+
+            <div class="legend-panel">
+              <div class="status-title">Welfare comparison</div>
+              <table class="result-table">
+                <thead>
+                  <tr>
+                    <th>Measure</th>
+                    <th>After quota</th>
+                    <th>Change vs competitive</th>
+                  </tr>
+                </thead>
+                <tbody id="exploreResultTable"></tbody>
+              </table>
+            </div>
+
+            <div class="legend-panel">
+              <div class="status-title">Preset bank</div>
+              <div class="scenario-list" id="exploreScenarioList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceModule" class="module-section">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Practice: does the cap bind, and who gets the rent?</h1>
+          <p class="diagram-subtitle">Place the quota line, decide whether the cap binds, identify who receives the scarcity rent, and predict what happens to consumers, producers, and total surplus.</p>
+        </div>
+
+        <div class="summary-strip">
+          <div class="summary-chip">Binding status</div>
+          <div class="summary-chip">Rent recipient</div>
+          <div class="summary-chip">Consumer surplus</div>
+          <div class="summary-chip">Producer gain</div>
+          <div class="summary-chip">Total surplus</div>
+          <div class="summary-chip">Quota placement</div>
+        </div>
+
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="practiceScenarioSelect">Practice scenario</label>
+            <select id="practiceScenarioSelect"></select>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceResetButton">Reset guess</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceRandomButton">Random scenario</button>
+          </div>
+          <div class="control-inline compact">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="practiceCheckButton">Check answer</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line demand"></span><span>Demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Supply</span></div>
+                <div class="legend-item"><span class="legend-line guess"></span><span>Your quota guess</span></div>
+                <div class="legend-item"><span class="legend-line policy"></span><span>Correct quota</span></div>
+                <div class="legend-item"><span class="legend-fill cs"></span><span>Consumer surplus after reveal</span></div>
+                <div class="legend-item"><span class="legend-fill ps"></span><span>Producer gain after reveal</span></div>
+                <div class="legend-item"><span class="legend-fill dwl"></span><span>Deadweight loss after reveal</span></div>
+              </div>
+              <div class="graph-note">Drag the purple quota line horizontally. Before checking, only your guess is shown. After checking, the correct quota, the realized areas, and the answer table are revealed.</div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="legend-panel">
+              <div class="status-title">Scenario prompt</div>
+              <div id="practicePrompt" class="small-muted">—</div>
+              <div class="owner-pills" id="practiceOwnerPills"></div>
+            </div>
+
+            <div class="legend-panel">
+              <div class="status-title">Your answers</div>
+              <div class="practice-answer-grid">
+                <div class="answer-card">
+                  <strong>Does the cap bind?</strong>
+                  <select id="answerBinding">
+                    <option value="">Choose</option>
+                    <option value="binding">Binding</option>
+                    <option value="nonbinding">Non-binding</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <strong>Who receives the rent?</strong>
+                  <select id="answerOwner">
+                    <option value="">Choose</option>
+                    <option value="producers">Producers / quota holders</option>
+                    <option value="government">Government</option>
+                    <option value="permitHolders">Private permit holders</option>
+                    <option value="none">No rent</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <strong>Consumer surplus</strong>
+                  <select id="answerCS">
+                    <option value="">Choose</option>
+                    <option value="increase">Increase</option>
+                    <option value="decrease">Decrease</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <strong>Producer gain</strong>
+                  <select id="answerPS">
+                    <option value="">Choose</option>
+                    <option value="increase">Increase</option>
+                    <option value="decrease">Decrease</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <strong>Total surplus</strong>
+                  <select id="answerTS">
+                    <option value="">Choose</option>
+                    <option value="increase">Increase</option>
+                    <option value="decrease">Decrease</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="practiceFeedback">Select a scenario, drag the quota line, answer the questions, and then check your answer.</div>
+
+            <div class="legend-panel">
+              <div class="status-title">Answer summary</div>
+              <table class="result-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Your answer</th>
+                    <th>Correct answer</th>
+                  </tr>
+                </thead>
+                <tbody id="practiceResultTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseModule" class="module-section">
+        <div class="diagram-header">
+          <h1 class="diagram-title">Real-world case studies: fishing limits and Canadian EV imports</h1>
+          <p class="diagram-subtitle">These cases show how the same quota diagram can describe two very different policy settings. The evidence cards use published data, while the graph itself is a stylised teaching calibration of the observed quantity and price changes.</p>
+        </div>
+
+        <div class="summary-strip">
+          <div class="summary-chip">Australia fishing limits</div>
+          <div class="summary-chip">Canada Chinese EV barrier</div>
+          <div class="summary-chip">Observed quantity changes</div>
+          <div class="summary-chip">Anchored price changes</div>
+          <div class="summary-chip">Consumer versus producer impact</div>
+          <div class="summary-chip">Stylised partial-equilibrium translation</div>
+        </div>
+
+        <div class="case-switch" id="caseButtons"></div>
+        <div class="step-buttons" id="caseStepButtons"></div>
+
+        <div class="workspace">
+          <div class="graph-stack">
+            <div class="case-banner warning">
+              <div class="status-title" id="caseTitle">—</div>
+              <div class="small-muted" id="caseSubtitle">—</div>
+              <div class="callout-note" id="caseBanner">—</div>
+            </div>
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-panel">
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line demand"></span><span>Demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Supply</span></div>
+                <div class="legend-item"><span class="legend-line policy"></span><span>Quota / effective cap</span></div>
+                <div class="legend-item"><span class="legend-dot"></span><span>Competitive benchmark</span></div>
+                <div class="legend-item"><span class="legend-dot current"></span><span>Observed-policy step</span></div>
+                <div class="legend-item"><span class="legend-fill case"></span><span>Evidence card summary area</span></div>
+              </div>
+              <div class="graph-note" id="caseGraphNote">—</div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="metrics-panel">
+              <div class="metric-grid">
+                <div class="metric-item emphasis">
+                  <div class="metric-label">Observed quantity anchor</div>
+                  <div class="metric-value small" id="caseObservedQuantity">—</div>
+                </div>
+                <div class="metric-item info">
+                  <div class="metric-label">Observed price anchor</div>
+                  <div class="metric-value small" id="caseObservedPrice">—</div>
+                </div>
+                <div class="metric-item warn">
+                  <div class="metric-label">Model binding status</div>
+                  <div class="metric-value small" id="caseBinding">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Model quota rent</div>
+                  <div class="metric-value small" id="caseRent">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Consumer effect vs open benchmark</div>
+                  <div class="metric-value small" id="caseConsumerEffect">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Producer effect vs open benchmark</div>
+                  <div class="metric-value small" id="caseProducerEffect">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="legend-panel">
+              <div class="status-title">Evidence cards</div>
+              <div class="data-grid" id="caseDataGrid"></div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="caseInterpretation">—</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const PRESETS = [{"id": "generic", "group": "Core quota logic", "title": "Generic production quota", "note": "A vertical quantity cap fixes output and lets price adjust.", "axisX": "Quantity", "axisY": "Price", "demandLabel": "D", "supplyLabel": "S", "quotaLabel": "Quota", "a": 13.6, "b": 0.72, "c": 2.0, "d": 0.56, "xMax": 16, "yMax": 16, "quotaDefault": 7.5, "quotaMin": 1.5, "quotaMax": 15.0, "shiftMin": -3.0, "shiftMax": 3.0, "defaultOwner": "government", "description": "A binding quota fixes quantity below the competitive benchmark. Consumers pay the demand-side price at the cap, producers are willing to supply at the supply-side price, and the gap becomes quota rent."}, {"id": "fishing", "group": "Applied quotas", "title": "Fishing limit or total allowable catch", "note": "Quota rights often sit with fishers, so scarcity rents can accrue to producers.", "axisX": "Harvest quantity", "axisY": "Fish price / scarcity value", "demandLabel": "D", "supplyLabel": "S", "quotaLabel": "Catch limit", "a": 14.8, "b": 0.8, "c": 2.2, "d": 0.54, "xMax": 15, "yMax": 18, "quotaDefault": 6.3, "quotaMin": 2.0, "quotaMax": 14.5, "shiftMin": -2.5, "shiftMax": 2.5, "defaultOwner": "producers", "description": "A tighter fishing limit restricts harvest and raises scarcity. When quota rights stay with fishing businesses, a large share of quota rent can accrue to producers rather than the government."}, {"id": "emission", "group": "Applied quotas", "title": "Emissions cap or permit quantity", "note": "In a permit market, the cap fixes total permits and the price of permits adjusts.", "axisX": "Permitted emissions / output units", "axisY": "Permit-inclusive price", "demandLabel": "Demand", "supplyLabel": "Supply", "quotaLabel": "Cap", "a": 12.8, "b": 0.68, "c": 1.8, "d": 0.5, "xMax": 16, "yMax": 15, "quotaDefault": 6.2, "quotaMin": 1.0, "quotaMax": 15.0, "shiftMin": -3.0, "shiftMax": 3.0, "defaultOwner": "government", "description": "The same quantity-cap logic also describes emission permits. A binding cap creates scarcity, a permit price emerges, and auctioning the rights transfers quota rent to the government."}, {"id": "import", "group": "Applied quotas", "title": "Import quota in a domestic market", "note": "Import licenses can create rents for whoever controls the quota rights.", "axisX": "Imported units", "axisY": "Domestic price", "demandLabel": "Demand", "supplyLabel": "Supply", "quotaLabel": "Import quota", "a": 15.8, "b": 0.74, "c": 3.1, "d": 0.48, "xMax": 18, "yMax": 18, "quotaDefault": 7.0, "quotaMin": 1.0, "quotaMax": 17.0, "shiftMin": -3.0, "shiftMax": 3.0, "defaultOwner": "permitHolders", "description": "An import quota fixes the quantity that can enter the market. Domestic consumers face a higher price, domestic producers gain protection, and the scarcity rent depends on who receives the import licenses."}];
+    const PRACTICE_CASES = [{"id": "tightFishing", "title": "Tight fishing limit with quota rights held by fishers", "presetId": "fishing", "quota": 6.0, "demandShiftQ": 0.0, "supplyShiftQ": 0.0, "rentOwner": "producers", "prompt": "A catch limit is set well below the competitive harvest, and quota rights stay with fishing firms. Place the quota line and predict who wins and who loses."}, {"id": "auctionedPermits", "title": "Auctioned emissions permits after stronger demand", "presetId": "emission", "quota": 5.4, "demandShiftQ": 0.9, "supplyShiftQ": 0.1, "rentOwner": "government", "prompt": "Demand for permits rises, but the regulator auctions a tight permit cap. Guess the quota location and the welfare effects."}, {"id": "nonBindingCap", "title": "A generous emissions cap that does not bind", "presetId": "emission", "quota": 12.5, "demandShiftQ": -0.4, "supplyShiftQ": 0.7, "rentOwner": "government", "prompt": "The legal cap is set above the competitive quantity. Show why a non-binding quantity cap leaves the market at the competitive outcome."}, {"id": "importLicenses", "title": "Import quota with private license holders", "presetId": "import", "quota": 7.2, "demandShiftQ": 0.8, "supplyShiftQ": 0.0, "rentOwner": "permitHolders", "prompt": "A binding import quota is allocated to private license holders rather than auctioned by the government."}, {"id": "relaxedFishing", "title": "Fishing limit relaxed above equilibrium", "presetId": "fishing", "quota": 10.0, "demandShiftQ": 0.0, "supplyShiftQ": 0.0, "rentOwner": "producers", "prompt": "The fishing limit is relaxed enough that it no longer binds."}, {"id": "moderateAuction", "title": "Moderate production quota auctioned by the regulator", "presetId": "generic", "quota": 6.8, "demandShiftQ": 0.5, "supplyShiftQ": -0.2, "rentOwner": "government", "prompt": "A regulator sets and auctions a moderate production quota."}];
+    const CASE_STUDIES = [{"id": "australiaFishing", "buttonLabel": "Australia fishing limits", "title": "Australia: Southern Bluefin Tuna quotas and scarcity rents", "subtitle": "This case translates Southern Bluefin Tuna quota changes into a partial-equilibrium quota diagram. The evidence cards use official TAC and production-value data; the graph is a stylised teaching calibration.", "preset": {"id": "caseFishing", "title": "Southern Bluefin Tuna", "axisX": "Australian quota / harvest (thousand tonnes)", "axisY": "Price index (2021–23 = 100)", "demandLabel": "D", "supplyLabel": "S", "quotaLabel": "Australian quota", "a": 117.996, "b": 2.8, "c": 42.0, "d": 4.2, "xMax": 12.0, "yMax": 120.0, "quotaMin": 4.0, "quotaMax": 11.0, "defaultOwner": "producers"}, "owner": "producers", "banner": "Official data track a higher Australian wild-catch quota for Southern Bluefin Tuna: 6,238 tonnes for 2021–2023 versus 7,295 tonnes for 2024–2026, alongside a larger CCSBT global TAC.", "steps": [{"id": "auTight", "buttonLabel": "2021–2023 quota", "title": "2021–2023: tighter Australian quota", "note": "Australian wild-catch quota = 6,238 tonnes. Use this as the base price index = 100 and revenue index = 100.", "quota": 6.238, "demandShiftQ": 0.0, "supplyShiftQ": 0.0, "observedQuantity": "6,238 tonnes", "observedPrice": "Price index 100", "observedRevenue": "Revenue index 100", "cards": [{"label": "Australian quota", "value": "6,238 t", "detail": "South Australian industry reports describe the 2021–2023 Australian wild-catch quota at 6,238 tonnes."}, {"label": "Global TAC backdrop", "value": "17,647 t", "detail": "CCSBT lists a 17,647-tonne TAC for 2021–2023."}, {"label": "Interpretation", "value": "Binding quota", "detail": "A tight quota pushes the market onto the demand curve and creates scarcity rent for quota holders."}], "interpretation": "A tight catch limit holds harvest below the competitive benchmark. Consumers pay a higher scarcity price, fishers capture quota rents, and total surplus falls relative to the open-quantity benchmark."}, {"id": "auRelaxed", "buttonLabel": "2024–2026 larger quota", "title": "2024–2026: quota relaxed by about 17%", "note": "Australian wild-catch quota = 7,295 tonnes. ABARES expected tuna production value to rise 14% after the global TAC increase.", "quota": 7.295, "demandShiftQ": 0.0, "supplyShiftQ": 0.0, "observedQuantity": "7,295 tonnes (+17%)", "observedPrice": "Implied price index ≈ 97.4", "observedRevenue": "Revenue index ≈ 114", "cards": [{"label": "Australian quota", "value": "7,295 t", "detail": "South Australian industry reports describe the 2024–2026 Australian wild-catch quota at 7,295 tonnes, about 17% above the earlier level."}, {"label": "Global TAC backdrop", "value": "20,647 t", "detail": "CCSBT lists a 20,647-tonne TAC for 2024–2026."}, {"label": "Observed value effect", "value": "+14% value", "detail": "ABARES expected a 14% rise in tuna production value in 2024–25 after the TAC increase. Combining +14% value with +17% quantity implies a small fall in average price, about 2.6%."}], "interpretation": "Relaxing the quota increases harvest and slightly lowers the scarcity price. Consumers gain because more fish reaches market at a lower price index. Per-unit scarcity rent narrows, but overall producer value can still rise because the output gain dominates."}]}, {"id": "canadaEV", "buttonLabel": "Canada EV quota", "title": "Canada: from a prohibitive Chinese EV border barrier to an official quota", "subtitle": "The graph translates Canada’s Chinese EV restriction into quota topology. The near-ban phase is shown as a stylised near-zero effective cap; the reopening phase uses the official 49,000-unit quota rather than 60,000.", "preset": {"id": "caseCanadaEV", "title": "Canada Chinese EV imports", "axisX": "Chinese EV imports to Canada (thousand vehicles)", "axisY": "Illustrative landed price benchmark (CAD '000)", "demandLabel": "Demand", "supplyLabel": "Supply", "quotaLabel": "Import quota", "a": 76.949, "b": 0.955, "c": 18.38, "d": 0.45, "xMax": 60.0, "yMax": 80.0, "quotaMin": 0.0, "quotaMax": 60.0, "defaultOwner": "permitHolders"}, "owner": "permitHolders", "banner": "Requested figure corrected: official Canadian policy set an initial quota of 49,000 Chinese EVs per year at the MFN tariff rate, not 60,000.", "steps": [{"id": "caOpen2023", "buttonLabel": "2023 reference", "title": "2023 reference point before the new barrier", "note": "Reuters reported 41,678 Chinese EV exports to Canada in 2023. That is below the later official quota of 49,000.", "quota": 60.0, "demandShiftQ": 0.0, "supplyShiftQ": 0.0, "observedQuantity": "41,678 vehicles", "observedPrice": "≈ CAD 37.1k landed benchmark", "observedRevenue": "Trade flow index 100", "cards": [{"label": "Observed imports", "value": "41,678 EVs", "detail": "Reuters reported Chinese EV exports to Canada at 41,678 vehicles in 2023."}, {"label": "Border treatment", "value": "6.1% MFN tariff", "detail": "Before the new surtax, the standard benchmark is the MFN tariff rate."}, {"label": "Interpretation", "value": "Open-trade reference", "detail": "Because the later 49,000-unit quota exceeds 2023 imports, the reopening quota may initially be non-binding."}], "interpretation": "This reference point behaves like a non-binding quota: imports settle around the competitive benchmark, consumers have access to more low-price imports, and domestic producers face more competition."}, {"id": "caBan2024", "buttonLabel": "2024–2025 near-ban", "title": "2024–2025: prohibitive tariff translated into a near-zero effective cap", "note": "Canada imposed a 100% surtax on Chinese-made EVs from 1 October 2024, on top of the existing 6.1% MFN tariff. The graph translates that tariff barrier into a very tight effective cap to fit G05 quota topology.", "quota": 5.0, "demandShiftQ": 0.0, "supplyShiftQ": 0.0, "observedQuantity": "Near-zero effective import access (stylised)", "observedPrice": "≈ CAD 72.1k landed benchmark", "observedRevenue": "Import flow sharply reduced", "cards": [{"label": "Policy shock", "value": "100% surtax + 6.1% MFN", "detail": "The new surtax sharply raised the border cost of Chinese-made EVs."}, {"label": "Price benchmark", "value": "35k → 72.1k", "detail": "For a CAD 35,000 EV, a 6.1% tariff gives roughly CAD 37.1k landed cost, while a 106.1% border duty gives about CAD 72.1k before retail margins."}, {"label": "Broader market signal", "value": "ZEV share fell in 2025", "detail": "Statistics Canada reported the ZEV share of new registrations fell from 14.6% in 2024 to 9.5% in 2025."}], "interpretation": "A near-ban behaves like a very tight import quota. Consumers lose through much higher prices and far fewer imported vehicles. Domestic producers gain protection, but total surplus falls sharply."}, {"id": "caQuota2026", "buttonLabel": "2026 official quota", "title": "2026: official 49,000-unit quota at the MFN tariff rate", "note": "The official quota is 49,000 vehicles per year at the 6.1% MFN rate. Because this exceeds the 2023 flow of 41,678, it may initially be only weakly binding or non-binding.", "quota": 49.0, "demandShiftQ": 0.0, "supplyShiftQ": 0.0, "observedQuantity": "Quota = 49,000 vehicles", "observedPrice": "Back toward ≈ CAD 37.1k benchmark", "observedRevenue": "Reopening with limited protection", "cards": [{"label": "Official quota", "value": "49,000 EVs", "detail": "Global Affairs Canada set an initial country-specific quota of 49,000 Chinese EVs per year at the MFN tariff rate."}, {"label": "Why this matters", "value": "Above 2023 flow", "detail": "Because 49,000 exceeds the 2023 import flow of 41,678, the quota may initially reopen trade rather than create large scarcity rents."}, {"label": "Distribution", "value": "Consumers regain access", "detail": "Relative to the near-ban, consumers gain from lower prices and more choice, while domestic producers lose some protection."}], "interpretation": "Relative to the prohibitive tariff phase, the official quota substantially helps consumers and weakens the protection enjoyed by domestic producers. Because the quota starts above the 2023 import flow, quota rents may initially be small."}]}];
+
+    const THEME = window.ECON_THEME;
+    const DRAW = window.EconDraw;
+    const plot = DRAW.getPlotArea(THEME);
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function getPreset(id) {
+      return PRESETS.find(item => item.id === id) || PRESETS[0];
+    }
+
+    function getPracticeCase(id) {
+      return PRACTICE_CASES.find(item => item.id === id) || PRACTICE_CASES[0];
+    }
+
+    function getCaseStudy(id) {
+      return CASE_STUDIES.find(item => item.id === id) || CASE_STUDIES[0];
+    }
+
+    function numberFmt(value, digits = 2) {
+      const rounded = Math.abs(value) < 1e-9 ? 0 : value;
+      return rounded.toFixed(digits).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
+    }
+
+    function deltaClass(value) {
+      if (value > 0.02) return 'delta-positive';
+      if (value < -0.02) return 'delta-negative';
+      return 'delta-neutral';
+    }
+
+    function directionLabel(value) {
+      if (value > 0.02) return 'increase';
+      if (value < -0.02) return 'decrease';
+      return 'unchanged';
+    }
+
+    function ownerLabel(value) {
+      if (value === 'producers') return 'Producers / quota holders';
+      if (value === 'government') return 'Government';
+      if (value === 'permitHolders') return 'Private permit holders';
+      return 'No rent';
+    }
+
+    function withAlpha(color, alpha) {
+      if (color.startsWith('rgba')) {
+        return color.replace(/rgba\(([^)]+),\s*[0-9.]+\)/, `rgba($1, ${alpha})`);
+      }
+      if (color.startsWith('rgb')) {
+        return color.replace(/rgb\(([^)]+)\)/, `rgba($1, ${alpha})`);
+      }
+      const hex = color.replace('#', '');
+      const value = hex.length === 3 ? hex.split('').map(ch => ch + ch).join('') : hex;
+      const r = parseInt(value.slice(0, 2), 16);
+      const g = parseInt(value.slice(2, 4), 16);
+      const b = parseInt(value.slice(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function makeTicks(max, count, axis) {
+      const ticks = [];
+      for (let i = 0; i <= count; i += 1) {
+        const value = (i / count) * max;
+        ticks.push({
+          label: numberFmt(value, max > 20 ? 0 : 1),
+          x: axis === 'x' ? DRAW.valueToX(value, 0, max, THEME) : undefined,
+          y: axis === 'y' ? DRAW.valueToY(value, 0, max, THEME) : undefined
+        });
+      }
+      return ticks;
+    }
+
+    function demandIntercept(preset, demandShiftQ) {
+      return preset.a + preset.b * demandShiftQ;
+    }
+
+    function supplyIntercept(preset, supplyShiftQ) {
+      return preset.c - preset.d * supplyShiftQ;
+    }
+
+    function demandPrice(preset, marketState, q) {
+      return demandIntercept(preset, marketState.demandShiftQ) - preset.b * q;
+    }
+
+    function supplyPrice(preset, marketState, q) {
+      return supplyIntercept(preset, marketState.supplyShiftQ) + preset.d * q;
+    }
+
+    function integrateDemand(preset, marketState, q) {
+      const A = demandIntercept(preset, marketState.demandShiftQ);
+      return A * q - 0.5 * preset.b * q * q;
+    }
+
+    function integrateSupply(preset, marketState, q) {
+      const C = supplyIntercept(preset, marketState.supplyShiftQ);
+      return C * q + 0.5 * preset.d * q * q;
+    }
+
+    function solveOutcome(preset, marketState, rentOwner) {
+      const A = demandIntercept(preset, marketState.demandShiftQ);
+      const C = supplyIntercept(preset, marketState.supplyShiftQ);
+      const qEqRaw = (A - C) / (preset.b + preset.d);
+      const qEq = clamp(qEqRaw, 0, preset.xMax);
+      const pEq = demandPrice(preset, marketState, qEq);
+      const qBar = clamp(marketState.quota, preset.quotaMin ?? 0, preset.quotaMax ?? preset.xMax);
+      const binding = qBar < qEq - 1e-6;
+
+      const baselineCS = Math.max(0, integrateDemand(preset, marketState, qEq) - pEq * qEq);
+      const baselinePS = Math.max(0, pEq * qEq - integrateSupply(preset, marketState, qEq));
+      const baselineTS = baselineCS + baselinePS;
+
+      if (!binding) {
+        return {
+          binding: false,
+          quota: qBar,
+          qEq,
+          pEq,
+          quantity: qEq,
+          consumerPrice: pEq,
+          producerPrice: pEq,
+          rent: 0,
+          rentOwner: 'none',
+          producerGain: baselinePS,
+          government: 0,
+          permitHolders: 0,
+          consumerSurplus: baselineCS,
+          totalSurplus: baselineTS,
+          dwl: 0,
+          deltaCS: 0,
+          deltaProducerGain: 0,
+          deltaGovernment: 0,
+          deltaPermitHolders: 0,
+          deltaTS: 0,
+          baselineCS,
+          baselinePS,
+          baselineTS,
+          ordinaryProducer: baselinePS
+        };
+      }
+
+      const q = qBar;
+      const consumerPrice = demandPrice(preset, marketState, q);
+      const producerPrice = supplyPrice(preset, marketState, q);
+      const rent = Math.max(0, (consumerPrice - producerPrice) * q);
+      const ordinaryProducer = Math.max(0, producerPrice * q - integrateSupply(preset, marketState, q));
+      const consumerSurplus = Math.max(0, integrateDemand(preset, marketState, q) - consumerPrice * q);
+      const government = rentOwner === 'government' ? rent : 0;
+      const permitHolders = rentOwner === 'permitHolders' ? rent : 0;
+      const producerGain = ordinaryProducer + (rentOwner === 'producers' ? rent : 0);
+      const totalSurplus = consumerSurplus + producerGain + government + permitHolders;
+      const dwl = Math.max(0, baselineTS - totalSurplus);
+
+      return {
+        binding: true,
+        quota: qBar,
+        qEq,
+        pEq,
+        quantity: q,
+        consumerPrice,
+        producerPrice,
+        rent,
+        rentOwner,
+        producerGain,
+        government,
+        permitHolders,
+        consumerSurplus,
+        totalSurplus,
+        dwl,
+        deltaCS: consumerSurplus - baselineCS,
+        deltaProducerGain: producerGain - baselinePS,
+        deltaGovernment: government,
+        deltaPermitHolders: permitHolders,
+        deltaTS: totalSurplus - baselineTS,
+        baselineCS,
+        baselinePS,
+        baselineTS,
+        ordinaryProducer
+      };
+    }
+
+    function xToCanvas(value, preset) {
+      return DRAW.valueToX(value, 0, preset.xMax, THEME);
+    }
+
+    function yToCanvas(value, preset) {
+      return DRAW.valueToY(value, 0, preset.yMax, THEME);
+    }
+
+    function drawCurve(ctx, preset, marketState, type, options = {}) {
+      const points = [];
+      const steps = 140;
+      for (let i = 0; i <= steps; i += 1) {
+        const q = (i / steps) * preset.xMax;
+        const price = type === 'demand' ? demandPrice(preset, marketState, q) : supplyPrice(preset, marketState, q);
+        points.push({ x: xToCanvas(q, preset), y: yToCanvas(price, preset) });
+      }
+      DRAW.drawLine(ctx, points, {
+        color: type === 'demand' ? THEME.color.demand : THEME.color.supply,
+        lineWidth: THEME.line.main,
+        dash: options.dash || null,
+        theme: THEME
+      });
+      const labelQ = type === 'demand' ? preset.xMax * 0.80 : preset.xMax * 0.80;
+      const labelP = type === 'demand' ? demandPrice(preset, marketState, labelQ) : supplyPrice(preset, marketState, labelQ);
+      DRAW.drawText(ctx, type === 'demand' ? (preset.demandLabel || 'D') : (preset.supplyLabel || 'S'), xToCanvas(labelQ, preset) + 8, yToCanvas(labelP, preset) - 10, {
+        size: 15,
+        weight: '600',
+        color: type === 'demand' ? THEME.color.demand : THEME.color.supply,
+        theme: THEME
+      });
+    }
+
+    function polygonUnderDemand(preset, marketState, outcome) {
+      const points = [{ x: xToCanvas(0, preset), y: yToCanvas(demandPrice(preset, marketState, 0), preset) }];
+      const steps = 70;
+      for (let i = 0; i <= steps; i += 1) {
+        const q = (i / steps) * outcome.quantity;
+        points.push({ x: xToCanvas(q, preset), y: yToCanvas(demandPrice(preset, marketState, q), preset) });
+      }
+      points.push({ x: xToCanvas(outcome.quantity, preset), y: yToCanvas(outcome.consumerPrice, preset) });
+      points.push({ x: xToCanvas(0, preset), y: yToCanvas(outcome.consumerPrice, preset) });
+      return points;
+    }
+
+    function polygonAboveSupply(preset, marketState, outcome) {
+      const points = [{ x: xToCanvas(0, preset), y: yToCanvas(outcome.producerPrice, preset) }, { x: xToCanvas(outcome.quantity, preset), y: yToCanvas(outcome.producerPrice, preset) }];
+      const steps = 70;
+      for (let i = steps; i >= 0; i -= 1) {
+        const q = (i / steps) * outcome.quantity;
+        points.push({ x: xToCanvas(q, preset), y: yToCanvas(supplyPrice(preset, marketState, q), preset) });
+      }
+      return points;
+    }
+
+    function rentPolygon(preset, outcome) {
+      return [
+        { x: xToCanvas(0, preset), y: yToCanvas(outcome.consumerPrice, preset) },
+        { x: xToCanvas(outcome.quantity, preset), y: yToCanvas(outcome.consumerPrice, preset) },
+        { x: xToCanvas(outcome.quantity, preset), y: yToCanvas(outcome.producerPrice, preset) },
+        { x: xToCanvas(0, preset), y: yToCanvas(outcome.producerPrice, preset) }
+      ];
+    }
+
+    function dwlPolygon(preset, marketState, outcome) {
+      if (!outcome.binding) return [];
+      return [
+        { x: xToCanvas(outcome.quantity, preset), y: yToCanvas(demandPrice(preset, marketState, outcome.quantity), preset) },
+        { x: xToCanvas(outcome.qEq, preset), y: yToCanvas(outcome.pEq, preset) },
+        { x: xToCanvas(outcome.quantity, preset), y: yToCanvas(supplyPrice(preset, marketState, outcome.quantity), preset) }
+      ];
+    }
+
+    function rentFillForOwner(owner) {
+      if (owner === 'government') return THEME.color.govtFill;
+      if (owner === 'producers') return THEME.color.sellerTaxFill;
+      if (owner === 'permitHolders') return THEME.color.buyerTaxFill;
+      return withAlpha(THEME.color.baseline, 0.15);
+    }
+
+    function drawQuotaLine(ctx, preset, quota, color, label, dash) {
+      const x = xToCanvas(quota, preset);
+      DRAW.drawLine(ctx, [{ x, y: plot.top }, { x, y: plot.bottom }], { color, lineWidth: THEME.line.policy, dash, theme: THEME });
+      DRAW.drawText(ctx, label, x + 8, plot.top + 18, { size: 12, weight: '600', color, theme: THEME });
+    }
+
+    function drawLabelBubble(ctx, text, x, y, color) {
+      ctx.save();
+      ctx.fillStyle = withAlpha('#ffffff', 0.96);
+      ctx.strokeStyle = withAlpha(color, 0.35);
+      ctx.lineWidth = 1;
+      const paddingX = 6;
+      const paddingY = 4;
+      ctx.font = `600 12px ${THEME.font.family}`;
+      const width = ctx.measureText(text).width + paddingX * 2;
+      const height = 22;
+      const left = x;
+      const top = y - height + 2;
+      ctx.beginPath();
+      ctx.roundRect(left, top, width, height, 7);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, left + paddingX, top + height / 2);
+      ctx.restore();
+    }
+
+    function drawQuotaDiagram(canvas, preset, marketState, rentOwner, options = {}) {
+      const ctx = canvas.getContext('2d');
+      const outcome = solveOutcome(preset, marketState, rentOwner);
+      DRAW.clearCanvas(ctx, THEME);
+      DRAW.drawFrame(ctx, THEME);
+      DRAW.drawAxes(ctx, {
+        theme: THEME,
+        xLabel: preset.axisX,
+        yLabel: preset.axisY,
+        xTicks: makeTicks(preset.xMax, 6, 'x'),
+        yTicks: makeTicks(preset.yMax, 6, 'y')
+      });
+
+      if (options.showAreas !== false) {
+        DRAW.fillPolygon(ctx, polygonUnderDemand(preset, marketState, outcome), { fill: THEME.color.csFill });
+        DRAW.fillPolygon(ctx, polygonAboveSupply(preset, marketState, outcome), { fill: THEME.color.psFill });
+        if (outcome.binding && outcome.rent > 0.02) {
+          DRAW.fillPolygon(ctx, rentPolygon(preset, outcome), { fill: rentFillForOwner(outcome.rentOwner) });
+        }
+        if (outcome.binding && outcome.dwl > 0.02) {
+          DRAW.fillPolygon(ctx, dwlPolygon(preset, marketState, outcome), { fill: THEME.color.dwlFill });
+        }
+      }
+
+      drawCurve(ctx, preset, marketState, 'demand');
+      drawCurve(ctx, preset, marketState, 'supply');
+
+      if (options.guessQuota != null) {
+        drawQuotaLine(ctx, preset, options.guessQuota, THEME.color.guess, options.revealed ? 'Your guess' : 'Guess', THEME.dash.guess);
+      }
+      if (options.showActualQuota !== false) {
+        drawQuotaLine(ctx, preset, outcome.quota, THEME.color.government, preset.quotaLabel || 'Quota', THEME.dash.policy);
+      }
+
+      DRAW.drawCircle(ctx, xToCanvas(outcome.qEq, preset), yToCanvas(outcome.pEq, preset), {
+        radius: THEME.radius.marker + 1,
+        fill: '#ffffff',
+        stroke: THEME.color.baseline,
+        lineWidth: 2,
+        theme: THEME
+      });
+      DRAW.drawText(ctx, 'E*', xToCanvas(outcome.qEq, preset) + 8, yToCanvas(outcome.pEq, preset) - 10, {
+        size: 13,
+        weight: '600',
+        color: THEME.color.baseline,
+        theme: THEME
+      });
+
+      DRAW.drawCircle(ctx, xToCanvas(outcome.quantity, preset), yToCanvas(outcome.binding ? outcome.consumerPrice : outcome.pEq, preset), {
+        radius: THEME.radius.marker,
+        fill: THEME.color.text,
+        stroke: THEME.color.text,
+        lineWidth: 1,
+        theme: THEME
+      });
+
+      if (outcome.binding) {
+        const qX = xToCanvas(outcome.quantity, preset);
+        const pcY = yToCanvas(outcome.consumerPrice, preset);
+        const psY = yToCanvas(outcome.producerPrice, preset);
+        drawLabelBubble(ctx, `Pc = ${numberFmt(outcome.consumerPrice, preset.yMax > 20 ? 1 : 2)}`, qX + 10, pcY - 4, THEME.color.text);
+        drawLabelBubble(ctx, `Ps = ${numberFmt(outcome.producerPrice, preset.yMax > 20 ? 1 : 2)}`, qX + 10, psY + 24, THEME.color.text);
+        drawLabelBubble(ctx, `Q̄ = ${numberFmt(outcome.quantity, preset.xMax > 20 ? 0 : 2)}`, qX - 34, plot.bottom + 24, THEME.color.government);
+        if (outcome.rent > 0.02) {
+          const midY = (pcY + psY) / 2;
+          drawLabelBubble(ctx, 'Quota rent', qX + 12, midY, outcome.rentOwner === 'government' ? THEME.color.government : (outcome.rentOwner === 'producers' ? THEME.color.guess : THEME.color.inflation));
+        }
+        if (outcome.dwl > 0.02) {
+          drawLabelBubble(ctx, 'DWL', xToCanvas((outcome.qEq + outcome.quantity) / 2, preset) + 8, yToCanvas((outcome.pEq + outcome.producerPrice) / 2, preset), THEME.color.text);
+        }
+      } else {
+        drawLabelBubble(ctx, `Quota ≥ Q*`, xToCanvas(outcome.quota, preset) + 8, plot.top + 46, THEME.color.government);
+      }
+
+      if (options.annotationText) {
+        DRAW.drawText(ctx, options.annotationText, plot.left + 12, plot.top + 18, {
+          size: 13,
+          weight: '500',
+          color: THEME.color.muted,
+          theme: THEME
+        });
+      }
+
+      return outcome;
+    }
+
+    // --- Explore module ---
+    const explore = {
+      presetId: PRESETS[0].id,
+      quota: PRESETS[0].quotaDefault,
+      demandShiftQ: 0,
+      supplyShiftQ: 0,
+      rentOwner: PRESETS[0].defaultOwner,
+      dragging: false
+    };
+
+    const exploreCanvas = document.getElementById('exploreCanvas');
+    const explorePresetSelect = document.getElementById('explorePresetSelect');
+    const exploreQuotaSlider = document.getElementById('exploreQuotaSlider');
+    const exploreDemandSlider = document.getElementById('exploreDemandSlider');
+    const exploreSupplySlider = document.getElementById('exploreSupplySlider');
+    const quotaOwnerSelect = document.getElementById('quotaOwnerSelect');
+
+    function syncExploreControls(resetShifts = false) {
+      const preset = getPreset(explore.presetId);
+      exploreQuotaSlider.min = String(preset.quotaMin);
+      exploreQuotaSlider.max = String(preset.quotaMax);
+      exploreQuotaSlider.step = preset.xMax > 20 ? '1' : '0.1';
+      if (explore.quota == null || explore.quota < preset.quotaMin || explore.quota > preset.quotaMax || resetShifts) {
+        explore.quota = preset.quotaDefault;
+      }
+      if (resetShifts) {
+        explore.demandShiftQ = 0;
+        explore.supplyShiftQ = 0;
+        explore.rentOwner = preset.defaultOwner;
+      }
+      exploreDemandSlider.min = String(preset.shiftMin);
+      exploreDemandSlider.max = String(preset.shiftMax);
+      exploreSupplySlider.min = String(preset.shiftMin);
+      exploreSupplySlider.max = String(preset.shiftMax);
+      explorePresetSelect.value = preset.id;
+      exploreQuotaSlider.value = String(explore.quota);
+      exploreDemandSlider.value = String(explore.demandShiftQ);
+      exploreSupplySlider.value = String(explore.supplyShiftQ);
+      quotaOwnerSelect.value = explore.rentOwner;
+    }
+
+    function renderExplorePresetBank() {
+      const wrap = document.getElementById('exploreScenarioList');
+      wrap.innerHTML = PRESETS.map(preset => `
+        <div class="scenario-card ${preset.id === explore.presetId ? 'active' : ''}" data-preset="${preset.id}">
+          <strong>${preset.title}</strong>
+          ${preset.note}
+        </div>
+      `).join('');
+      wrap.querySelectorAll('.scenario-card').forEach(card => {
+        card.addEventListener('click', () => {
+          explore.presetId = card.dataset.preset;
+          syncExploreControls(true);
+          renderExplorePresetBank();
+          renderExplore();
+        });
+      });
+    }
+
+    function renderExplore() {
+      const preset = getPreset(explore.presetId);
+      const outcome = drawQuotaDiagram(exploreCanvas, preset, {
+        quota: explore.quota,
+        demandShiftQ: explore.demandShiftQ,
+        supplyShiftQ: explore.supplyShiftQ
+      }, explore.rentOwner, {});
+
+      document.getElementById('metricCompetitive').textContent = `P* = ${numberFmt(outcome.pEq, preset.yMax > 20 ? 1 : 2)}, Q* = ${numberFmt(outcome.qEq, preset.xMax > 20 ? 0 : 2)}`;
+      document.getElementById('metricQuota').textContent = `${preset.quotaLabel || 'Quota'} = ${numberFmt(outcome.quota, preset.xMax > 20 ? 0 : 2)}`;
+      document.getElementById('metricBinding').textContent = outcome.binding ? 'Binding' : 'Non-binding';
+      document.getElementById('metricConsumerPrice').textContent = numberFmt(outcome.consumerPrice, preset.yMax > 20 ? 1 : 2);
+      document.getElementById('metricProducerPrice').textContent = numberFmt(outcome.producerPrice, preset.yMax > 20 ? 1 : 2);
+      document.getElementById('metricRent').textContent = outcome.rent > 0.02 ? `${numberFmt(outcome.rent, 2)} → ${ownerLabel(outcome.rentOwner)}` : '0';
+      document.getElementById('metricCS').textContent = numberFmt(outcome.consumerSurplus, 2);
+      document.getElementById('metricPS').textContent = numberFmt(outcome.producerGain, 2);
+      document.getElementById('metricDWL').textContent = numberFmt(outcome.dwl, 2);
+
+      const feedback = document.getElementById('exploreFeedback');
+      feedback.textContent = outcome.binding
+        ? `${preset.title}: the quota binds because ${numberFmt(outcome.quota, preset.xMax > 20 ? 0 : 2)} is below the competitive quantity ${numberFmt(outcome.qEq, preset.xMax > 20 ? 0 : 2)}. Consumers now pay ${numberFmt(outcome.consumerPrice, preset.yMax > 20 ? 1 : 2)}, the supply side is willing to sell at ${numberFmt(outcome.producerPrice, preset.yMax > 20 ? 1 : 2)}, and the difference becomes quota rent for ${ownerLabel(outcome.rentOwner).toLowerCase()}.`
+        : `${preset.title}: the quota is non-binding because it sits at or above the competitive quantity. The market stays at the competitive equilibrium, so no quota rent or deadweight loss appears.`;
+
+      const rows = [
+        ['Consumer surplus', outcome.consumerSurplus, outcome.deltaCS],
+        ['Producer gain', outcome.producerGain, outcome.deltaProducerGain],
+        ['Government revenue', outcome.government, outcome.deltaGovernment],
+        ['Private permit-holder rent', outcome.permitHolders, outcome.deltaPermitHolders],
+        ['Total surplus', outcome.totalSurplus, outcome.deltaTS],
+        ['Deadweight loss', outcome.dwl, outcome.dwl]
+      ];
+      document.getElementById('exploreResultTable').innerHTML = rows.map(row => `
+        <tr>
+          <td>${row[0]}</td>
+          <td>${numberFmt(row[1], 2)}</td>
+          <td class="${deltaClass(row[2])}">${row[0] === 'Deadweight loss' ? numberFmt(row[2], 2) : (row[2] > 0.02 ? '+' : row[2] < -0.02 ? '−' : '') + numberFmt(Math.abs(row[2]), 2)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function canvasPoint(canvas, evt) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+      };
+    }
+
+    function canvasPointTouch(canvas, touch) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      };
+    }
+
+    function canvasToQuantity(x, preset) {
+      return clamp(DRAW.xToValue(x, 0, preset.xMax, THEME), preset.quotaMin ?? 0, preset.quotaMax ?? preset.xMax);
+    }
+
+    function startExploreDrag(point) {
+      const preset = getPreset(explore.presetId);
+      const quotaX = xToCanvas(explore.quota, preset);
+      if (Math.abs(point.x - quotaX) <= 14 && point.y >= plot.top && point.y <= plot.bottom) {
+        explore.dragging = true;
+      }
+    }
+
+    function moveExploreDrag(point) {
+      if (!explore.dragging) return;
+      const preset = getPreset(explore.presetId);
+      explore.quota = canvasToQuantity(point.x, preset);
+      exploreQuotaSlider.value = String(explore.quota);
+      renderExplore();
+    }
+
+    function stopExploreDrag() {
+      explore.dragging = false;
+    }
+
+    exploreCanvas.addEventListener('mousedown', evt => startExploreDrag(canvasPoint(exploreCanvas, evt)));
+    exploreCanvas.addEventListener('mousemove', evt => moveExploreDrag(canvasPoint(exploreCanvas, evt)));
+    exploreCanvas.addEventListener('mouseup', stopExploreDrag);
+    exploreCanvas.addEventListener('mouseleave', stopExploreDrag);
+    exploreCanvas.addEventListener('touchstart', evt => {
+      if (!evt.touches.length) return;
+      startExploreDrag(canvasPointTouch(exploreCanvas, evt.touches[0]));
+      evt.preventDefault();
+    }, { passive: false });
+    exploreCanvas.addEventListener('touchmove', evt => {
+      if (!evt.touches.length) return;
+      moveExploreDrag(canvasPointTouch(exploreCanvas, evt.touches[0]));
+      evt.preventDefault();
+    }, { passive: false });
+    exploreCanvas.addEventListener('touchend', stopExploreDrag);
+    exploreCanvas.addEventListener('touchcancel', stopExploreDrag);
+
+    explorePresetSelect.innerHTML = PRESETS.map(p => `<option value="${p.id}">${p.title}</option>`).join('');
+    explorePresetSelect.addEventListener('change', evt => {
+      explore.presetId = evt.target.value;
+      syncExploreControls(true);
+      renderExplorePresetBank();
+      renderExplore();
+    });
+    exploreQuotaSlider.addEventListener('input', evt => {
+      explore.quota = Number(evt.target.value);
+      renderExplore();
+    });
+    exploreDemandSlider.addEventListener('input', evt => {
+      explore.demandShiftQ = Number(evt.target.value);
+      renderExplore();
+    });
+    exploreSupplySlider.addEventListener('input', evt => {
+      explore.supplyShiftQ = Number(evt.target.value);
+      renderExplore();
+    });
+    quotaOwnerSelect.addEventListener('change', evt => {
+      explore.rentOwner = evt.target.value;
+      renderExplore();
+    });
+    document.getElementById('exploreResetButton').addEventListener('click', () => {
+      syncExploreControls(true);
+      renderExplorePresetBank();
+      renderExplore();
+    });
+    document.getElementById('exploreRandomButton').addEventListener('click', () => {
+      const preset = PRESETS[Math.floor(Math.random() * PRESETS.length)];
+      explore.presetId = preset.id;
+      syncExploreControls(true);
+      explore.quota = preset.quotaMin + Math.random() * (preset.quotaMax - preset.quotaMin);
+      explore.demandShiftQ = Number((preset.shiftMin + Math.random() * (preset.shiftMax - preset.shiftMin)).toFixed(1));
+      explore.supplyShiftQ = Number((preset.shiftMin + Math.random() * (preset.shiftMax - preset.shiftMin)).toFixed(1));
+      const owners = ['producers', 'government', 'permitHolders'];
+      explore.rentOwner = owners[Math.floor(Math.random() * owners.length)];
+      syncExploreControls(false);
+      renderExplorePresetBank();
+      renderExplore();
+    });
+
+    // --- Practice module ---
+    const practice = {
+      caseId: PRACTICE_CASES[0].id,
+      guessQuota: null,
+      revealed: false,
+      dragging: false
+    };
+
+    const practiceCanvas = document.getElementById('practiceCanvas');
+    const practiceScenarioSelect = document.getElementById('practiceScenarioSelect');
+
+    function practiceStateForCase(caseDef) {
+      return {
+        quota: caseDef.quota,
+        demandShiftQ: caseDef.demandShiftQ,
+        supplyShiftQ: caseDef.supplyShiftQ
+      };
+    }
+
+    function correctAnswersForPractice(caseDef, outcome) {
+      return {
+        binding: outcome.binding ? 'binding' : 'nonbinding',
+        owner: outcome.binding && outcome.rent > 0.02 ? caseDef.rentOwner : 'none',
+        cs: directionLabel(outcome.deltaCS),
+        ps: directionLabel(outcome.deltaProducerGain),
+        ts: directionLabel(outcome.deltaTS)
+      };
+    }
+
+    function answerText(value) {
+      if (value === 'binding') return 'Binding';
+      if (value === 'nonbinding') return 'Non-binding';
+      if (value === 'producers') return 'Producers / quota holders';
+      if (value === 'government') return 'Government';
+      if (value === 'permitHolders') return 'Private permit holders';
+      if (value === 'none') return 'No rent';
+      if (value === 'increase') return 'Increase';
+      if (value === 'decrease') return 'Decrease';
+      if (value === 'unchanged') return 'Unchanged';
+      return '—';
+    }
+
+    function currentPracticeCase() {
+      return getPracticeCase(practice.caseId);
+    }
+
+    function resetPracticeGuess() {
+      const caseDef = currentPracticeCase();
+      const preset = getPreset(caseDef.presetId);
+      practice.guessQuota = preset.quotaDefault;
+      practice.revealed = false;
+      document.getElementById('answerBinding').value = '';
+      document.getElementById('answerOwner').value = '';
+      document.getElementById('answerCS').value = '';
+      document.getElementById('answerPS').value = '';
+      document.getElementById('answerTS').value = '';
+      renderPractice();
+    }
+
+    function renderPractice() {
+      const caseDef = currentPracticeCase();
+      const preset = getPreset(caseDef.presetId);
+      const marketState = practiceStateForCase(caseDef);
+      const outcome = solveOutcome(preset, marketState, caseDef.rentOwner);
+      const guess = practice.guessQuota == null ? preset.quotaDefault : practice.guessQuota;
+
+      drawQuotaDiagram(practiceCanvas, preset, marketState, caseDef.rentOwner, {
+        showAreas: practice.revealed,
+        showActualQuota: practice.revealed,
+        guessQuota: guess,
+        revealed: practice.revealed,
+        annotationText: caseDef.prompt
+      });
+
+      document.getElementById('practicePrompt').textContent = caseDef.prompt;
+      document.getElementById('practiceOwnerPills').innerHTML = [
+        `<span class="pill-inline">Preset: ${preset.title}</span>`,
+        `<span class="pill-inline">Rent owner if binding: ${ownerLabel(caseDef.rentOwner)}</span>`,
+        `<span class="pill-inline">Target quota: ${numberFmt(caseDef.quota, preset.xMax > 20 ? 0 : 1)}</span>`
+      ].join('');
+
+      const correct = correctAnswersForPractice(caseDef, outcome);
+      const tableRows = [
+        ['Binding status', document.getElementById('answerBinding').value, correct.binding],
+        ['Rent recipient', document.getElementById('answerOwner').value, correct.owner],
+        ['Consumer surplus', document.getElementById('answerCS').value, correct.cs],
+        ['Producer gain', document.getElementById('answerPS').value, correct.ps],
+        ['Total surplus', document.getElementById('answerTS').value, correct.ts]
+      ];
+      document.getElementById('practiceResultTable').innerHTML = tableRows.map(row => `
+        <tr>
+          <td>${row[0]}</td>
+          <td>${answerText(row[1])}</td>
+          <td>${practice.revealed ? answerText(row[2]) : 'Check answer'}</td>
+        </tr>
+      `).join('');
+
+      if (!practice.revealed) {
+        document.getElementById('practiceFeedback').textContent = 'Select a scenario, place the purple quota line, answer the questions, and then check your answer.';
+      }
+    }
+
+    function startPracticeDrag(point) {
+      const caseDef = currentPracticeCase();
+      const preset = getPreset(caseDef.presetId);
+      const x = xToCanvas(practice.guessQuota ?? preset.quotaDefault, preset);
+      if (Math.abs(point.x - x) <= 14 && point.y >= plot.top && point.y <= plot.bottom) {
+        practice.dragging = true;
+      }
+    }
+
+    function movePracticeDrag(point) {
+      if (!practice.dragging) return;
+      const preset = getPreset(currentPracticeCase().presetId);
+      practice.guessQuota = canvasToQuantity(point.x, preset);
+      practice.revealed = false;
+      renderPractice();
+    }
+
+    function stopPracticeDrag() {
+      practice.dragging = false;
+    }
+
+    practiceCanvas.addEventListener('mousedown', evt => startPracticeDrag(canvasPoint(practiceCanvas, evt)));
+    practiceCanvas.addEventListener('mousemove', evt => movePracticeDrag(canvasPoint(practiceCanvas, evt)));
+    practiceCanvas.addEventListener('mouseup', stopPracticeDrag);
+    practiceCanvas.addEventListener('mouseleave', stopPracticeDrag);
+    practiceCanvas.addEventListener('touchstart', evt => {
+      if (!evt.touches.length) return;
+      startPracticeDrag(canvasPointTouch(practiceCanvas, evt.touches[0]));
+      evt.preventDefault();
+    }, { passive: false });
+    practiceCanvas.addEventListener('touchmove', evt => {
+      if (!evt.touches.length) return;
+      movePracticeDrag(canvasPointTouch(practiceCanvas, evt.touches[0]));
+      evt.preventDefault();
+    }, { passive: false });
+    practiceCanvas.addEventListener('touchend', stopPracticeDrag);
+    practiceCanvas.addEventListener('touchcancel', stopPracticeDrag);
+
+    practiceScenarioSelect.innerHTML = PRACTICE_CASES.map(item => `<option value="${item.id}">${item.title}</option>`).join('');
+    practiceScenarioSelect.addEventListener('change', evt => {
+      practice.caseId = evt.target.value;
+      resetPracticeGuess();
+    });
+    document.getElementById('practiceResetButton').addEventListener('click', resetPracticeGuess);
+    document.getElementById('practiceRandomButton').addEventListener('click', () => {
+      const item = PRACTICE_CASES[Math.floor(Math.random() * PRACTICE_CASES.length)];
+      practice.caseId = item.id;
+      practiceScenarioSelect.value = item.id;
+      resetPracticeGuess();
+    });
+    document.getElementById('practiceCheckButton').addEventListener('click', () => {
+      const caseDef = currentPracticeCase();
+      const preset = getPreset(caseDef.presetId);
+      const outcome = solveOutcome(preset, practiceStateForCase(caseDef), caseDef.rentOwner);
+      const correct = correctAnswersForPractice(caseDef, outcome);
+
+      const guessQuota = practice.guessQuota ?? preset.quotaDefault;
+      const quotaCorrect = Math.abs(guessQuota - caseDef.quota) <= (preset.xMax > 20 ? 2.0 : 0.35);
+      const answers = {
+        binding: document.getElementById('answerBinding').value,
+        owner: document.getElementById('answerOwner').value,
+        cs: document.getElementById('answerCS').value,
+        ps: document.getElementById('answerPS').value,
+        ts: document.getElementById('answerTS').value
+      };
+      const missing = Object.values(answers).some(value => !value);
+      if (missing) {
+        document.getElementById('practiceFeedback').textContent = 'Complete all answer fields before checking.';
+        return;
+      }
+      const wrong = [];
+      Object.keys(correct).forEach(key => {
+        if (answers[key] !== correct[key]) {
+          wrong.push(`${key === 'binding' ? 'binding status' : key === 'owner' ? 'rent recipient' : key === 'cs' ? 'consumer surplus' : key === 'ps' ? 'producer gain' : 'total surplus'} should be ${answerText(correct[key]).toLowerCase()}`);
+        }
+      });
+      if (!quotaCorrect) {
+        wrong.unshift(`quota location should be about ${numberFmt(caseDef.quota, preset.xMax > 20 ? 0 : 1)}`);
+      }
+      practice.revealed = true;
+      renderPractice();
+      document.getElementById('practiceFeedback').textContent = wrong.length === 0
+        ? `Correct. ${caseDef.prompt} The cap ${correct.binding === 'binding' ? 'binds' : 'does not bind'}, the rent recipient is ${answerText(correct.owner).toLowerCase()}, and total surplus ${answerText(correct.ts).toLowerCase()}.`
+        : `Not quite. ${wrong.join('; ')}. ${outcome.binding ? `Because the quota is below Q*, it creates a rent of ${numberFmt(outcome.rent, 2)} for ${ownerLabel(correct.owner).toLowerCase()}.` : 'Because the quota is non-binding, the market stays at the competitive benchmark and no rent appears.'}`;
+    });
+
+    // --- Case studies ---
+    const caseState = {
+      caseId: CASE_STUDIES[0].id,
+      stepId: CASE_STUDIES[0].steps[0].id
+    };
+
+    function currentCaseStudy() {
+      return getCaseStudy(caseState.caseId);
+    }
+
+    function currentCaseStep() {
+      const study = currentCaseStudy();
+      return study.steps.find(step => step.id === caseState.stepId) || study.steps[0];
+    }
+
+    function renderCaseButtons() {
+      const wrap = document.getElementById('caseButtons');
+      wrap.innerHTML = CASE_STUDIES.map(item => `<button class="btn-secondary ${item.id === caseState.caseId ? 'active' : ''}" data-case="${item.id}">${item.buttonLabel}</button>`).join('');
+      wrap.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', () => {
+          caseState.caseId = button.dataset.case;
+          caseState.stepId = currentCaseStudy().steps[0].id;
+          renderCaseButtons();
+          renderCaseSteps();
+          renderCase();
+        });
+      });
+    }
+
+    function renderCaseSteps() {
+      const study = currentCaseStudy();
+      const wrap = document.getElementById('caseStepButtons');
+      wrap.innerHTML = study.steps.map(step => `<button class="step-button ${step.id === caseState.stepId ? 'active' : ''}" data-step="${step.id}">${step.buttonLabel}</button>`).join('');
+      wrap.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', () => {
+          caseState.stepId = button.dataset.step;
+          renderCaseSteps();
+          renderCase();
+        });
+      });
+    }
+
+    function renderCase() {
+      const study = currentCaseStudy();
+      const step = currentCaseStep();
+      const preset = study.preset;
+      const outcome = drawQuotaDiagram(document.getElementById('caseCanvas'), preset, {
+        quota: step.quota,
+        demandShiftQ: step.demandShiftQ,
+        supplyShiftQ: step.supplyShiftQ
+      }, study.owner, {});
+
+      document.getElementById('caseTitle').textContent = study.title;
+      document.getElementById('caseSubtitle').textContent = `${study.subtitle} Current step: ${step.title}.`;
+      document.getElementById('caseBanner').textContent = study.banner;
+      document.getElementById('caseGraphNote').textContent = step.note;
+      document.getElementById('caseObservedQuantity').textContent = step.observedQuantity;
+      document.getElementById('caseObservedPrice').textContent = step.observedPrice;
+      document.getElementById('caseBinding').textContent = outcome.binding ? 'Binding in the stylised model' : 'Non-binding in the stylised model';
+      document.getElementById('caseRent').textContent = numberFmt(outcome.rent, 2);
+      document.getElementById('caseConsumerEffect').textContent = directionLabel(outcome.deltaCS) === 'unchanged' ? 'Near benchmark' : `${answerText(directionLabel(outcome.deltaCS))} vs open benchmark`;
+      document.getElementById('caseProducerEffect').textContent = directionLabel(outcome.deltaProducerGain) === 'unchanged' ? 'Near benchmark' : `${answerText(directionLabel(outcome.deltaProducerGain))} vs open benchmark`;
+      document.getElementById('caseDataGrid').innerHTML = step.cards.map(card => `
+        <div class="data-card">
+          <strong>${card.label}</strong>
+          ${card.value}
+          <div class="small-muted">${card.detail}</div>
+        </div>
+      `).join('');
+      document.getElementById('caseInterpretation').textContent = step.interpretation;
+    }
+
+    // --- Module tabs ---
+    document.querySelectorAll('.module-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.module-tab').forEach(node => node.classList.remove('active'));
+        document.querySelectorAll('.module-section').forEach(node => node.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.target).classList.add('active');
+        if (tab.dataset.target === 'exploreModule') renderExplore();
+        if (tab.dataset.target === 'practiceModule') renderPractice();
+        if (tab.dataset.target === 'caseModule') renderCase();
+      });
+    });
+
+    // Initial render
+    syncExploreControls(true);
+    renderExplorePresetBank();
+    renderExplore();
+
+    practiceScenarioSelect.value = practice.caseId;
+    resetPracticeGuess();
+
+    renderCaseButtons();
+    renderCaseSteps();
+    renderCase();
+  </script>
+</body>
+</html>

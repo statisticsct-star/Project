@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G10_income_substitution_effects</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .module-tab {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .module-tab:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+
+    .module-tab.active {
+      background: #eef3ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 16px 0;
+    }
+
+    .summary-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      font-size: 12px;
+      color: var(--color-muted);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.85fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .mini-card {
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+
+    .mini-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+
+    .legend-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 16px;
+      margin-bottom: 8px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.3;
+    }
+
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+
+    .legend-line.indifference { border-color: var(--color-demand); }
+    .legend-line.old-budget {
+      border-color: var(--color-baseline);
+      border-top-width: 2px;
+      border-top-style: dashed;
+    }
+    .legend-line.new-budget { border-color: var(--color-long-run); }
+    .legend-line.comp-budget {
+      border-color: var(--color-government);
+      border-top-width: 2px;
+      border-top-style: dashed;
+    }
+    .legend-line.guess {
+      border-color: var(--color-guess);
+      border-top-width: 2px;
+      border-top-style: dashed;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      background: white;
+      border: 2px solid var(--color-text);
+    }
+
+    .legend-dot.old {
+      border-color: var(--color-baseline);
+      background: white;
+    }
+
+    .legend-dot.comp {
+      border-color: var(--color-government);
+      background: var(--color-government);
+    }
+
+    .legend-dot.new {
+      border-color: var(--color-output);
+      background: var(--color-output);
+    }
+
+    .legend-dot.endowment {
+      border-color: var(--color-external);
+      background: white;
+    }
+
+    .graph-note, .small-muted, .footer-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.5;
+    }
+
+    .status-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+
+    .metric-grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .metric-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .metric-value.small {
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .metric-value.tiny {
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 165px;
+    }
+
+    .control-inline.small { min-width: 140px; }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+
+    .context-controls {
+      display: none;
+    }
+
+    .context-controls.active {
+      display: contents;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .answer-card, .step-button, .income-button {
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      background: white;
+      padding: 12px;
+    }
+
+    .answer-card label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--color-text);
+    }
+
+    .answer-card select {
+      width: 100%;
+    }
+
+    .feedback-box {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--color-frame);
+      background: #fbfcfe;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .feedback-box.correct {
+      border-left: 4px solid var(--color-government);
+      background: rgba(46, 139, 87, 0.08);
+    }
+
+    .feedback-box.incorrect {
+      border-left: 4px solid var(--color-supply);
+      background: rgba(216, 74, 58, 0.08);
+    }
+
+    .step-row, .income-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .step-button, .income-button {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+    }
+
+    .step-button:hover, .income-button:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+
+    .step-button.active, .income-button.active {
+      border-color: var(--color-demand);
+      background: #eef3ff;
+      color: var(--color-demand);
+    }
+
+    .chart-grid.two {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .data-list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--color-text);
+    }
+
+    .data-list strong {
+      color: var(--color-text);
+    }
+
+    .policy-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .policy-table th,
+    .policy-table td {
+      border-bottom: 1px solid var(--color-frame);
+      padding: 8px 6px;
+      text-align: left;
+    }
+
+    .policy-table th {
+      font-weight: 600;
+      color: var(--color-text);
+      background: #fbfcfe;
+    }
+
+    .policy-table td:last-child,
+    .policy-table th:last-child {
+      text-align: right;
+    }
+
+    .note-callout {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--color-frame);
+      background: #fbfcfe;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--color-text);
+    }
+
+    @media (max-width: 980px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .answer-grid,
+      .chart-grid.two {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Income and substitution effects</h1>
+        <p class="diagram-subtitle">
+          Compare old, new, and compensated budget sets to separate substitution and income effects in three classic settings: a standard consumer bundle, labour–leisure choice, and intertemporal choice.
+        </p>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Real-world case study</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="summary-strip">
+          <span class="summary-chip">Old, new, and compensated constraints</span>
+          <span class="summary-chip">Hicks and Slutsky modes</span>
+          <span class="summary-chip">Consumer bundle, labour–leisure, intertemporal choice</span>
+          <span class="summary-chip">Live substitution, income, and total effects</span>
+        </div>
+
+        <div class="control-panel">
+          <div class="control-inline small">
+            <label for="exploreContext">Context</label>
+            <select id="exploreContext">
+              <option value="consumer">Consumer bundle</option>
+              <option value="labour">Labour–leisure</option>
+              <option value="intertemporal">Intertemporal choice</option>
+            </select>
+          </div>
+
+          <div class="control-inline small">
+            <label for="exploreDecomp">Decomposition</label>
+            <select id="exploreDecomp">
+              <option value="hicks">Hicks</option>
+              <option value="slutsky">Slutsky</option>
+            </select>
+          </div>
+
+          <div class="control-inline">
+            <label for="exploreAlpha">Preference weight on x-axis good <span id="exploreAlphaValue" class="inline-value">0.45</span></label>
+            <input id="exploreAlpha" type="range" min="0.2" max="0.8" step="0.01" value="0.45" />
+          </div>
+
+          <div class="control-inline context-controls active" data-context="consumer">
+            <label for="exploreIncome">Income <span id="exploreIncomeValue" class="inline-value">120</span></label>
+            <input id="exploreIncome" type="range" min="60" max="220" step="5" value="120" />
+          </div>
+
+          <div class="control-inline context-controls active" data-context="consumer">
+            <label for="explorePxNew">New price of X <span id="explorePxNewValue" class="inline-value">2.5</span></label>
+            <input id="explorePxNew" type="range" min="1.2" max="6.5" step="0.1" value="2.5" />
+          </div>
+
+          <div class="control-inline context-controls" data-context="labour">
+            <label for="exploreV">Weekly non-labour income <span id="exploreVValue" class="inline-value">300</span></label>
+            <input id="exploreV" type="range" min="0" max="700" step="10" value="300" />
+          </div>
+
+          <div class="control-inline context-controls" data-context="labour">
+            <label for="exploreWOld">Old net wage <span id="exploreWOldValue" class="inline-value">22</span></label>
+            <input id="exploreWOld" type="range" min="12" max="40" step="0.5" value="22" />
+          </div>
+
+          <div class="control-inline context-controls" data-context="labour">
+            <label for="exploreWNew">New net wage <span id="exploreWNewValue" class="inline-value">30</span></label>
+            <input id="exploreWNew" type="range" min="12" max="40" step="0.5" value="30" />
+          </div>
+
+          <div class="control-inline context-controls" data-context="intertemporal">
+            <label for="exploreY1">Current-period endowment <span id="exploreY1Value" class="inline-value">60</span></label>
+            <input id="exploreY1" type="range" min="20" max="140" step="2" value="60" />
+          </div>
+
+          <div class="control-inline context-controls" data-context="intertemporal">
+            <label for="exploreY2">Future-period endowment <span id="exploreY2Value" class="inline-value">140</span></label>
+            <input id="exploreY2" type="range" min="20" max="180" step="2" value="140" />
+          </div>
+
+          <div class="control-inline context-controls" data-context="intertemporal">
+            <label for="exploreROld">Old interest rate <span id="exploreROldValue" class="inline-value">3%</span></label>
+            <input id="exploreROld" type="range" min="0" max="0.12" step="0.005" value="0.03" />
+          </div>
+
+          <div class="control-inline context-controls" data-context="intertemporal">
+            <label for="exploreRNew">New interest rate <span id="exploreRNewValue" class="inline-value">8%</span></label>
+            <input id="exploreRNew" type="range" min="0" max="0.12" step="0.005" value="0.08" />
+          </div>
+
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="exploreReset">Reset explore</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div>
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="mini-card">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line indifference"></span>Indifference curve</span>
+                <span class="legend-item"><span class="legend-line old-budget"></span>Old budget</span>
+                <span class="legend-item"><span class="legend-line new-budget"></span>New budget</span>
+                <span class="legend-item"><span class="legend-line comp-budget"></span>Compensated budget</span>
+                <span class="legend-item"><span class="legend-dot old"></span>Old optimum A</span>
+                <span class="legend-item"><span class="legend-dot comp"></span>Compensated optimum B</span>
+                <span class="legend-item"><span class="legend-dot new"></span>New optimum C</span>
+                <span class="legend-item" id="exploreEndowmentLegend" style="display:none;"><span class="legend-dot endowment"></span>Endowment point E</span>
+              </div>
+              <div id="exploreGraphNote" class="graph-note"></div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="metrics-panel">
+              <div class="status-title">Live decomposition summary</div>
+              <div class="metric-grid three">
+                <div class="metric-item">
+                  <div class="metric-label">Old optimum A</div>
+                  <div id="exploreOldBundle" class="metric-value small">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Compensated optimum B</div>
+                  <div id="exploreCompBundle" class="metric-value small">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">New optimum C</div>
+                  <div id="exploreNewBundle" class="metric-value small">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="status-title">Effects on the x-axis variable</div>
+              <div class="metric-grid three">
+                <div class="metric-item">
+                  <div class="metric-label">Substitution effect</div>
+                  <div id="exploreSubX" class="metric-value tiny">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Income effect</div>
+                  <div id="exploreIncX" class="metric-value tiny">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Total effect</div>
+                  <div id="exploreTotX" class="metric-value tiny">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="status-title">Effects on the y-axis variable</div>
+              <div class="metric-grid three">
+                <div class="metric-item">
+                  <div class="metric-label">Substitution effect</div>
+                  <div id="exploreSubY" class="metric-value tiny">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Income effect</div>
+                  <div id="exploreIncY" class="metric-value tiny">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Total effect</div>
+                  <div id="exploreTotY" class="metric-value tiny">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="exploreInterpretation" class="feedback-panel feedback-neutral"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="summary-strip">
+          <span class="summary-chip">Direction-only decomposition practice</span>
+          <span class="summary-chip">Consumer, labour–leisure, intertemporal settings</span>
+          <span class="summary-chip">Reveal compensated line after checking</span>
+        </div>
+
+        <div class="control-panel">
+          <div class="control-inline">
+            <label for="practiceScenario">Scenario</label>
+            <select id="practiceScenario"></select>
+          </div>
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceRandom">Random scenario</button>
+          </div>
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="practiceReset">Reset answers</button>
+          </div>
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="practiceCheck">Check answer</button>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div>
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="mini-card">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line old-budget"></span>Old budget</span>
+                <span class="legend-item"><span class="legend-line new-budget"></span>New budget</span>
+                <span class="legend-item"><span class="legend-line comp-budget"></span>Revealed compensated budget</span>
+                <span class="legend-item"><span class="legend-dot old"></span>Old optimum A</span>
+                <span class="legend-item"><span class="legend-dot comp"></span>Revealed B</span>
+                <span class="legend-item"><span class="legend-dot new"></span>Revealed C</span>
+              </div>
+              <div id="practiceGraphNote" class="graph-note"></div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="feedback-panel feedback-neutral" id="practicePrompt"></div>
+
+            <div class="mini-card">
+              <div class="mini-card-title">Your answers</div>
+              <div class="answer-grid">
+                <div class="answer-card">
+                  <label id="practiceAnswer1Label" for="practiceAnswer1">Substitution effect on x-axis variable</label>
+                  <select id="practiceAnswer1">
+                    <option value="">Choose</option>
+                    <option value="increase">Increase</option>
+                    <option value="decrease">Decrease</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label id="practiceAnswer2Label" for="practiceAnswer2">Income effect on x-axis variable</label>
+                  <select id="practiceAnswer2">
+                    <option value="">Choose</option>
+                    <option value="increase">Increase</option>
+                    <option value="decrease">Decrease</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+                <div class="answer-card">
+                  <label id="practiceAnswer3Label" for="practiceAnswer3">Total effect on x-axis variable</label>
+                  <select id="practiceAnswer3">
+                    <option value="">Choose</option>
+                    <option value="increase">Increase</option>
+                    <option value="decrease">Decrease</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="practiceFeedback" class="feedback-box">Choose a scenario, answer the three direction questions, then press “Check answer”.</div>
+
+            <div class="metrics-panel">
+              <div class="status-title">Revealed numeric effects after checking</div>
+              <div class="metric-grid three">
+                <div class="metric-item">
+                  <div class="metric-label">Substitution effect</div>
+                  <div id="practiceSubEffect" class="metric-value tiny">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Income effect</div>
+                  <div id="practiceIncomeEffect" class="metric-value tiny">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Total effect</div>
+                  <div id="practiceTotalEffect" class="metric-value tiny">—</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="summary-strip">
+          <span class="summary-chip">Australia’s July 2024 tax-cut redesign</span>
+          <span class="summary-chip">Labour–leisure application</span>
+          <span class="summary-chip">Bracket-specific mix of substitution and income effects</span>
+        </div>
+
+        <div class="note-callout">
+          This case study uses the July 2024 Australian personal income tax changes as a labour–leisure example. The graph linearises the progressive tax schedule around the selected worker’s income bracket: the slope reflects the marginal after-tax wage, and the intercept is adjusted so the new line matches the official weekly tax saving at 40 hours of work.
+        </div>
+
+        <div class="control-panel">
+          <div class="control-inline small">
+            <label for="caseMode">Decomposition</label>
+            <select id="caseMode">
+              <option value="hicks">Hicks</option>
+              <option value="slutsky">Slutsky</option>
+            </select>
+          </div>
+          <div class="control-inline small">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="caseReset">Reset case</button>
+          </div>
+        </div>
+
+        <div class="income-row" id="caseIncomeRow"></div>
+        <div class="step-row" id="caseStepRow"></div>
+
+        <div class="workspace">
+          <div>
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="mini-card">
+              <div class="legend-row">
+                <span class="legend-item"><span class="legend-line old-budget"></span>2023–24 line</span>
+                <span class="legend-item"><span class="legend-line new-budget"></span>2024–25 line</span>
+                <span class="legend-item"><span class="legend-line comp-budget"></span>Compensated line</span>
+                <span class="legend-item"><span class="legend-dot old"></span>Old optimum A</span>
+                <span class="legend-item"><span class="legend-dot comp"></span>Compensated B</span>
+                <span class="legend-item"><span class="legend-dot new"></span>New optimum C</span>
+              </div>
+              <div id="caseGraphNote" class="graph-note"></div>
+            </div>
+          </div>
+
+          <div class="side-stack">
+            <div class="metrics-panel">
+              <div class="status-title">Selected worker</div>
+              <div class="metric-grid two">
+                <div class="metric-item">
+                  <div class="metric-label">Annual taxable income</div>
+                  <div id="caseIncomeMetric" class="metric-value small">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Official annual tax cut</div>
+                  <div id="caseTaxCutMetric" class="metric-value small">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Old marginal tax rate</div>
+                  <div id="caseOldRateMetric" class="metric-value small">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">New marginal tax rate</div>
+                  <div id="caseNewRateMetric" class="metric-value small">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Old net hourly wage</div>
+                  <div id="caseOldWageMetric" class="metric-value small">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">New net hourly wage</div>
+                  <div id="caseNewWageMetric" class="metric-value small">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="status-title">Decomposition on leisure</div>
+              <div class="metric-grid three">
+                <div class="metric-item">
+                  <div class="metric-label">Substitution effect</div>
+                  <div id="caseSubEffect" class="metric-value tiny">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Income effect</div>
+                  <div id="caseIncomeEffect" class="metric-value tiny">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Total effect</div>
+                  <div id="caseTotalEffect" class="metric-value tiny">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div id="caseNarrative" class="feedback-panel feedback-neutral"></div>
+          </div>
+        </div>
+
+        <div class="chart-grid two">
+          <div class="mini-card">
+            <div class="mini-card-title">Official annual tax cuts by worker income</div>
+            <canvas id="caseBarCanvas" class="graph-canvas" width="960" height="420"></canvas>
+            <div class="footer-note">The bar chart uses the official annual tax-cut figures published by the Treasury fact sheet for selected incomes.</div>
+          </div>
+
+          <div class="mini-card">
+            <div class="mini-card-title">Policy facts used in this case</div>
+            <ul class="data-list">
+              <li><strong>Rates from 1 July 2024:</strong> 19% fell to 16%; 32.5% fell to 30%; the 37% threshold rose to $135,000; the 45% threshold rose to $190,000.</li>
+              <li><strong>Coverage:</strong> 13.6 million taxpayers received a cut from 2024–25 onward.</li>
+              <li><strong>Examples:</strong> the official annual tax cut is $804 at $45,000, $1,554 at $75,000, $2,179 at $100,000, and $3,729 at $150,000.</li>
+              <li><strong>Labour-supply estimate:</strong> Treasury estimated the redesign would lift labour supply by about 930,000 hours per week, or 0.25%.</li>
+              <li><strong>Labour-market context in July 2024:</strong> ABS reported a 67.1% participation rate and 1,961 million seasonally adjusted monthly hours worked.</li>
+            </ul>
+            <table class="policy-table">
+              <thead>
+                <tr>
+                  <th>Income</th>
+                  <th>Old MTR</th>
+                  <th>New MTR</th>
+                  <th>Annual cut</th>
+                </tr>
+              </thead>
+              <tbody id="casePolicyTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    const exploreCanvas = document.getElementById('exploreCanvas');
+    const practiceCanvas = document.getElementById('practiceCanvas');
+    const caseCanvas = document.getElementById('caseCanvas');
+    const caseBarCanvas = document.getElementById('caseBarCanvas');
+
+    const exploreCtx = exploreCanvas.getContext('2d');
+    const practiceCtx = practiceCanvas.getContext('2d');
+    const caseCtx = caseCanvas.getContext('2d');
+    const caseBarCtx = caseBarCanvas.getContext('2d');
+
+    const TAU = Math.PI * 2;
+    const BASE_COLORS = {
+      indifference: ECON_THEME.color.demand,
+      oldBudget: ECON_THEME.color.baseline,
+      newBudget: ECON_THEME.color.longRun,
+      compBudget: ECON_THEME.color.government,
+      effect: ECON_THEME.color.output,
+      endowment: ECON_THEME.color.external
+    };
+
+    const caseData = [
+      { id: 'i45', income: 45000, taxCut: 804, oldRate: 0.19, newRate: 0.16, title: '$45,000 worker' },
+      { id: 'i75', income: 75000, taxCut: 1554, oldRate: 0.325, newRate: 0.30, title: '$75,000 worker' },
+      { id: 'i100', income: 100000, taxCut: 2179, oldRate: 0.325, newRate: 0.30, title: '$100,000 worker' },
+      { id: 'i150', income: 150000, taxCut: 3729, oldRate: 0.37, newRate: 0.37, title: '$150,000 worker' }
+    ];
+
+    const caseSteps = [
+      { id: 'baseline', title: '1. Baseline 2023–24' },
+      { id: 'policy', title: '2. New 2024–25 line' },
+      { id: 'decomposition', title: '3. Decomposition' },
+      { id: 'aggregate', title: '4. Aggregate lesson' }
+    ];
+
+    const practiceScenarios = [
+      {
+        id: 'consumer_price_fall',
+        title: 'Consumer bundle: X becomes cheaper',
+        context: 'consumer',
+        alpha: 0.46,
+        mode: 'hicks',
+        params: { income: 120, newPrice: 2.0 },
+        prompt: 'The price of X falls while money income stays fixed. Focus on the x-axis good, X.',
+        labels: ['Substitution effect on X', 'Income effect on X', 'Total effect on X']
+      },
+      {
+        id: 'consumer_price_rise',
+        title: 'Consumer bundle: X becomes dearer',
+        context: 'consumer',
+        alpha: 0.46,
+        mode: 'slutsky',
+        params: { income: 120, newPrice: 5.5 },
+        prompt: 'The price of X rises while money income stays fixed. Focus on the x-axis good, X.',
+        labels: ['Substitution effect on X', 'Income effect on X', 'Total effect on X']
+      },
+      {
+        id: 'labour_wage_rise',
+        title: 'Labour–leisure: net wage rises',
+        context: 'labour',
+        alpha: 0.45,
+        mode: 'hicks',
+        params: { V: 300, wOld: 22, wNew: 30 },
+        prompt: 'A worker faces a higher net wage with positive non-labour income. Focus on leisure on the x-axis.',
+        labels: ['Substitution effect on leisure', 'Income effect on leisure', 'Total effect on leisure']
+      },
+      {
+        id: 'labour_wage_fall',
+        title: 'Labour–leisure: net wage falls',
+        context: 'labour',
+        alpha: 0.45,
+        mode: 'slutsky',
+        params: { V: 280, wOld: 30, wNew: 20 },
+        prompt: 'A worker faces a lower net wage with positive non-labour income. Focus on leisure on the x-axis.',
+        labels: ['Substitution effect on leisure', 'Income effect on leisure', 'Total effect on leisure']
+      },
+      {
+        id: 'inter_saver',
+        title: 'Intertemporal: interest rate rises for a saver',
+        context: 'intertemporal',
+        alpha: 0.60,
+        mode: 'hicks',
+        params: { y1: 80, y2: 20, rOld: 0.03, rNew: 0.08 },
+        prompt: 'The real interest rate rises. The household is initially a saver. Focus on current consumption on the x-axis.',
+        labels: ['Substitution effect on current consumption', 'Income effect on current consumption', 'Total effect on current consumption']
+      },
+      {
+        id: 'inter_borrower',
+        title: 'Intertemporal: interest rate rises for a borrower',
+        context: 'intertemporal',
+        alpha: 0.60,
+        mode: 'hicks',
+        params: { y1: 40, y2: 90, rOld: 0.03, rNew: 0.08 },
+        prompt: 'The real interest rate rises. The household is initially a borrower. Focus on current consumption on the x-axis.',
+        labels: ['Substitution effect on current consumption', 'Income effect on current consumption', 'Total effect on current consumption']
+      }
+    ];
+
+    const exploreState = {
+      context: 'consumer',
+      mode: 'hicks',
+      alpha: 0.45,
+      income: 120,
+      newPrice: 2.5,
+      V: 300,
+      wOld: 22,
+      wNew: 30,
+      y1: 60,
+      y2: 140,
+      rOld: 0.03,
+      rNew: 0.08
+    };
+
+    const practiceState = {
+      scenarioId: practiceScenarios[0].id,
+      revealed: false
+    };
+
+    const caseState = {
+      incomeId: 'i75',
+      mode: 'hicks',
+      step: 'baseline'
+    };
+
+    function formatNumber(value, digits = 2) {
+      if (!Number.isFinite(value)) return '—';
+      const rounded = Math.abs(value) < 1e-9 ? 0 : value;
+      return rounded.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: digits });
+    }
+
+    function formatMoney(value, digits = 2) {
+      return '$' + formatNumber(value, digits);
+    }
+
+    function formatPct(value, digits = 1) {
+      return formatNumber(value * 100, digits) + '%';
+    }
+
+    function signWord(value, tol = 0.03) {
+      if (value > tol) return 'increase';
+      if (value < -tol) return 'decrease';
+      return 'unchanged';
+    }
+
+    function signedText(value, digits = 2) {
+      const rounded = Math.abs(value) < 1e-9 ? 0 : value;
+      const prefix = rounded > 0 ? '+' : '';
+      return prefix + formatNumber(rounded, digits);
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function marshallian(alpha, p1, p2, income) {
+      return {
+        x: alpha * income / p1,
+        y: (1 - alpha) * income / p2
+      };
+    }
+
+    function utility(alpha, x, y) {
+      return Math.pow(Math.max(x, 1e-9), alpha) * Math.pow(Math.max(y, 1e-9), 1 - alpha);
+    }
+
+    function hicksian(alpha, p1, p2, baseUtility) {
+      const expenditure = baseUtility * Math.pow(p1 / alpha, alpha) * Math.pow(p2 / (1 - alpha), 1 - alpha);
+      return {
+        x: alpha * expenditure / p1,
+        y: (1 - alpha) * expenditure / p2,
+        income: expenditure
+      };
+    }
+
+    function computeTwoGoodModel({ alpha, p1Old, p2Old, incomeOld, p1New, p2New, incomeNew, mode }) {
+      const oldOpt = marshallian(alpha, p1Old, p2Old, incomeOld);
+      const oldUtility = utility(alpha, oldOpt.x, oldOpt.y);
+      const newOpt = marshallian(alpha, p1New, p2New, incomeNew);
+
+      let compIncome;
+      let compOpt;
+      if (mode === 'slutsky') {
+        compIncome = p1New * oldOpt.x + p2New * oldOpt.y;
+        compOpt = marshallian(alpha, p1New, p2New, compIncome);
+      } else {
+        compOpt = hicksian(alpha, p1New, p2New, oldUtility);
+        compIncome = compOpt.income;
+      }
+
+      return {
+        alpha,
+        oldOpt,
+        newOpt,
+        compOpt,
+        oldUtility,
+        compIncome,
+        effects: {
+          dxSub: compOpt.x - oldOpt.x,
+          dxIncome: newOpt.x - compOpt.x,
+          dxTotal: newOpt.x - oldOpt.x,
+          dySub: compOpt.y - oldOpt.y,
+          dyIncome: newOpt.y - compOpt.y,
+          dyTotal: newOpt.y - oldOpt.y
+        },
+        lines: {
+          old: { p1: p1Old, p2: p2Old, income: incomeOld },
+          new: { p1: p1New, p2: p2New, income: incomeNew },
+          comp: { p1: p1New, p2: p2New, income: compIncome }
+        }
+      };
+    }
+
+    function getExploreConfig() {
+      const alpha = exploreState.alpha;
+      if (exploreState.context === 'consumer') {
+        const p1Old = 4;
+        const p2Old = 1;
+        const p1New = exploreState.newPrice;
+        const p2New = 1;
+        const income = exploreState.income;
+        return {
+          context: 'consumer',
+          axis: { x: 'Quantity of X', y: 'Quantity of Y' },
+          names: { x: 'X', y: 'Y' },
+          note: 'The price of X changes while nominal income stays fixed. A flatter new budget line means X is cheaper; a steeper new line means X is dearer.',
+          model: computeTwoGoodModel({ alpha, p1Old, p2Old, incomeOld: income, p1New, p2New, incomeNew: income, mode: exploreState.mode }),
+          xMaxHint: Math.max(income / p1Old, income / p1New) * 1.15,
+          yMaxHint: income / p2Old * 1.15,
+          explain: `Old budget: ${formatMoney(income)} = 4·X + 1·Y. New budget: ${formatMoney(income)} = ${formatNumber(p1New, 1)}·X + 1·Y.`
+        };
+      }
+      if (exploreState.context === 'labour') {
+        const T = 80;
+        const V = exploreState.V;
+        const wOld = exploreState.wOld;
+        const wNew = exploreState.wNew;
+        return {
+          context: 'labour',
+          axis: { x: 'Leisure hours per week', y: 'Weekly consumption' },
+          names: { x: 'Leisure', y: 'Consumption' },
+          note: 'A higher wage makes leisure more expensive in forgone consumption. The old and new lines show the worker’s consumption-leisure trade-off over an 80-hour weekly discretionary time endowment.',
+          model: computeTwoGoodModel({ alpha, p1Old: wOld, p2Old: 1, incomeOld: V + wOld * T, p1New: wNew, p2New: 1, incomeNew: V + wNew * T, mode: exploreState.mode }),
+          xMaxHint: T,
+          yMaxHint: Math.max(V + wOld * T, V + wNew * T) * 1.1,
+          labourEndowment: T,
+          explain: `Budget lines take the form C = V + w(T − leisure). Here T = 80, V = ${formatMoney(V)}, old net wage = ${formatMoney(wOld)}, new net wage = ${formatMoney(wNew)}.`
+        };
+      }
+
+      const y1 = exploreState.y1;
+      const y2 = exploreState.y2;
+      const rOld = exploreState.rOld;
+      const rNew = exploreState.rNew;
+      const p2Old = 1 / (1 + rOld);
+      const p2New = 1 / (1 + rNew);
+      return {
+        context: 'intertemporal',
+        axis: { x: 'Current consumption', y: 'Future consumption' },
+        names: { x: 'Current consumption', y: 'Future consumption' },
+        note: 'The endowment point E shows income before trading across time. When the interest rate changes, the budget line pivots through E and the compensated line isolates the pure substitution effect.',
+        model: computeTwoGoodModel({ alpha, p1Old: 1, p2Old, incomeOld: y1 + p2Old * y2, p1New: 1, p2New, incomeNew: y1 + p2New * y2, mode: exploreState.mode }),
+        xMaxHint: Math.max(y1 + p2Old * y2, y1 + p2New * y2) * 1.18,
+        yMaxHint: Math.max(y2 + (1 + rOld) * y1, y2 + (1 + rNew) * y1) * 1.15,
+        endowment: { x: y1, y: y2 },
+        explain: `The budget line is c₁ + c₂/(1+r) = y₁ + y₂/(1+r). Old r = ${formatPct(rOld, 1)}; new r = ${formatPct(rNew, 1)}.`
+      };
+    }
+
+    function getPracticeScenario() {
+      return practiceScenarios.find((scenario) => scenario.id === practiceState.scenarioId) || practiceScenarios[0];
+    }
+
+    function getScenarioConfig(scenario) {
+      if (scenario.context === 'consumer') {
+        const income = scenario.params.income;
+        const p1Old = 4;
+        const p2Old = 1;
+        const p1New = scenario.params.newPrice;
+        return {
+          context: 'consumer',
+          axis: { x: 'Quantity of X', y: 'Quantity of Y' },
+          names: { x: 'X', y: 'Y' },
+          note: 'In practice mode the compensated line and the new optimum are revealed only after checking.',
+          model: computeTwoGoodModel({ alpha: scenario.alpha, p1Old, p2Old, incomeOld: income, p1New, p2New: 1, incomeNew: income, mode: scenario.mode }),
+          xMaxHint: Math.max(income / p1Old, income / p1New) * 1.15,
+          yMaxHint: income * 1.15,
+          endowment: null
+        };
+      }
+      if (scenario.context === 'labour') {
+        const T = 80;
+        const { V, wOld, wNew } = scenario.params;
+        return {
+          context: 'labour',
+          axis: { x: 'Leisure hours per week', y: 'Weekly consumption' },
+          names: { x: 'Leisure', y: 'Consumption' },
+          note: 'A higher wage makes leisure more expensive; a lower wage makes leisure cheaper.',
+          model: computeTwoGoodModel({ alpha: scenario.alpha, p1Old: wOld, p2Old: 1, incomeOld: V + wOld * T, p1New: wNew, p2New: 1, incomeNew: V + wNew * T, mode: scenario.mode }),
+          xMaxHint: T,
+          yMaxHint: Math.max(V + wOld * T, V + wNew * T) * 1.1,
+          labourEndowment: T,
+          endowment: null
+        };
+      }
+      const { y1, y2, rOld, rNew } = scenario.params;
+      const p2Old = 1 / (1 + rOld);
+      const p2New = 1 / (1 + rNew);
+      return {
+        context: 'intertemporal',
+        axis: { x: 'Current consumption', y: 'Future consumption' },
+        names: { x: 'Current consumption', y: 'Future consumption' },
+        note: 'The budget line pivots around the endowment point when the interest rate changes.',
+        model: computeTwoGoodModel({ alpha: scenario.alpha, p1Old: 1, p2Old, incomeOld: y1 + p2Old * y2, p1New: 1, p2New, incomeNew: y1 + p2New * y2, mode: scenario.mode }),
+        xMaxHint: Math.max(y1 + p2Old * y2, y1 + p2New * y2) * 1.18,
+        yMaxHint: Math.max(y2 + (1 + rOld) * y1, y2 + (1 + rNew) * y1) * 1.15,
+        endowment: { x: y1, y: y2 }
+      };
+    }
+
+    function getCaseConfig() {
+      const selected = caseData.find((item) => item.id === caseState.incomeId) || caseData[1];
+      const T = 80;
+      const hoursBase = 40;
+      const V0 = 260;
+      const grossHourly = selected.income / 52 / hoursBase;
+      const oldNet = grossHourly * (1 - selected.oldRate);
+      const newNet = grossHourly * (1 - selected.newRate);
+      const weeklyCut = selected.taxCut / 52;
+      const V1 = V0 + weeklyCut - (newNet - oldNet) * hoursBase;
+      const alpha = 0.45;
+      const model = computeTwoGoodModel({
+        alpha,
+        p1Old: oldNet,
+        p2Old: 1,
+        incomeOld: V0 + oldNet * T,
+        p1New: newNet,
+        p2New: 1,
+        incomeNew: V1 + newNet * T,
+        mode: caseState.mode
+      });
+      return {
+        context: 'labour',
+        axis: { x: 'Leisure hours per week', y: 'Weekly disposable consumption' },
+        names: { x: 'Leisure', y: 'Consumption' },
+        note: 'This is a local labour–leisure approximation around a 40-hour work week. The slope uses the worker’s bracket-specific marginal after-tax wage and the intercept is adjusted to match the official tax saving at 40 hours.',
+        xMaxHint: T,
+        yMaxHint: Math.max(V0 + oldNet * T, V1 + newNet * T) * 1.12,
+        labourEndowment: T,
+        selected,
+        hoursBase,
+        weeklyCut,
+        grossHourly,
+        oldNet,
+        newNet,
+        V0,
+        V1,
+        model
+      };
+    }
+
+    function makeTicks(maxValue, axis, min = 0) {
+      const ticks = [];
+      const plotMax = maxValue;
+      for (let i = 0; i <= 5; i += 1) {
+        const value = min + (i / 5) * (plotMax - min);
+        ticks.push({
+          label: plotMax > 20 ? formatNumber(value, 0) : formatNumber(value, 1),
+          x: axis === 'x' ? EconDraw.valueToX(value, min, plotMax) : undefined,
+          y: axis === 'y' ? EconDraw.valueToY(value, min, plotMax) : undefined
+        });
+      }
+      return ticks;
+    }
+
+    function buildLinePoints(line, xMax, yMax, steps = 80) {
+      const points = [];
+      const xIntercept = line.income / line.p1;
+      const yIntercept = line.income / line.p2;
+      const maxX = Math.min(xIntercept, xMax);
+      for (let i = 0; i <= steps; i += 1) {
+        const x = (i / steps) * maxX;
+        const y = (line.income - line.p1 * x) / line.p2;
+        if (y >= -1e-6 && y <= yMax * 1.1) {
+          points.push({
+            x: EconDraw.valueToX(x, 0, xMax),
+            y: EconDraw.valueToY(y, 0, yMax)
+          });
+        }
+      }
+      if (!points.length) {
+        points.push(
+          { x: EconDraw.valueToX(0, 0, xMax), y: EconDraw.valueToY(yIntercept, 0, yMax) },
+          { x: EconDraw.valueToX(Math.min(xIntercept, xMax), 0, xMax), y: EconDraw.valueToY(0, 0, yMax) }
+        );
+      }
+      return points;
+    }
+
+    function buildIndifferencePoints(alpha, utilityLevel, xMax, yMax, steps = 260) {
+      const points = [];
+      const minX = Math.max(0.001, xMax / 500);
+      for (let i = 1; i <= steps; i += 1) {
+        const x = minX + (i / steps) * (xMax - minX);
+        const y = Math.pow(utilityLevel / Math.pow(x, alpha), 1 / (1 - alpha));
+        if (Number.isFinite(y) && y >= 0 && y <= yMax * 1.05) {
+          points.push({
+            x: EconDraw.valueToX(x, 0, xMax),
+            y: EconDraw.valueToY(y, 0, yMax)
+          });
+        }
+      }
+      return points;
+    }
+
+    function drawArrow(ctx, fromX, fromY, toX, toY, color) {
+      const head = 7;
+      const angle = Math.atan2(toY - fromY, toX - fromX);
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(toX, toY);
+      ctx.lineTo(toX - head * Math.cos(angle - Math.PI / 6), toY - head * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(toX - head * Math.cos(angle + Math.PI / 6), toY - head * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawPointLabel(ctx, x, y, label, color, fill = null) {
+      EconDraw.drawCircle(ctx, x, y, {
+        stroke: color,
+        fill: fill || '#ffffff',
+        radius: 5,
+        lineWidth: 2
+      });
+      EconDraw.drawText(ctx, label, x + 8, y - 10, {
+        color,
+        size: 13,
+        weight: '600'
+      });
+    }
+
+    function effectDescriptor(delta, variableName) {
+      const word = signWord(delta);
+      if (word === 'increase') return `${variableName} increases by ${formatNumber(Math.abs(delta), 2)}`;
+      if (word === 'decrease') return `${variableName} decreases by ${formatNumber(Math.abs(delta), 2)}`;
+      return `${variableName} is unchanged`;
+    }
+
+    function drawDecompositionGraph(ctx, config, options = {}) {
+      const canvas = ctx.canvas;
+      const plot = EconDraw.getPlotArea();
+      const model = config.model;
+      const xMax = options.xMax || Math.max(config.xMaxHint, model.oldOpt.x, model.newOpt.x, model.compOpt.x) * 1.02;
+      const yMax = options.yMax || Math.max(config.yMaxHint, model.oldOpt.y, model.newOpt.y, model.compOpt.y) * 1.02;
+      const showComp = options.showComp !== false;
+      const showNewLine = options.showNewLine !== false;
+      const showNewPoint = options.showNewPoint !== false;
+      const showOldIndifference = options.showOldIndifference !== false;
+      const showNewIndifference = options.showNewIndifference !== false;
+      const showEffects = options.showEffects !== false;
+      const lineLabelOld = options.oldLabel || 'B₀';
+      const lineLabelNew = options.newLabel || 'B₁';
+      const lineLabelComp = options.compLabel || 'Bᶜ';
+
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+      EconDraw.drawAxes(ctx, {
+        xLabel: config.axis.x,
+        yLabel: config.axis.y,
+        xTicks: makeTicks(xMax, 'x'),
+        yTicks: makeTicks(yMax, 'y')
+      });
+
+      const oldCurve = buildLinePoints(model.lines.old, xMax, yMax);
+      const newCurve = buildLinePoints(model.lines.new, xMax, yMax);
+      const compCurve = buildLinePoints(model.lines.comp, xMax, yMax);
+
+      if (showOldIndifference) {
+        EconDraw.drawLine(ctx, buildIndifferencePoints(model.alpha, model.oldUtility, xMax, yMax), {
+          color: BASE_COLORS.indifference,
+          lineWidth: 2
+        });
+      }
+      if (showNewIndifference) {
+        EconDraw.drawLine(ctx, buildIndifferencePoints(model.alpha, utility(model.alpha, model.newOpt.x, model.newOpt.y), xMax, yMax), {
+          color: 'rgba(47,107,255,0.35)',
+          lineWidth: 2
+        });
+      }
+
+      EconDraw.drawLine(ctx, oldCurve, {
+        color: BASE_COLORS.oldBudget,
+        lineWidth: 2,
+        dash: ECON_THEME.dash.baseline
+      });
+      EconDraw.drawText(ctx, lineLabelOld, oldCurve[8]?.x || oldCurve[0].x + 12, oldCurve[8]?.y || oldCurve[0].y - 6, {
+        color: BASE_COLORS.oldBudget,
+        size: 12,
+        weight: '600'
+      });
+
+      if (showNewLine) {
+        EconDraw.drawLine(ctx, newCurve, {
+          color: BASE_COLORS.newBudget,
+          lineWidth: 3
+        });
+        EconDraw.drawText(ctx, lineLabelNew, newCurve[8]?.x || newCurve[0].x + 12, newCurve[8]?.y || newCurve[0].y - 6, {
+          color: BASE_COLORS.newBudget,
+          size: 12,
+          weight: '600'
+        });
+      }
+
+      if (showComp) {
+        EconDraw.drawLine(ctx, compCurve, {
+          color: BASE_COLORS.compBudget,
+          lineWidth: 2,
+          dash: ECON_THEME.dash.policy
+        });
+        EconDraw.drawText(ctx, lineLabelComp, compCurve[12]?.x || compCurve[0].x + 12, compCurve[12]?.y || compCurve[0].y - 8, {
+          color: BASE_COLORS.compBudget,
+          size: 12,
+          weight: '600'
+        });
+      }
+
+      const oldPx = EconDraw.valueToX(model.oldOpt.x, 0, xMax);
+      const oldPy = EconDraw.valueToY(model.oldOpt.y, 0, yMax);
+      const compPx = EconDraw.valueToX(model.compOpt.x, 0, xMax);
+      const compPy = EconDraw.valueToY(model.compOpt.y, 0, yMax);
+      const newPx = EconDraw.valueToX(model.newOpt.x, 0, xMax);
+      const newPy = EconDraw.valueToY(model.newOpt.y, 0, yMax);
+
+      drawPointLabel(ctx, oldPx, oldPy, 'A', BASE_COLORS.oldBudget);
+      if (showComp) drawPointLabel(ctx, compPx, compPy, 'B', BASE_COLORS.compBudget, BASE_COLORS.compBudget);
+      if (showNewPoint) drawPointLabel(ctx, newPx, newPy, 'C', ECON_THEME.color.output, ECON_THEME.color.output);
+
+      if (config.endowment) {
+        const ex = EconDraw.valueToX(config.endowment.x, 0, xMax);
+        const ey = EconDraw.valueToY(config.endowment.y, 0, yMax);
+        drawPointLabel(ctx, ex, ey, 'E', BASE_COLORS.endowment);
+      }
+
+      if (showEffects) {
+        const arrowY = plot.bottom - 28;
+        drawArrow(ctx, oldPx, arrowY, compPx, arrowY, BASE_COLORS.compBudget);
+        drawArrow(ctx, compPx, arrowY, newPx, arrowY, ECON_THEME.color.output);
+        EconDraw.drawText(ctx, 'SE', (oldPx + compPx) / 2, arrowY - 10, {
+          color: BASE_COLORS.compBudget,
+          size: 12,
+          weight: '600',
+          align: 'center'
+        });
+        EconDraw.drawText(ctx, 'IE', (compPx + newPx) / 2, arrowY - 10, {
+          color: ECON_THEME.color.output,
+          size: 12,
+          weight: '600',
+          align: 'center'
+        });
+      }
+
+      if (options.title) {
+        EconDraw.drawText(ctx, options.title, 92, 38, {
+          color: ECON_THEME.color.muted,
+          size: 13
+        });
+      }
+
+      return { xMax, yMax };
+    }
+
+    function updateExplorePanel(config) {
+      const model = config.model;
+      document.getElementById('exploreOldBundle').textContent = `${config.names.x}: ${formatNumber(model.oldOpt.x, 2)} | ${config.names.y}: ${formatNumber(model.oldOpt.y, 2)}`;
+      document.getElementById('exploreCompBundle').textContent = `${config.names.x}: ${formatNumber(model.compOpt.x, 2)} | ${config.names.y}: ${formatNumber(model.compOpt.y, 2)}`;
+      document.getElementById('exploreNewBundle').textContent = `${config.names.x}: ${formatNumber(model.newOpt.x, 2)} | ${config.names.y}: ${formatNumber(model.newOpt.y, 2)}`;
+
+      document.getElementById('exploreSubX').textContent = effectDescriptor(model.effects.dxSub, config.names.x);
+      document.getElementById('exploreIncX').textContent = effectDescriptor(model.effects.dxIncome, config.names.x);
+      document.getElementById('exploreTotX').textContent = effectDescriptor(model.effects.dxTotal, config.names.x);
+      document.getElementById('exploreSubY').textContent = effectDescriptor(model.effects.dySub, config.names.y);
+      document.getElementById('exploreIncY').textContent = effectDescriptor(model.effects.dyIncome, config.names.y);
+      document.getElementById('exploreTotY').textContent = effectDescriptor(model.effects.dyTotal, config.names.y);
+
+      const contextExplanation = config.context === 'consumer'
+        ? `Because the utility function is smooth and convex, the compensated bundle B isolates the pure relative-price response. In this consumer setting the x-axis good behaves as a normal good, so the income effect reinforces the substitution effect when X becomes cheaper and works against it when X becomes dearer.`
+        : config.context === 'labour'
+          ? `Here the x-axis variable is leisure, so a wage rise makes leisure more expensive in opportunity-cost terms. The substitution effect moves toward less leisure and more work, while the income effect can push back toward more leisure. That is why total labour-supply responses can be ambiguous in theory.`
+          : `For intertemporal choice, the budget line pivots through the endowment point. The substitution effect always favours the period that becomes relatively cheaper, while the income effect depends on whether the household starts as a saver or a borrower.`;
+
+      const extra = config.context === 'intertemporal'
+        ? (() => {
+            const saver = model.oldOpt.x < config.endowment.x;
+            return ` The initial optimum lies ${saver ? 'to the left' : 'to the right'} of the endowment point, so the household is initially a ${saver ? 'saver' : 'borrower'}.`;
+          })()
+        : config.context === 'labour'
+          ? (() => {
+              const T = config.labourEndowment;
+              return ` Old labour hours are ${formatNumber(T - model.oldOpt.x, 2)}, and new labour hours are ${formatNumber(T - model.newOpt.x, 2)}.`;
+            })()
+          : '';
+
+      document.getElementById('exploreInterpretation').textContent = `${config.explain} ${contextExplanation}${extra}`;
+      document.getElementById('exploreGraphNote').textContent = `${config.note} ${exploreState.mode === 'hicks' ? 'Hicks keeps utility constant when constructing the compensated line.' : 'Slutsky keeps the original bundle just affordable when constructing the compensated line.'}`;
+      document.getElementById('exploreEndowmentLegend').style.display = config.context === 'intertemporal' ? 'inline-flex' : 'none';
+    }
+
+    function renderExplore() {
+      const config = getExploreConfig();
+      drawDecompositionGraph(exploreCtx, config, {
+        showNewLine: true,
+        showNewPoint: true,
+        title: exploreState.context === 'consumer'
+          ? 'Old, new, and compensated budget sets'
+          : exploreState.context === 'labour'
+            ? 'Wage change and labour–leisure decomposition'
+            : 'Interest-rate change and intertemporal decomposition'
+      });
+      updateExplorePanel(config);
+    }
+
+    function setContextControls(context) {
+      document.querySelectorAll('.context-controls').forEach((node) => {
+        node.classList.toggle('active', node.dataset.context === context);
+      });
+    }
+
+    function bindExploreControls() {
+      const mappings = [
+        ['exploreAlpha', 'alpha', 'exploreAlphaValue', (v) => formatNumber(v, 2)],
+        ['exploreIncome', 'income', 'exploreIncomeValue', (v) => formatNumber(v, 0)],
+        ['explorePxNew', 'newPrice', 'explorePxNewValue', (v) => formatNumber(v, 1)],
+        ['exploreV', 'V', 'exploreVValue', (v) => formatNumber(v, 0)],
+        ['exploreWOld', 'wOld', 'exploreWOldValue', (v) => formatNumber(v, 1)],
+        ['exploreWNew', 'wNew', 'exploreWNewValue', (v) => formatNumber(v, 1)],
+        ['exploreY1', 'y1', 'exploreY1Value', (v) => formatNumber(v, 0)],
+        ['exploreY2', 'y2', 'exploreY2Value', (v) => formatNumber(v, 0)],
+        ['exploreROld', 'rOld', 'exploreROldValue', (v) => formatPct(v, 1)],
+        ['exploreRNew', 'rNew', 'exploreRNewValue', (v) => formatPct(v, 1)]
+      ];
+
+      mappings.forEach(([id, key, labelId, formatter]) => {
+        const el = document.getElementById(id);
+        const label = document.getElementById(labelId);
+        label.textContent = formatter(Number(el.value));
+        el.addEventListener('input', () => {
+          exploreState[key] = Number(el.value);
+          label.textContent = formatter(Number(el.value));
+          renderExplore();
+        });
+      });
+
+      document.getElementById('exploreContext').addEventListener('change', (event) => {
+        exploreState.context = event.target.value;
+        setContextControls(exploreState.context);
+        renderExplore();
+      });
+
+      document.getElementById('exploreDecomp').addEventListener('change', (event) => {
+        exploreState.mode = event.target.value;
+        renderExplore();
+      });
+
+      document.getElementById('exploreReset').addEventListener('click', () => {
+        Object.assign(exploreState, {
+          context: 'consumer',
+          mode: 'hicks',
+          alpha: 0.45,
+          income: 120,
+          newPrice: 2.5,
+          V: 300,
+          wOld: 22,
+          wNew: 30,
+          y1: 60,
+          y2: 140,
+          rOld: 0.03,
+          rNew: 0.08
+        });
+        document.getElementById('exploreContext').value = 'consumer';
+        document.getElementById('exploreDecomp').value = 'hicks';
+        document.getElementById('exploreAlpha').value = '0.45';
+        document.getElementById('exploreIncome').value = '120';
+        document.getElementById('explorePxNew').value = '2.5';
+        document.getElementById('exploreV').value = '300';
+        document.getElementById('exploreWOld').value = '22';
+        document.getElementById('exploreWNew').value = '30';
+        document.getElementById('exploreY1').value = '60';
+        document.getElementById('exploreY2').value = '140';
+        document.getElementById('exploreROld').value = '0.03';
+        document.getElementById('exploreRNew').value = '0.08';
+        document.getElementById('exploreAlphaValue').textContent = '0.45';
+        document.getElementById('exploreIncomeValue').textContent = '120';
+        document.getElementById('explorePxNewValue').textContent = '2.5';
+        document.getElementById('exploreVValue').textContent = '300';
+        document.getElementById('exploreWOldValue').textContent = '22';
+        document.getElementById('exploreWNewValue').textContent = '30';
+        document.getElementById('exploreY1Value').textContent = '60';
+        document.getElementById('exploreY2Value').textContent = '140';
+        document.getElementById('exploreROldValue').textContent = '3%';
+        document.getElementById('exploreRNewValue').textContent = '8%';
+        setContextControls('consumer');
+        renderExplore();
+      });
+    }
+
+    function populatePracticeScenarioList() {
+      const select = document.getElementById('practiceScenario');
+      select.innerHTML = practiceScenarios.map((scenario) => `<option value="${scenario.id}">${scenario.title}</option>`).join('');
+      select.value = practiceState.scenarioId;
+      select.addEventListener('change', (event) => {
+        practiceState.scenarioId = event.target.value;
+        practiceState.revealed = false;
+        clearPracticeAnswers();
+        renderPractice();
+      });
+    }
+
+    function clearPracticeAnswers() {
+      document.getElementById('practiceAnswer1').value = '';
+      document.getElementById('practiceAnswer2').value = '';
+      document.getElementById('practiceAnswer3').value = '';
+      const feedback = document.getElementById('practiceFeedback');
+      feedback.className = 'feedback-box';
+      feedback.textContent = 'Choose a scenario, answer the three direction questions, then press “Check answer”.';
+    }
+
+    function renderPractice() {
+      const scenario = getPracticeScenario();
+      const config = getScenarioConfig(scenario);
+      const model = config.model;
+      document.getElementById('practicePrompt').textContent = `${scenario.prompt} Use ${scenario.mode === 'hicks' ? 'Hicks' : 'Slutsky'} compensation.`;
+      document.getElementById('practiceAnswer1Label').textContent = scenario.labels[0];
+      document.getElementById('practiceAnswer2Label').textContent = scenario.labels[1];
+      document.getElementById('practiceAnswer3Label').textContent = scenario.labels[2];
+      document.getElementById('practiceGraphNote').textContent = config.note;
+
+      drawDecompositionGraph(practiceCtx, config, {
+        title: scenario.title,
+        showComp: practiceState.revealed,
+        showNewLine: true,
+        showNewPoint: practiceState.revealed,
+        showNewIndifference: practiceState.revealed,
+        showEffects: practiceState.revealed
+      });
+
+      if (practiceState.revealed) {
+        document.getElementById('practiceSubEffect').textContent = effectDescriptor(model.effects.dxSub, config.names.x);
+        document.getElementById('practiceIncomeEffect').textContent = effectDescriptor(model.effects.dxIncome, config.names.x);
+        document.getElementById('practiceTotalEffect').textContent = effectDescriptor(model.effects.dxTotal, config.names.x);
+      } else {
+        document.getElementById('practiceSubEffect').textContent = '—';
+        document.getElementById('practiceIncomeEffect').textContent = '—';
+        document.getElementById('practiceTotalEffect').textContent = '—';
+      }
+    }
+
+    function checkPractice() {
+      const a1 = document.getElementById('practiceAnswer1').value;
+      const a2 = document.getElementById('practiceAnswer2').value;
+      const a3 = document.getElementById('practiceAnswer3').value;
+      if (!a1 || !a2 || !a3) {
+        const feedback = document.getElementById('practiceFeedback');
+        feedback.className = 'feedback-box incorrect';
+        feedback.textContent = 'Complete all three answer boxes before checking.';
+        return;
+      }
+
+      const scenario = getPracticeScenario();
+      const config = getScenarioConfig(scenario);
+      const model = config.model;
+      const answers = [
+        signWord(model.effects.dxSub),
+        signWord(model.effects.dxIncome),
+        signWord(model.effects.dxTotal)
+      ];
+      const user = [a1, a2, a3];
+      const allCorrect = answers.every((answer, index) => answer === user[index]);
+
+      practiceState.revealed = true;
+      renderPractice();
+
+      const feedback = document.getElementById('practiceFeedback');
+      feedback.className = `feedback-box ${allCorrect ? 'correct' : 'incorrect'}`;
+      const explanation = `${scenario.labels[0]}: ${answers[0]}. ${scenario.labels[1]}: ${answers[1]}. ${scenario.labels[2]}: ${answers[2]}.`;
+      feedback.textContent = allCorrect
+        ? `Correct. ${explanation}`
+        : `Not quite. ${explanation}`;
+    }
+
+    function bindPracticeControls() {
+      populatePracticeScenarioList();
+      document.getElementById('practiceRandom').addEventListener('click', () => {
+        const choice = practiceScenarios[Math.floor(Math.random() * practiceScenarios.length)];
+        practiceState.scenarioId = choice.id;
+        practiceState.revealed = false;
+        document.getElementById('practiceScenario').value = choice.id;
+        clearPracticeAnswers();
+        renderPractice();
+      });
+      document.getElementById('practiceReset').addEventListener('click', () => {
+        practiceState.revealed = false;
+        clearPracticeAnswers();
+        renderPractice();
+      });
+      document.getElementById('practiceCheck').addEventListener('click', checkPractice);
+    }
+
+    function drawCaseBarChart() {
+      const ctx = caseBarCtx;
+      const canvas = ctx.canvas;
+      EconDraw.clearCanvas(ctx);
+      EconDraw.drawFrame(ctx);
+      const xMax = caseData.length;
+      const yMax = Math.max(...caseData.map((d) => d.taxCut)) * 1.18;
+      EconDraw.drawAxes(ctx, {
+        xLabel: 'Selected worker income group',
+        yLabel: 'Annual tax cut ($)',
+        xTicks: caseData.map((item, index) => ({
+          label: '$' + formatNumber(item.income / 1000, 0) + 'k',
+          x: EconDraw.valueToX(index + 0.5, 0, xMax)
+        })),
+        yTicks: makeTicks(yMax, 'y')
+      });
+
+      const plot = EconDraw.getPlotArea();
+      caseData.forEach((item, index) => {
+        const barWidth = plot.width / xMax * 0.55;
+        const centerX = EconDraw.valueToX(index + 0.5, 0, xMax);
+        const left = centerX - barWidth / 2;
+        const right = centerX + barWidth / 2;
+        const top = EconDraw.valueToY(item.taxCut, 0, yMax);
+        const bottom = EconDraw.valueToY(0, 0, yMax);
+        const active = item.id === caseState.incomeId;
+        EconDraw.fillPolygon(ctx, [
+          { x: left, y: bottom },
+          { x: right, y: bottom },
+          { x: right, y: top },
+          { x: left, y: top }
+        ], {
+          fill: active ? 'rgba(47,107,255,0.28)' : 'rgba(163,170,181,0.32)',
+          stroke: active ? ECON_THEME.color.demand : ECON_THEME.color.baseline,
+          lineWidth: 1.5
+        });
+        EconDraw.drawText(ctx, '$' + formatNumber(item.taxCut, 0), centerX, top - 8, {
+          align: 'center',
+          color: active ? ECON_THEME.color.demand : ECON_THEME.color.text,
+          size: 12,
+          weight: active ? '600' : '400'
+        });
+      });
+    }
+
+    function renderCaseButtons() {
+      const incomeRow = document.getElementById('caseIncomeRow');
+      incomeRow.innerHTML = caseData.map((item) => `
+        <button class="income-button ${item.id === caseState.incomeId ? 'active' : ''}" data-income-id="${item.id}">${item.title}</button>
+      `).join('');
+      incomeRow.querySelectorAll('button').forEach((button) => {
+        button.addEventListener('click', () => {
+          caseState.incomeId = button.dataset.incomeId;
+          renderCaseButtons();
+          renderCase();
+        });
+      });
+
+      const stepRow = document.getElementById('caseStepRow');
+      stepRow.innerHTML = caseSteps.map((item) => `
+        <button class="step-button ${item.id === caseState.step ? 'active' : ''}" data-step-id="${item.id}">${item.title}</button>
+      `).join('');
+      stepRow.querySelectorAll('button').forEach((button) => {
+        button.addEventListener('click', () => {
+          caseState.step = button.dataset.stepId;
+          renderCaseButtons();
+          renderCase();
+        });
+      });
+    }
+
+    function renderCaseTable() {
+      document.getElementById('casePolicyTable').innerHTML = caseData.map((item) => `
+        <tr>
+          <td>${formatMoney(item.income, 0)}</td>
+          <td>${formatPct(item.oldRate, 1)}</td>
+          <td>${formatPct(item.newRate, 1)}</td>
+          <td>${formatMoney(item.taxCut, 0)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderCase() {
+      const config = getCaseConfig();
+      const model = config.model;
+      const showNew = caseState.step !== 'baseline';
+      const showComp = caseState.step === 'decomposition' || caseState.step === 'aggregate';
+      const showEffects = showComp;
+      const showNewIndifference = caseState.step === 'decomposition' || caseState.step === 'aggregate' || caseState.step === 'policy';
+
+      drawDecompositionGraph(caseCtx, config, {
+        title: `${config.selected.title}: labour–leisure budget lines`,
+        showNewLine: showNew,
+        showNewPoint: showNew,
+        showComp,
+        showEffects,
+        showNewIndifference
+      });
+
+      document.getElementById('caseGraphNote').textContent = config.note;
+      document.getElementById('caseIncomeMetric').textContent = formatMoney(config.selected.income, 0);
+      document.getElementById('caseTaxCutMetric').textContent = formatMoney(config.selected.taxCut, 0);
+      document.getElementById('caseOldRateMetric').textContent = formatPct(config.selected.oldRate, 1);
+      document.getElementById('caseNewRateMetric').textContent = formatPct(config.selected.newRate, 1);
+      document.getElementById('caseOldWageMetric').textContent = formatMoney(config.oldNet, 2);
+      document.getElementById('caseNewWageMetric').textContent = formatMoney(config.newNet, 2);
+      document.getElementById('caseSubEffect').textContent = effectDescriptor(model.effects.dxSub, 'Leisure');
+      document.getElementById('caseIncomeEffect').textContent = effectDescriptor(model.effects.dxIncome, 'Leisure');
+      document.getElementById('caseTotalEffect').textContent = effectDescriptor(model.effects.dxTotal, 'Leisure');
+
+      const oldHours = config.labourEndowment - model.oldOpt.x;
+      const newHours = config.labourEndowment - model.newOpt.x;
+      const compHours = config.labourEndowment - model.compOpt.x;
+      let narrative = '';
+      if (caseState.step === 'baseline') {
+        narrative = `Step 1 starts from the 2023–24 line only. For this worker, the local old optimum implies about ${formatNumber(oldHours, 2)} hours of work and ${formatNumber(model.oldOpt.x, 2)} hours of leisure.`;
+      } else if (caseState.step === 'policy') {
+        narrative = `Step 2 adds the 2024–25 line. The official tax cut is ${formatMoney(config.selected.taxCut, 0)} per year, or about ${formatMoney(config.weeklyCut, 2)} per week. ${config.selected.newRate === config.selected.oldRate ? 'Because the marginal tax rate is unchanged at this income, the new line mainly shifts upward in parallel.' : 'Because the marginal tax rate falls at this income, the new line also becomes flatter, so leisure becomes relatively more expensive.'}`;
+      } else if (caseState.step === 'decomposition') {
+        narrative = `Step 3 reveals the ${caseState.mode === 'hicks' ? 'Hicks' : 'Slutsky'} compensated line. The substitution effect moves leisure from ${formatNumber(model.oldOpt.x, 2)} to ${formatNumber(model.compOpt.x, 2)}, while the income effect moves leisure from ${formatNumber(model.compOpt.x, 2)} to ${formatNumber(model.newOpt.x, 2)}. Work hours move from ${formatNumber(oldHours, 2)} to ${formatNumber(compHours, 2)} to ${formatNumber(newHours, 2)}.`;
+      } else {
+        narrative = `${config.selected.title}: the full policy story combines an income effect from the larger disposable income and, for workers whose marginal tax rate fell, a substitution effect from a higher after-tax reward to an extra hour of work. The official Treasury advice estimated that the 2024 redesign would increase labour supply by about 930,000 hours per week. This graph shows why the mix differs across brackets: at $150,000 the slope barely changes, so the response is mostly income-effect logic; at $45,000, $75,000, and $100,000 there is also a slope effect that encourages work at the margin.`;
+      }
+      document.getElementById('caseNarrative').textContent = narrative;
+
+      drawCaseBarChart();
+    }
+
+    function bindCaseControls() {
+      document.getElementById('caseMode').addEventListener('change', (event) => {
+        caseState.mode = event.target.value;
+        renderCase();
+      });
+      document.getElementById('caseReset').addEventListener('click', () => {
+        caseState.incomeId = 'i75';
+        caseState.mode = 'hicks';
+        caseState.step = 'baseline';
+        document.getElementById('caseMode').value = 'hicks';
+        renderCaseButtons();
+        renderCase();
+      });
+    }
+
+    function activateModule(targetId) {
+      document.querySelectorAll('.module-tab').forEach((button) => {
+        button.classList.toggle('active', button.dataset.target === targetId);
+      });
+      document.querySelectorAll('.module-section').forEach((section) => {
+        section.classList.toggle('active', section.id === targetId);
+      });
+      if (targetId === 'exploreSection') renderExplore();
+      if (targetId === 'practiceSection') renderPractice();
+      if (targetId === 'caseSection') renderCase();
+    }
+
+    document.querySelectorAll('.module-tab').forEach((button) => {
+      button.addEventListener('click', () => activateModule(button.dataset.target));
+    });
+
+    bindExploreControls();
+    bindPracticeControls();
+    bindCaseControls();
+    renderCaseButtons();
+    renderCaseTable();
+    setContextControls('consumer');
+    renderExplore();
+    renderPractice();
+    renderCase();
+  </script>
+</body>
+</html>
