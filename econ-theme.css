@@ -1,0 +1,276 @@
+:root {
+  --font-family-base: Inter, Arial, Helvetica, sans-serif;
+
+  --canvas-width: 960px;
+  --canvas-height: 600px;
+
+  --color-bg: #ffffff;
+  --color-page: #f7f9fc;
+  --color-frame: #d9dee5;
+  --color-axis: #444444;
+  --color-grid: #e8edf4;
+  --color-text: #1f2937;
+  --color-muted: #6b7280;
+
+  --color-demand: #2f6bff;
+  --color-supply: #d84a3a;
+  --color-long-run: #555555;
+  --color-government: #2e8b57;
+  --color-guess: #7c3aed;
+  --color-baseline: #a3aab5;
+  --color-output: #2f6bff;
+  --color-inflation: #e07a00;
+  --color-policy-rate: #2e8b57;
+  --color-external: #c97b00;
+  --color-central-bank: #6b4ce6;
+
+  --fill-cs: rgba(47, 107, 255, 0.18);
+  --fill-ps: rgba(216, 74, 58, 0.18);
+  --fill-government: rgba(46, 139, 87, 0.20);
+  --fill-dwl: rgba(120, 120, 120, 0.24);
+  --fill-buyer-tax: rgba(255, 165, 0, 0.22);
+  --fill-seller-tax: rgba(128, 0, 128, 0.22);
+
+  --font-title: 20px;
+  --font-subtitle: 14px;
+  --font-axis: 14px;
+  --font-tick: 12px;
+  --font-panel: 13px;
+
+  --line-axis: 1.5;
+  --line-grid: 0.75;
+  --line-main: 3;
+  --line-baseline: 2;
+  --line-policy: 2.5;
+  --line-handle-stroke: 2;
+
+  --radius-handle: 7px;
+  --radius-marker: 5px;
+
+  --space-1: 6px;
+  --space-2: 10px;
+  --space-3: 14px;
+  --space-4: 18px;
+  --space-5: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px;
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family: var(--font-family-base);
+}
+
+.diagram-app {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.diagram-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-frame);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.diagram-header {
+  margin-bottom: 16px;
+}
+
+.diagram-title {
+  margin: 0 0 6px 0;
+  font-size: var(--font-title);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.diagram-subtitle {
+  margin: 0;
+  font-size: var(--font-subtitle);
+  color: var(--color-muted);
+}
+
+.control-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: end;
+  margin: 16px 0 18px 0;
+  padding: 14px;
+  background: #fbfcfe;
+  border: 1px solid var(--color-frame);
+  border-radius: 10px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  gap: 6px;
+}
+
+.control-group label {
+  font-size: var(--font-panel);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.control-group input,
+.control-group select,
+.control-group button {
+  font-family: var(--font-family-base);
+  font-size: 13px;
+}
+
+input[type="range"] {
+  width: 220px;
+}
+
+select,
+button,
+input[type="number"] {
+  padding: 8px 10px;
+  border: 1px solid var(--color-frame);
+  border-radius: 8px;
+  background: white;
+  color: var(--color-text);
+}
+
+button {
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--color-government);
+  color: white;
+  border-color: var(--color-government);
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--color-text);
+}
+
+.graph-frame {
+  background: white;
+  border: 1px solid var(--color-frame);
+  border-radius: 10px;
+  padding: 12px;
+  overflow: auto;
+}
+
+.graph-canvas {
+  display: block;
+  width: 100%;
+  max-width: var(--canvas-width);
+  height: auto;
+  background: white;
+  border: 1px solid var(--color-frame);
+}
+
+.legend-panel,
+.metrics-panel,
+.feedback-panel,
+.notes-panel {
+  margin-top: 16px;
+  padding: 14px;
+  background: #fbfcfe;
+  border: 1px solid var(--color-frame);
+  border-radius: 10px;
+  font-size: var(--font-panel);
+}
+
+.feedback-success {
+  border-left: 4px solid var(--color-government);
+}
+
+.feedback-warning {
+  border-left: 4px solid var(--color-inflation);
+}
+
+.feedback-neutral {
+  border-left: 4px solid var(--color-baseline);
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px 14px;
+}
+
+.metric-item {
+  padding: 10px 12px;
+  border: 1px solid var(--color-frame);
+  border-radius: 8px;
+  background: white;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+@media (max-width: 900px) {
+  body {
+    padding: 16px;
+  }
+
+  .control-panel {
+    gap: 10px 12px;
+  }
+
+  .control-group {
+    min-width: 150px;
+  }
+
+  input[type="range"] {
+    width: 180px;
+  }
+}
+
+@media (max-width: 640px) {
+  .diagram-card {
+    padding: 14px;
+  }
+
+  .diagram-title {
+    font-size: 18px;
+  }
+
+  .diagram-subtitle {
+    font-size: 13px;
+  }
+
+  .control-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .control-group,
+  input[type="range"] {
+    width: 100%;
+  }
+}
