@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Testing and Evaluation Checklist for 12 AI-Powered Economics Graphs</title>
+<style>
+  :root {--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;--border:#d8dee9;--primary:#0f5132;--primary-2:#1f7a4d;--warn:#b7791f;--warn-bg:#fff8e6;--ok:#147d3f;--ok-bg:#eaf8ef;--bad:#b42318;--bad-bg:#fff1f0;--shadow:0 10px 28px rgba(16,24,40,.08);}
+  * {box-sizing:border-box;}
+  body {margin:0;font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;color:var(--text);background:var(--bg);line-height:1.45;}
+  header {position:sticky;top:0;z-index:20;background:linear-gradient(135deg,#0b2b26,#1f5d4f);color:white;padding:22px 28px;box-shadow:0 4px 18px rgba(0,0,0,.12);}
+  header h1 {margin:0 0 6px;font-size:24px;letter-spacing:-.02em;}
+  header p {margin:0;opacity:.88;font-size:14px;}
+  .topbar {margin-top:16px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;}
+  .progress-wrap {background:rgba(255,255,255,.17);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:10px 12px;}
+  .progress-line {height:10px;border-radius:999px;background:rgba(255,255,255,.22);overflow:hidden;margin-top:8px;}
+  .progress-fill {height:100%;width:0%;background:#a7f3d0;border-radius:999px;transition:width .2s ease;}
+  .actions {display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  button,.file-label {border:1px solid var(--border);background:white;color:var(--text);border-radius:10px;padding:9px 12px;cursor:pointer;font-weight:600;font-size:13px;}
+  button.primary {background:#e8fff2;color:var(--primary);border-color:#b7efcd;}
+  button.danger {background:#fff1f0;color:var(--bad);border-color:#ffd0cc;}
+  input[type=file] {display:none;}
+  main {max-width:1280px;margin:22px auto 60px;padding:0 22px;}
+  .nav {display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;}
+  .nav a {text-decoration:none;color:var(--primary);background:white;border:1px solid var(--border);border-radius:999px;padding:7px 11px;font-size:13px;font-weight:600;}
+  .panel,.graph-card {background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px;margin-bottom:18px;}
+  .panel h2,.panel h3,.graph-card h3 {margin:0 0 10px;}
+  .panel p {color:var(--muted);margin:6px 0 12px;}
+  .overview-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+  .stat {background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:14px;}
+  .stat .label {font-size:12px;color:var(--muted);}
+  .stat .value {font-size:24px;font-weight:800;margin-top:4px;}
+  .check-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:8px 12px;}
+  .check-item {display:grid;grid-template-columns:22px 1fr;gap:9px;align-items:start;background:#fbfcff;border:1px solid #e8edf4;border-radius:12px;padding:9px 10px;font-size:13px;}
+  .check-item:hover {background:#f5f8ff;}
+  .check-item input {width:18px;height:18px;margin-top:1px;accent-color:var(--primary-2);}
+  .check-item.checked {background:var(--ok-bg);border-color:#bde7cb;}
+  .graph-card-header {display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px;}
+  .graph-card-header h3 {margin:0;font-size:18px;}
+  .graph-card-header p {margin:4px 0 6px;color:var(--muted);}
+  code {display:inline-block;background:#f1f5f9;border:1px solid var(--border);border-radius:8px;padding:3px 7px;font-size:12px;color:#334155;}
+  .graph-status,.mini-status {display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;font-size:12px;font-weight:800;border-radius:999px;padding:7px 11px;background:var(--bad-bg);color:var(--bad);border:1px solid #ffd0cc;}
+  .graph-status.ready,.mini-status.ready {background:var(--ok-bg);color:var(--ok);border-color:#bde7cb;}
+  .graph-status.partial,.mini-status.partial {background:var(--warn-bg);color:var(--warn);border-color:#f8df9c;}
+  .notes-row {margin-top:12px;display:grid;grid-template-columns:1.3fr minmax(220px,.7fr);gap:12px;}
+  textarea,select,input[type=text],input[type=date] {width:100%;border:1px solid var(--border);border-radius:12px;padding:10px 11px;font:inherit;background:white;}
+  textarea {min-height:90px;resize:vertical;margin-top:6px;}
+  label {font-size:13px;font-weight:650;}
+  table {width:100%;border-collapse:collapse;font-size:13px;}
+  th,td {border-bottom:1px solid #e8edf4;padding:10px 8px;text-align:left;vertical-align:top;}
+  th {color:var(--muted);font-weight:700;background:#f8fafc;}
+  .timeline {display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;}
+  .timeline .stage {border:1px solid var(--border);background:#fbfcff;border-radius:14px;padding:12px;}
+  .stage strong {display:block;margin-bottom:4px;}
+  .stage span {color:var(--muted);font-size:13px;}
+  .form-row {display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;}
+  .print-note {display:none;color:var(--muted);font-size:12px;margin-top:8px;}
+  @media (max-width:760px) {header {position:static;}.topbar,.graph-card-header,.notes-row {grid-template-columns:1fr;}.actions {justify-content:flex-start;}.check-grid {grid-template-columns:1fr;}}
+  @media print {header {position:static;box-shadow:none;}.actions,.nav {display:none;}body {background:white;}main {max-width:none;margin:0;}.panel,.graph-card {box-shadow:none;break-inside:avoid;}.print-note {display:block;}}
+</style>
+</head>
+<body>
+<header><h1>Testing and Evaluation Checklist for 12 AI-Powered Interactive Economics Graphs</h1><p>S2 2026 readiness checklist · Use this file to literally check each approval box before classroom deployment.</p><div class="topbar"><div class="progress-wrap"><div><strong id="overallText">0% complete</strong> · <span id="overallDetail">0 of 0 boxes checked</span> · <span id="graphReadyText">0 of 12 graphs approved</span></div><div class="progress-line"><div class="progress-fill" id="overallFill"></div></div></div><div class="actions"><button class="primary" id="saveBtn">Save</button><button id="exportBtn">Export JSON</button><label class="file-label" for="importFile">Import JSON</label><input type="file" id="importFile" accept="application/json,.json"><button id="printBtn">Print</button><button class="danger" id="resetBtn">Reset all</button></div></div></header>
+<main>
+  <div class="nav"><a href="#overview">Overview</a><a href="#common">Common gates</a><a href="#graph-checklists">Graph checklists</a><a href="#ai-case-engine-template">AI case engine</a><a href="#signoff">Final sign-off</a><a href="#G01">G01</a><a href="#G02">G02</a><a href="#G03">G03</a><a href="#G04">G04</a><a href="#G06">G06</a><a href="#G07">G07</a><a href="#G14">G14</a><a href="#G21">G21</a><a href="#G23">G23</a><a href="#G24">G24</a><a href="#G27">G27</a><a href="#G31">G31</a></div>
+  <section class="panel" id="overview"><h2>1. Purpose and Use</h2><p>This checklist is a go/no-go instrument for the 12 AI-powered interactive economics graphs to be used in S2 2026. A graph is approved only when every graph-specific box is checked, all common release gates are passed, and the final decision is recorded as <strong>Approved for S2 2026</strong>.</p><div class="overview-grid"><div class="stat"><div class="label">Total graphs</div><div class="value">12</div></div><div class="stat"><div class="label">Target start</div><div class="value">Mid-Jul</div></div><div class="stat"><div class="label">Testing window</div><div class="value">15 Jun–12 Jul</div></div><div class="stat"><div class="label">Ready graphs</div><div class="value" id="readyCount">0</div></div></div></section>
+  <section class="panel"><h2>2. Course–Graph Mapping</h2><table><thead><tr><th>Lecture topic</th><th>Main graph(s)</th></tr></thead><tbody><tr><td>Markets in action: demand and supply</td><td>G01</td></tr>
+<tr><td>Elasticity of demand and supply</td><td>G02</td></tr>
+<tr><td>Economic efficiency and intervention</td><td>G03, G04</td></tr>
+<tr><td>International trade</td><td>G06</td></tr>
+<tr><td>Market failure and reforms</td><td>G07, G14</td></tr>
+<tr><td>Aggregate demand and aggregate supply</td><td>G21</td></tr>
+<tr><td>Fiscal policy</td><td>G23, G24</td></tr>
+<tr><td>Monetary policy</td><td>G24, G27</td></tr>
+<tr><td>International macroeconomics</td><td>G31</td></tr></tbody></table></section>
+  <section class="panel"><h2>3. Recommended Timeline</h2><div class="timeline"><div class="stage"><strong>15–19 June 2026</strong><span>Technical QA of dashboard and all 12 graphs.</span></div><div class="stage"><strong>20–26 June 2026</strong><span>Economics correctness review and sample-answer review.</span></div><div class="stage"><strong>27 June–3 July 2026</strong><span>AI case-engine testing and generated-case review.</span></div><div class="stage"><strong>4–8 July 2026</strong><span>Student/tutor pilot testing.</span></div><div class="stage"><strong>9–12 July 2026</strong><span>Final fixes and dashboard update.</span></div><div class="stage"><strong>13 July 2026</strong><span>Final go/no-go decision.</span></div></div></section>
+  <section id="common"><h2>4. Common Release Gates</h2><p class="print-note">Printed copy: boxes show current checked state at print time.</p><section class="panel"><h3>Technical QA</h3><div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="0"><span>Graph opens directly in a browser.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="1"><span>Graph opens correctly through dashboard.html.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="2"><span>Graph opens in a new tab from the dashboard.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="3"><span>All tabs are visible and clickable.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="4"><span>Original graph functions still work after adding the case engine.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="5"><span>No JavaScript console error appears during normal use.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="6"><span>Reset buttons work.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="7"><span>Sliders, buttons, dropdowns, and graph interactions work.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="8"><span>Case-study exercises tab works.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="9"><span>Assignable case engine tab works.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="10"><span>Page remains readable on a laptop screen.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="0" data-item="11"><span>Page remains readable when projected in a classroom.</span></label></div></section><section class="panel"><h3>Economic Correctness Review</h3><div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="common" data-section="1" data-item="0"><span>Core model is economically correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="1" data-item="1"><span>Comparative statics are correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="1" data-item="2"><span>Labels and explanations use appropriate economics terminology.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="1" data-item="3"><span>Built-in case study is consistent with the graph’s economic model.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="1" data-item="4"><span>AI-generated case-study prompts ask for the right kind of economic reasoning.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="1" data-item="5"><span>Sample answers are economically correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="1" data-item="6"><span>No case study makes unsupported causal claims.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="1" data-item="7"><span>Any data or proxy values are clearly labelled as data, proxy, or stylised calibration.</span></label></div></section><section class="panel"><h3>AI Function Testing</h3><div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="0"><span>AI case generation works from a topic only.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="1"><span>AI case generation works from topic plus teacher notes.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="2"><span>Yellow Case Underconstruction indicator appears during generation.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="3"><span>Green Case completed indicator appears after successful generation.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="4"><span>Failed generation gives a clear warning message.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="5"><span>Generated case has a sensible event sequence.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="6"><span>Generated case has six editable questions.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="7"><span>Generated case has six editable sample answers.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="8"><span>Student answer submission works.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="9"><span>AI feedback returns a score out of 10.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="10"><span>AI feedback is economically meaningful.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="11"><span>AI feedback does not reveal the sample answer directly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="12"><span>Weak, partial, and strong student answers receive clearly different scores.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="2" data-item="13"><span>App remains usable if the API is unavailable.</span></label></div></section><section class="panel"><h3>Pedagogical Review</h3><div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="common" data-section="3" data-item="0"><span>Learning objective is clear.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="3" data-item="1"><span>Lecturer can introduce the graph in under two minutes.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="3" data-item="2"><span>Students can understand what to do without long technical instructions.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="3" data-item="3"><span>Case-study questions match the lecture topic.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="3" data-item="4"><span>At least one question can be used as a tutorial activity.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="3" data-item="5"><span>At least one question can be used as a reflection or homework activity.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="3" data-item="6"><span>AI feedback supports learning rather than simply giving a mark.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="3" data-item="7"><span>Graph encourages students to explain economic mechanisms, not just click buttons.</span></label></div></section><section class="panel"><h3>Student Pilot</h3><div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="common" data-section="4" data-item="0"><span>Student can find the graph in the dashboard.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="4" data-item="1"><span>Student can identify the main economic concept.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="4" data-item="2"><span>Student can complete one case-study question.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="4" data-item="3"><span>Student can interpret AI feedback.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="4" data-item="4"><span>Student can improve the answer after feedback.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="4" data-item="5"><span>No major confusion about the interface.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="4" data-item="6"><span>No major confusion about the economics.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="4" data-item="7"><span>Tutor can run the activity within planned class time.</span></label></div></section><section class="panel"><h3>Final Release Gates</h3><div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="common" data-section="5" data-item="0"><span>All technical QA boxes are checked.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="5" data-item="1"><span>All economic correctness boxes are checked.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="5" data-item="2"><span>All AI function boxes are checked.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="5" data-item="3"><span>All pedagogical review boxes are checked.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="5" data-item="4"><span>Dashboard link points to the case-engine HTML file.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="5" data-item="5"><span>Instructor has reviewed all built-in sample answers.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="5" data-item="6"><span>Instructor has tested at least one generated case.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="5" data-item="7"><span>Fallback plan exists if API access fails during class.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="common" data-section="5" data-item="8"><span>Final status is marked Approved for S2 2026.</span></label></div></section></section>
+  <section class="panel" id="ai-case-engine-template"><h2>5. AI Case Engine Testing Template</h2><p>Use these checks at least once for each graph, preferably with one topic-only generated case and one teacher-notes case.</p><div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="0"><span>Topic-only generation produces a case package.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="1"><span>Topic plus teacher notes reflects teacher notes.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="2"><span>Web-search mode includes source or evidence notes.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="3"><span>Notes-only mode works without web search.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="4"><span>Event sequence includes at least five steps including baseline.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="5"><span>Exactly six editable questions are generated.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="6"><span>Exactly six editable sample answers are generated.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="7"><span>Active case can be exported as JSON.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="8"><span>Exported case can be reloaded from JSON.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="9"><span>Browser save keeps the case after reload.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="10"><span>AI marking returns feedback and score.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="ai-template" data-item="11"><span>Graph still works without API access.</span></label></div></section>
+  <section id="graph-checklists"><h2>6. Graph-Specific Checklists</h2>
+    <section class="graph-card" id="G01">
+      <div class="graph-card-header">
+        <div><h3>G01 — Demand and supply equilibrium</h3><p>Markets in action; demand and supply analysis</p><code>G01_demand_supply_equilibrium_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G01">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G01" data-item="0"><span>Demand shifts right/left correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G01" data-item="1"><span>Supply shifts right/left correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G01" data-item="2"><span>Equilibrium price and quantity changes are correctly calculated.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G01" data-item="3"><span>Students can distinguish movement along a curve from a curve shift.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G01" data-item="4"><span>Existing Perth housing case study works.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G01" data-item="5"><span>Case-study questions are editable.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G01" data-item="6"><span>Sample answers are editable and hidden by default.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G01" data-item="7"><span>Assignable case engine generates a new demand-and-supply case.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G01" data-item="8"><span>Generated case includes price and quantity time-series logic.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G01" data-item="9"><span>AI feedback rewards correct explanation of demand shift, supply shift, price, and quantity.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G01" data-item="10"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G01<textarea data-note-for="G01" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G01"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section>
+    <section class="graph-card" id="G02">
+      <div class="graph-card-header">
+        <div><h3>G02 — Elasticity and tax incidence</h3><p>Elasticity of demand and supply; tax incidence</p><code>G02_elasticity_tax_incidence_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G02">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G02" data-item="0"><span>Demand elasticity changes correctly when the demand curve rotates.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G02" data-item="1"><span>Supply elasticity changes correctly when the supply curve rotates.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G02" data-item="2"><span>Tax burden falls more on the less elastic side.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G02" data-item="3"><span>Buyer and seller burden shares are correctly displayed.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G02" data-item="4"><span>Quantity response is larger when curves are more elastic.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G02" data-item="5"><span>Existing OPEC case study works.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G02" data-item="6"><span>Case-study questions test elasticity, pass-through, and long-run adjustment.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G02" data-item="7"><span>Assignable case engine generates elasticity/tax-incidence cases.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G02" data-item="8"><span>AI feedback recognises correct use of elastic/inelastic reasoning.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G02" data-item="9"><span>AI feedback penalises confusion between tax burden and legal tax payment.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G02" data-item="10"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G02<textarea data-note-for="G02" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G02"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section>
+    <section class="graph-card" id="G03">
+      <div class="graph-card-header">
+        <div><h3>G03 — Tax, subsidy, and welfare</h3><p>Economic efficiency and government intervention</p><code>G03_tax_subsidy_welfare_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G03">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G03" data-item="0"><span>Tax wedge is shown correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G03" data-item="1"><span>Subsidy wedge is shown correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G03" data-item="2"><span>Consumer surplus is calculated and shaded correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G03" data-item="3"><span>Producer surplus is calculated and shaded correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G03" data-item="4"><span>Government revenue or subsidy cost is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G03" data-item="5"><span>Deadweight loss is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G03" data-item="6"><span>Case-study questions require welfare interpretation, not only price and quantity changes.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G03" data-item="7"><span>Assignable case engine generates tax or subsidy cases.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G03" data-item="8"><span>AI feedback correctly evaluates CS, PS, government budget, total surplus, and DWL reasoning.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G03" data-item="9"><span>Sample answers avoid simplistic claims that all taxes are always bad or all subsidies are always good.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G03" data-item="10"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G03<textarea data-note-for="G03" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G03"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section>
+    <section class="graph-card" id="G04">
+      <div class="graph-card-header">
+        <div><h3>G04 — Price controls</h3><p>Price ceilings, price floors, rent control, minimum wages</p><code>G04_price_controls_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G04">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G04" data-item="0"><span>Price ceiling logic is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G04" data-item="1"><span>Price floor logic is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G04" data-item="2"><span>Binding and non-binding cases are correctly identified.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G04" data-item="3"><span>Shortage is correctly calculated when a ceiling binds.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G04" data-item="4"><span>Surplus is correctly calculated when a floor binds.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G04" data-item="5"><span>Realised quantity is determined by the short side of the market.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G04" data-item="6"><span>Case-study questions ask students to identify binding status.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G04" data-item="7"><span>Assignable case engine generates rent-control, minimum-wage, or price-cap cases.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G04" data-item="8"><span>AI feedback recognises correct shortage/surplus logic.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G04" data-item="9"><span>AI feedback penalises answers that confuse legal price with equilibrium price.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G04" data-item="10"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G04<textarea data-note-for="G04" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G04"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section>
+    <section class="graph-card" id="G06">
+      <div class="graph-card-header">
+        <div><h3>G06 — Small-country trade</h3><p>International economics; tariffs; imports and exports</p><code>G06_small_country_trade_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G06">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G06" data-item="0"><span>Domestic equilibrium is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G06" data-item="1"><span>World price line is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G06" data-item="2"><span>Import or export status is correctly identified.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G06" data-item="3"><span>Tariff changes domestic price correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G06" data-item="4"><span>Import quantity or export quantity is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G06" data-item="5"><span>Government tariff revenue is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G06" data-item="6"><span>Welfare effects are correctly labelled.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G06" data-item="7"><span>Case-study questions connect trade policy to domestic consumers and producers.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G06" data-item="8"><span>Assignable case engine generates trade cases with world price, tariff, quota, or exchange-rate context.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G06" data-item="9"><span>AI feedback correctly distinguishes free trade, tariff, and domestic equilibrium.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G06" data-item="10"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G06<textarea data-note-for="G06" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G06"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section>
+    <section class="graph-card" id="G07">
+      <div class="graph-card-header">
+        <div><h3>G07 — Externalities and social efficiency</h3><p>Market failure; Pigouvian policy; reforms</p><code>G07_externalities_social_efficiency_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G07">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G07" data-item="0"><span>Private cost/benefit curve is shown correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G07" data-item="1"><span>Social cost/benefit curve is shown correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G07" data-item="2"><span>Market equilibrium is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G07" data-item="3"><span>Social optimum is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G07" data-item="4"><span>Overproduction or underproduction is correctly identified.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G07" data-item="5"><span>Pigouvian tax or subsidy logic is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G07" data-item="6"><span>Deadweight loss from externality is correctly shown.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G07" data-item="7"><span>Case-study questions ask students to identify external cost or external benefit.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G07" data-item="8"><span>Assignable case engine generates pollution, vaccination, congestion, education, or renewable-energy externality cases.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G07" data-item="9"><span>AI feedback recognises correct distinction between private and social outcomes.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G07" data-item="10"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G07<textarea data-note-for="G07" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G07"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section>
+    <section class="graph-card" id="G14">
+      <div class="graph-card-header">
+        <div><h3>G14 — Monopoly and regulation</h3><p>Market power; ACCC; monopoly regulation</p><code>G14_monopoly_regulation_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G14">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="0"><span>Demand curve is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="1"><span>Marginal revenue curve is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="2"><span>Marginal cost curve is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="3"><span>Monopoly quantity and price are correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="4"><span>Competitive or efficient benchmark is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="5"><span>Monopoly deadweight loss is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="6"><span>Regulation scenario is economically meaningful.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="7"><span>Case-study questions connect market power to consumer welfare, efficiency, and regulation.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="8"><span>Assignable case engine generates monopoly, price regulation, or competition-policy cases.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="9"><span>AI feedback recognises the distinction between monopoly outcome and efficient outcome.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="10"><span>AI feedback does not treat every large firm as automatically a harmful monopoly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G14" data-item="11"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G14<textarea data-note-for="G14" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G14"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section>
+    <section class="graph-card" id="G21">
+      <div class="graph-card-header">
+        <div><h3>G21 — Static AD–AS</h3><p>GDP, unemployment, inflation; aggregate demand and supply</p><code>G21_static_adas_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G21">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G21" data-item="0"><span>AD shifts correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G21" data-item="1"><span>SRAS shifts correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G21" data-item="2"><span>LRAS or potential output is correctly shown.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G21" data-item="3"><span>Price level changes are correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G21" data-item="4"><span>Real GDP changes are correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G21" data-item="5"><span>Inflationary and recessionary gaps are correctly identified.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G21" data-item="6"><span>Short-run and long-run interpretations are clearly separated.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G21" data-item="7"><span>Case-study questions distinguish demand shock from supply shock.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G21" data-item="8"><span>Assignable case engine generates macro shock cases such as energy prices, demand stimulus, productivity shock, or pandemic shock.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G21" data-item="9"><span>AI feedback correctly evaluates GDP, price level, unemployment, and policy interpretation.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G21" data-item="10"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G21<textarea data-note-for="G21" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G21"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section>
+    <section class="graph-card" id="G23">
+      <div class="graph-card-header">
+        <div><h3>G23 — Keynesian cross</h3><p>Fiscal policy; multiplier; aggregate expenditure</p><code>G23_keynesian_cross_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G23">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="0"><span>45-degree line is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="1"><span>Aggregate expenditure line is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="2"><span>Equilibrium income is correctly calculated.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="3"><span>Multiplier is correctly calculated.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="4"><span>Autonomous spending shifts are correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="5"><span>MPC changes slope correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="6"><span>Inventory adjustment explanation is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="7"><span>Case-study questions connect fiscal stimulus or spending shock to income.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="8"><span>Assignable case engine generates fiscal stimulus, consumption, investment, or export-demand cases.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="9"><span>AI feedback recognises correct multiplier reasoning.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="10"><span>AI feedback penalises answers that confuse initial spending change with total income change.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G23" data-item="11"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G23<textarea data-note-for="G23" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G23"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section>
+    <section class="graph-card" id="G24">
+      <div class="graph-card-header">
+        <div><h3>G24 — IS–LM</h3><p>Fiscal policy, monetary policy, policy mix</p><code>G24_is_lm_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G24">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G24" data-item="0"><span>IS curve shifts correctly after fiscal policy or demand shocks.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G24" data-item="1"><span>LM curve shifts correctly after monetary policy or liquidity shocks.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G24" data-item="2"><span>Equilibrium output is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G24" data-item="3"><span>Equilibrium interest rate is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G24" data-item="4"><span>Crowding-out logic is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G24" data-item="5"><span>Monetary expansion lowers interest rate and raises output in the standard case.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G24" data-item="6"><span>Fiscal expansion raises output and interest rate in the standard case.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G24" data-item="7"><span>Case-study questions distinguish fiscal and monetary policy effects.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G24" data-item="8"><span>Assignable case engine generates RBA, fiscal stimulus, liquidity, or confidence-shock cases.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G24" data-item="9"><span>AI feedback correctly evaluates output, interest rate, and crowding-out reasoning.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G24" data-item="10"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G24<textarea data-note-for="G24" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G24"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section>
+    <section class="graph-card" id="G27">
+      <div class="graph-card-header">
+        <div><h3>G27 — Money market and interest rate</h3><p>Monetary policy; money demand and money supply</p><code>G27_money_market_interest_rate_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G27">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G27" data-item="0"><span>Money demand curve is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G27" data-item="1"><span>Money supply curve is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G27" data-item="2"><span>Equilibrium interest rate is correctly determined.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G27" data-item="3"><span>Monetary expansion lowers interest rate in the standard money-market diagram.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G27" data-item="4"><span>Monetary contraction raises interest rate.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G27" data-item="5"><span>Income or price-level changes shift money demand correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G27" data-item="6"><span>Case-study questions connect central bank policy to interest-rate movement.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G27" data-item="7"><span>Assignable case engine generates RBA cash-rate, inflation, liquidity, or bond-market cases.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G27" data-item="8"><span>AI feedback recognises correct money supply versus money demand reasoning.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G27" data-item="9"><span>AI feedback does not confuse nominal and real interest rate unless the case explicitly introduces that distinction.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G27" data-item="10"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G27<textarea data-note-for="G27" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G27"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section>
+    <section class="graph-card" id="G31">
+      <div class="graph-card-header">
+        <div><h3>G31 — Foreign exchange market</h3><p>International macroeconomics; exchange rates</p><code>G31_fx_market_case_engine.html</code></div>
+        <div class="graph-status" data-status-for="G31">Not ready</div>
+      </div>
+      <div class="check-grid"><label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="0"><span>Currency demand curve is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="1"><span>Currency supply curve is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="2"><span>Exchange-rate axis definition is clear.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="3"><span>Appreciation and depreciation are correctly interpreted.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="4"><span>Export-demand shock shifts currency demand correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="5"><span>Import-demand shock shifts currency supply correctly.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="6"><span>Capital inflow/outflow logic is correct.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="7"><span>Case-study questions connect exchange-rate movements to trade or capital flows.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="8"><span>Assignable case engine generates AUD, commodity price, tourism, interest-rate differential, or capital-flow cases.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="9"><span>AI feedback correctly identifies appreciation versus depreciation.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="10"><span>AI feedback checks that students use the exchange-rate notation shown in the graph.</span></label>
+<label class="check-item"><input type="checkbox" data-scope="graph" data-graph="G31" data-item="11"><span>Dashboard opens the correct case-engine file.</span></label></div>
+      <div class="notes-row">
+        <label>Reviewer notes for G31<textarea data-note-for="G31" placeholder="Record issues, fixes required, or approval notes here."></textarea></label>
+        <label>Final decision<select data-decision-for="G31"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Revise before use">Revise before use</option><option value="Use core graph only">Use core graph only</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label>
+      </div>
+    </section></section>
+  <section class="panel" id="signoff"><h2>7. Final Sign-off</h2><div class="form-row"><label>Course / unit name <input type="text" id="courseName" placeholder="Economics S2 2026"></label><label>Lead reviewer <input type="text" id="leadReviewer" placeholder="Name"></label><label>Review date <input type="date" id="reviewDate"></label><label>Overall decision<select id="overallDecision"><option value="">Select decision</option><option value="Approved for S2 2026">Approved for S2 2026</option><option value="Partial approval">Partial approval</option><option value="Revise before use">Revise before use</option><option value="Do not use in S2 2026">Do not use in S2 2026</option></select></label></div><div style="margin-top:14px;"><label>Overall notes<textarea id="overallNotes" placeholder="Record final decision, remaining risks, fallback arrangements, and API-use conditions."></textarea></label></div><table style="margin-top:14px;"><thead><tr><th>Graph</th><th>Title</th><th>Checklist status</th><th>Final decision</th></tr></thead><tbody><tr><td><a href="#G01">G01</a></td><td>Demand and supply equilibrium</td><td><span class="mini-status" data-mini-status-for="G01">Not ready</span></td><td><span data-decision-display-for="G01">—</span></td></tr>
+<tr><td><a href="#G02">G02</a></td><td>Elasticity and tax incidence</td><td><span class="mini-status" data-mini-status-for="G02">Not ready</span></td><td><span data-decision-display-for="G02">—</span></td></tr>
+<tr><td><a href="#G03">G03</a></td><td>Tax, subsidy, and welfare</td><td><span class="mini-status" data-mini-status-for="G03">Not ready</span></td><td><span data-decision-display-for="G03">—</span></td></tr>
+<tr><td><a href="#G04">G04</a></td><td>Price controls</td><td><span class="mini-status" data-mini-status-for="G04">Not ready</span></td><td><span data-decision-display-for="G04">—</span></td></tr>
+<tr><td><a href="#G06">G06</a></td><td>Small-country trade</td><td><span class="mini-status" data-mini-status-for="G06">Not ready</span></td><td><span data-decision-display-for="G06">—</span></td></tr>
+<tr><td><a href="#G07">G07</a></td><td>Externalities and social efficiency</td><td><span class="mini-status" data-mini-status-for="G07">Not ready</span></td><td><span data-decision-display-for="G07">—</span></td></tr>
+<tr><td><a href="#G14">G14</a></td><td>Monopoly and regulation</td><td><span class="mini-status" data-mini-status-for="G14">Not ready</span></td><td><span data-decision-display-for="G14">—</span></td></tr>
+<tr><td><a href="#G21">G21</a></td><td>Static AD–AS</td><td><span class="mini-status" data-mini-status-for="G21">Not ready</span></td><td><span data-decision-display-for="G21">—</span></td></tr>
+<tr><td><a href="#G23">G23</a></td><td>Keynesian cross</td><td><span class="mini-status" data-mini-status-for="G23">Not ready</span></td><td><span data-decision-display-for="G23">—</span></td></tr>
+<tr><td><a href="#G24">G24</a></td><td>IS–LM</td><td><span class="mini-status" data-mini-status-for="G24">Not ready</span></td><td><span data-decision-display-for="G24">—</span></td></tr>
+<tr><td><a href="#G27">G27</a></td><td>Money market and interest rate</td><td><span class="mini-status" data-mini-status-for="G27">Not ready</span></td><td><span data-decision-display-for="G27">—</span></td></tr>
+<tr><td><a href="#G31">G31</a></td><td>Foreign exchange market</td><td><span class="mini-status" data-mini-status-for="G31">Not ready</span></td><td><span data-decision-display-for="G31">—</span></td></tr></tbody></table></section>
+</main>
+<script>
+const STORAGE_KEY = "AI_ECON_GRAPH_TESTING_CHECKLIST_S2_2026_V1";
+const GRAPH_IDS = ["G01", "G02", "G03", "G04", "G06", "G07", "G14", "G21", "G23", "G24", "G27", "G31"];
+function checkboxKey(cb){return [cb.dataset.scope||"",cb.dataset.graph||"",cb.dataset.section||"",cb.dataset.item||""].join("|");}
+function allGraphCheckboxes(graphId){return Array.from(document.querySelectorAll('input[type="checkbox"][data-scope="graph"][data-graph="'+graphId+'"]'));}
+function updateProgress(){
+  const boxes=Array.from(document.querySelectorAll('input[type="checkbox"]'));
+  const checked=boxes.filter(b=>b.checked).length;
+  const pct=boxes.length?Math.round(checked/boxes.length*100):0;
+  document.getElementById("overallText").textContent=pct+"% complete";
+  document.getElementById("overallDetail").textContent=checked+" of "+boxes.length+" boxes checked";
+  document.getElementById("overallFill").style.width=pct+"%";
+  boxes.forEach(cb=>cb.closest(".check-item")?.classList.toggle("checked",cb.checked));
+  let ready=0;
+  GRAPH_IDS.forEach(id=>{
+    const gBoxes=allGraphCheckboxes(id); const gChecked=gBoxes.filter(b=>b.checked).length;
+    const status=document.querySelector('[data-status-for="'+id+'"]'); const mini=document.querySelector('[data-mini-status-for="'+id+'"]');
+    let text="Not ready"; let cls="";
+    if(gBoxes.length&&gChecked===gBoxes.length){text="Checklist complete";cls="ready";ready+=1;}
+    else if(gChecked>0){text=gChecked+"/"+gBoxes.length+" checked";cls="partial";}
+    [status,mini].forEach(el=>{if(!el)return;el.textContent=text;el.classList.remove("ready","partial");if(cls)el.classList.add(cls);});
+    const decision=document.querySelector('[data-decision-for="'+id+'"]')?.value||"—";
+    const decisionDisplay=document.querySelector('[data-decision-display-for="'+id+'"]'); if(decisionDisplay) decisionDisplay.textContent=decision;
+  });
+  document.getElementById("readyCount").textContent=ready;
+  document.getElementById("graphReadyText").textContent=ready+" of "+GRAPH_IDS.length+" graphs have graph-specific checklist complete";
+}
+function collectState(){
+  const state={checks:{},notes:{},decisions:{},fields:{}};
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb=>{state.checks[checkboxKey(cb)]=cb.checked;});
+  document.querySelectorAll("textarea[data-note-for]").forEach(el=>{state.notes[el.dataset.noteFor]=el.value;});
+  document.querySelectorAll("select[data-decision-for]").forEach(el=>{state.decisions[el.dataset.decisionFor]=el.value;});
+  ["courseName","leadReviewer","reviewDate","overallDecision","overallNotes"].forEach(id=>{const el=document.getElementById(id); if(el) state.fields[id]=el.value;});
+  state.savedAt=new Date().toISOString(); return state;
+}
+function applyState(state){
+  if(!state)return;
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb=>{const key=checkboxKey(cb); if(Object.prototype.hasOwnProperty.call(state.checks||{},key)) cb.checked=Boolean(state.checks[key]);});
+  document.querySelectorAll("textarea[data-note-for]").forEach(el=>{if(state.notes&&Object.prototype.hasOwnProperty.call(state.notes,el.dataset.noteFor)) el.value=state.notes[el.dataset.noteFor];});
+  document.querySelectorAll("select[data-decision-for]").forEach(el=>{if(state.decisions&&Object.prototype.hasOwnProperty.call(state.decisions,el.dataset.decisionFor)) el.value=state.decisions[el.dataset.decisionFor];});
+  Object.entries(state.fields||{}).forEach(([id,value])=>{const el=document.getElementById(id); if(el) el.value=value;});
+  updateProgress();
+}
+function saveState(showMessage=true){localStorage.setItem(STORAGE_KEY,JSON.stringify(collectState(),null,2)); if(showMessage) alert("Checklist saved in this browser.");}
+function loadState(){const saved=localStorage.getItem(STORAGE_KEY); if(saved){try{applyState(JSON.parse(saved));}catch(e){console.warn("Could not load saved checklist",e);}}}
+function exportState(){const blob=new Blob([JSON.stringify(collectState(),null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="testing_evaluation_checklist_12_ai_graphs_s2_2026.json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);}
+function resetAll(){if(!confirm("Reset all checkboxes, notes, and decisions in this browser?"))return;localStorage.removeItem(STORAGE_KEY);document.querySelectorAll('input[type="checkbox"]').forEach(cb=>cb.checked=false);document.querySelectorAll("textarea").forEach(el=>el.value="");document.querySelectorAll("select").forEach(el=>el.selectedIndex=0);document.querySelectorAll('input[type="text"], input[type="date"]').forEach(el=>el.value="");updateProgress();}
+document.addEventListener("change",e=>{if(e.target.matches('input[type="checkbox"], textarea, select, input[type="text"], input[type="date"]')){updateProgress();localStorage.setItem(STORAGE_KEY,JSON.stringify(collectState(),null,2));}});
+document.addEventListener("input",e=>{if(e.target.matches("textarea, input[type='text'], input[type='date']")){localStorage.setItem(STORAGE_KEY,JSON.stringify(collectState(),null,2));}});
+document.getElementById("saveBtn").addEventListener("click",()=>saveState(true));
+document.getElementById("exportBtn").addEventListener("click",exportState);
+document.getElementById("printBtn").addEventListener("click",()=>window.print());
+document.getElementById("resetBtn").addEventListener("click",resetAll);
+document.getElementById("importFile").addEventListener("change",async event=>{const file=event.target.files&&event.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());applyState(data);saveState(false);alert("Checklist imported and saved in this browser.");}catch(e){alert("Could not import checklist JSON: "+e.message);}event.target.value="";});
+loadState();updateProgress();
+</script>
+</body></html>
