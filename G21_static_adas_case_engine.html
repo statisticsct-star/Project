@@ -1,0 +1,3342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G21_static_adas</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs,
+    .summary-strip,
+    .legend-row,
+    .button-row,
+    .scenario-bank,
+    .case-step-row,
+    .chart-grid,
+    .metric-grid,
+    .note-list,
+    .toggle-row,
+    .data-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .module-tabs,
+    .summary-strip,
+    .case-step-row,
+    .scenario-bank,
+    .chart-grid,
+    .toggle-row,
+    .data-pills {
+      margin-bottom: 16px;
+    }
+    .module-tab,
+    .case-step-btn,
+    .scenario-chip,
+    .toggle-chip,
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+      text-align: center;
+      line-height: 1.25;
+    }
+    .module-tab:hover,
+    .case-step-btn:hover,
+    .scenario-chip:hover,
+    .toggle-chip:hover,
+    .ghost-btn:hover {
+      transform: translateY(-1px);
+      background: #f8fbff;
+    }
+    .module-tab.active,
+    .case-step-btn.active,
+    .scenario-chip.active,
+    .toggle-chip.active,
+    .ghost-btn.active {
+      background: #eef5ff;
+      border-color: var(--color-demand);
+      color: var(--color-demand);
+    }
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+
+    .summary-chip,
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 0 0 16px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+    .control-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 165px;
+    }
+    .control-inline.wide { min-width: 240px; }
+    .control-inline label {
+      font-size: var(--font-panel);
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    .inline-value {
+      color: var(--color-muted);
+      font-weight: 400;
+      margin-left: 6px;
+    }
+    input[type="range"] { width: 210px; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.52fr) minmax(320px, 0.98fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .graph-card,
+    .panel-card,
+    .status-card,
+    .metric-card,
+    .data-card,
+    .table-card,
+    .feedback-card,
+    .source-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .panel-stack {
+      display: grid;
+      gap: 16px;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .metric-item {
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+    .metric-label,
+    .table-wrap th,
+    .answer-grid label {
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .metric-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.3;
+    }
+
+    .card-title,
+    .status-title,
+    .data-title,
+    .chart-title,
+    .table-title,
+    .feedback-title,
+    .answer-title,
+    .legend-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--color-text);
+    }
+    .small-muted,
+    .graph-note,
+    .status-copy,
+    .source-copy,
+    .feedback-copy,
+    .table-note,
+    .answer-copy,
+    .metric-note,
+    .note-list li {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.55;
+    }
+    .small-muted strong,
+    .graph-note strong,
+    .status-copy strong,
+    .source-copy strong,
+    .feedback-copy strong,
+    .answer-copy strong,
+    .metric-note strong {
+      color: var(--color-text);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.35;
+    }
+    .legend-line {
+      width: 30px;
+      height: 0;
+      border-top: 3px solid var(--color-text);
+    }
+    .legend-line.ad { border-color: var(--color-demand); }
+    .legend-line.ad-shock { border-color: var(--color-demand); border-top-style: dashed; }
+    .legend-line.sras { border-color: var(--color-supply); }
+    .legend-line.lras { border-color: var(--color-long-run); }
+    .legend-line.baseline { border-color: var(--color-baseline); border-top-style: dashed; }
+    .legend-line.guess { border-color: var(--color-guess); border-top-style: dashed; }
+    .legend-square,
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 2px solid var(--color-text);
+      background: white;
+      flex: 0 0 auto;
+    }
+    .legend-dot.current { border-color: #111827; background: #111827; }
+    .legend-dot.revealed { border-color: var(--color-government); background: white; }
+    .legend-dot.guess { border-color: var(--color-guess); background: white; }
+    .legend-square.gap {
+      border-radius: 4px;
+      border-color: var(--color-baseline);
+      background: rgba(163,170,181,0.16);
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th, td {
+      padding: 8px 8px;
+      border-bottom: 1px solid #e6eaf0;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--color-muted);
+      font-weight: 700;
+      background: rgba(249, 251, 255, 0.85);
+    }
+    td strong { color: var(--color-text); }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .answer-grid select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+    }
+
+    .feedback-card.success { border-left: 4px solid var(--color-government); }
+    .feedback-card.warning { border-left: 4px solid var(--color-inflation); }
+    .feedback-card.neutral { border-left: 4px solid var(--color-baseline); }
+    .result-correct { color: var(--color-government); font-weight: 700; }
+    .result-incorrect { color: var(--color-supply); font-weight: 700; }
+    .result-neutral { color: var(--color-muted); font-weight: 700; }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .chart-card {
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .chart-card canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+
+    .note-list {
+      padding-left: 18px;
+      margin: 8px 0 0 0;
+    }
+    .note-list li + li { margin-top: 6px; }
+
+    @media (max-width: 1080px) {
+      .workspace,
+      .chart-grid,
+      .answer-grid {
+        grid-template-columns: 1fr;
+      }
+      .metric-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 760px) {
+      .metric-grid { grid-template-columns: 1fr; }
+    }
+  
+
+    /* --- AI-supported case-study exercise and assignable case engine layer --- */
+    .ace-control-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: end;
+      margin: 16px 0 18px 0;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+    }
+
+    .ace-control {
+      display: flex;
+      flex-direction: column;
+      min-width: 180px;
+      gap: 6px;
+    }
+
+    .ace-control.wide {
+      flex: 1 1 100%;
+    }
+
+    .ace-control label {
+      font-size: 13px;
+      color: var(--color-text);
+      font-weight: 600;
+    }
+
+    .ace-control input,
+    .ace-control select,
+    .ace-control textarea,
+    .ace-control button {
+      font-family: var(--font-family-base);
+      font-size: 13px;
+    }
+
+    .ace-control input,
+    .ace-control select,
+    .ace-control textarea,
+    .ace-json-area {
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+      color: var(--color-text);
+    }
+
+    .ace-workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.9fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .ace-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .ace-subtle-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.45;
+      margin: 8px 0 0 0;
+    }
+
+    .ace-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid var(--color-frame);
+      background: #f3f6fb;
+      color: var(--color-muted);
+      margin-right: 8px;
+    }
+
+    .ace-status-badge.idle {
+      background: #f3f6fb;
+      color: var(--color-muted);
+    }
+
+    .ace-status-badge.working {
+      background: #fff4cc;
+      border-color: #f5c84b;
+      color: #8a5a00;
+    }
+
+    .ace-status-badge.completed {
+      background: #e8f7ee;
+      border-color: #70c894;
+      color: #17663a;
+    }
+
+    .ace-status-badge.warning {
+      background: #fff1f0;
+      border-color: #ffb4ad;
+      color: #a12a1e;
+    }
+
+    .ace-exercise-list,
+    .ace-step-list,
+    .ace-source-list,
+    .ace-editor-panel {
+      display: grid;
+      gap: 10px;
+    }
+
+    .ace-exercise-card,
+    .ace-step-card,
+    .ace-source-card,
+    .ace-editor-card {
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: white;
+      line-height: 1.45;
+    }
+
+    .ace-exercise-card,
+    .ace-step-card {
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+    }
+
+    .ace-exercise-card:hover,
+    .ace-step-card:hover {
+      transform: translateY(-1px);
+      border-color: #90a6c4;
+      background: #fbfcff;
+    }
+
+    .ace-exercise-card.active,
+    .ace-step-card.active {
+      border-color: var(--color-demand);
+      background: #f5f8ff;
+    }
+
+    .ace-exercise-card label {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      cursor: pointer;
+      align-items: start;
+    }
+
+    .ace-exercise-title,
+    .ace-step-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--color-text);
+      margin-bottom: 4px;
+    }
+
+    .ace-exercise-text,
+    .ace-step-note,
+    .ace-source-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.45;
+    }
+
+    .ace-answer-area {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      padding: 10px 12px;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      font-family: var(--font-family-base);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--color-text);
+      background: white;
+    }
+
+    .ace-editor-card label {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--color-text);
+      margin: 8px 0 5px;
+    }
+
+    .ace-editor-card input,
+    .ace-editor-card textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      font-family: var(--font-family-base);
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--color-text);
+      background: white;
+    }
+
+    .ace-editor-card textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .ace-json-area {
+      width: 100%;
+      min-height: 230px;
+      resize: vertical;
+      line-height: 1.35;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .ace-small-actions,
+    .ace-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .ace-btn-inline {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--color-frame);
+      background: white;
+      color: var(--color-text);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .ace-btn-inline.primary {
+      background: var(--color-government);
+      border-color: var(--color-government);
+      color: white;
+    }
+
+    .ace-btn-inline:hover {
+      background: #f8fbff;
+    }
+
+    .ace-btn-inline.primary:hover {
+      background: var(--color-government);
+    }
+
+    .ace-hidden {
+      display: none !important;
+    }
+
+    .ace-score-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 76px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 800;
+      background: #eef4ff;
+      color: var(--color-demand);
+      border: 1px solid #c8d7ff;
+      margin-right: 10px;
+    }
+
+    .ace-feedback-list {
+      margin: 8px 0 0 0;
+      padding-left: 18px;
+    }
+
+    .ace-feedback-list li {
+      margin: 4px 0;
+      line-height: 1.4;
+    }
+
+    .ace-chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .ace-chart-card {
+      background: #fbfcff;
+      border: 1px solid var(--color-frame);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .ace-chart-card canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      background: white;
+    }
+
+    .ace-chart-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--color-text);
+      margin-bottom: 8px;
+    }
+
+    .ace-teacher-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .ace-teacher-grid .wide {
+      grid-column: 1 / -1;
+    }
+
+    .ace-panel-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--color-text);
+      margin-bottom: 10px;
+    }
+
+    .ace-case-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--color-text);
+      margin-bottom: 6px;
+    }
+
+    .ace-case-subtitle {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.45;
+    }
+
+    @media (max-width: 1040px) {
+      .ace-workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .ace-chart-grid,
+      .ace-teacher-grid {
+        grid-template-columns: 1fr;
+      }
+      .ace-teacher-grid .wide {
+        grid-column: auto;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Static AD–AS, inflationary and recessionary gaps, demand shocks versus supply shocks, and fiscal and monetary stabilization</h1>
+        <p class="diagram-subtitle">
+          Compare demand shocks, supply shocks, and stabilization policy in a static AD–AS cross. The Australian case study translates the 2020 COVID recession, the 2022 inflation surge, and the 2023–24 disinflation into a stylized sequence of AD, SRAS, and LRAS shifts.
+        </p>
+      </div>
+
+      <div class="summary-strip">
+        <span class="summary-chip">Static AD–AS cross</span>
+        <span class="summary-chip">Inflationary and recessionary gaps</span>
+        <span class="summary-chip">Demand versus supply shocks</span>
+        <span class="summary-chip">Fiscal and monetary stabilization</span>
+        <span class="summary-chip">Practice and check-answer mode</span>
+        <span class="summary-chip">Australian COVID + inflation case study</span>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Explore</button>
+        <button class="module-tab" data-target="practiceSection">Practice and check</button>
+        <button class="module-tab" data-target="caseSection">Australian case study</button>
+        <button class="module-tab" data-target="aceCaseExerciseSection">Case-study exercises</button>
+        <button class="module-tab" data-target="aceCaseEngineSection">Assignable case engine</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="control-row">
+          <div class="control-inline">
+            <label for="exploreShockType">Shock type</label>
+            <select id="exploreShockType">
+              <option value="none">No shock</option>
+              <option value="demandSlump">Demand slump (AD left)</option>
+              <option value="demandBoom">Demand boom (AD right)</option>
+              <option value="negativeSupply">Adverse supply shock (SRAS left)</option>
+              <option value="positiveSupply">Favourable supply shock (SRAS right)</option>
+            </select>
+          </div>
+          <div class="control-inline">
+            <label for="exploreShockSize">Shock size <span id="exploreShockSizeLabel" class="inline-value"></span></label>
+            <input id="exploreShockSize" type="range" min="0" max="12" step="1" value="8" />
+          </div>
+          <div class="control-inline">
+            <label for="explorePotentialShift">Potential output shift <span id="explorePotentialShiftLabel" class="inline-value"></span></label>
+            <input id="explorePotentialShift" type="range" min="-4" max="4" step="0.5" value="0" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreFiscal">Fiscal stance <span id="exploreFiscalLabel" class="inline-value"></span></label>
+            <input id="exploreFiscal" type="range" min="-12" max="12" step="0.5" value="0" />
+          </div>
+          <div class="control-inline">
+            <label for="exploreMonetary">Monetary stance <span id="exploreMonetaryLabel" class="inline-value"></span></label>
+            <input id="exploreMonetary" type="range" min="-12" max="12" step="0.5" value="0" />
+          </div>
+          <div class="control-inline wide">
+            <label>View options</label>
+            <div class="toggle-row">
+              <button id="toggleBaseline" class="toggle-chip active">Baseline curves</button>
+              <button id="toggleGap" class="toggle-chip active">Gap band</button>
+              <button id="togglePrePolicy" class="toggle-chip active">Pre-policy AD</button>
+            </div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="exploreNeutraliseGap">Neutralise output gap</button>
+              <button class="btn-secondary" id="exploreZeroPolicy">Zero policies</button>
+              <button class="btn-secondary" id="exploreRandom">Random scenario</button>
+              <button class="btn-secondary" id="exploreReset">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="exploreCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line.baseline"></span>Baseline AD / SRAS / equilibrium</span>
+              <span class="legend-item"><span class="legend-line.ad"></span>Current AD</span>
+              <span class="legend-item"><span class="legend-line.ad-shock"></span>Post-shock AD before policy</span>
+              <span class="legend-item"><span class="legend-line.sras"></span>Current SRAS</span>
+              <span class="legend-item"><span class="legend-line.lras"></span>Current LRAS</span>
+              <span class="legend-item"><span class="legend-square gap"></span>Output-gap band</span>
+              <span class="legend-item"><span class="legend-dot.current"></span>Current equilibrium</span>
+            </div>
+            <div class="graph-note">
+              <strong>How to read the graph:</strong> AD slopes downward, SRAS slopes upward, and LRAS marks potential output. Demand shocks mostly move output and the price level in the same direction. Supply shocks move them in opposite directions, which is why stabilization is straightforward for demand shocks but involves trade-offs for adverse supply shocks.
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div class="metric-card">
+              <div class="card-title">Live metrics</div>
+              <div class="metric-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Real GDP index</div>
+                  <div id="exploreMetricY" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Price level index</div>
+                  <div id="exploreMetricP" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Potential output (LRAS)</div>
+                  <div id="exploreMetricYStar" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Gap type</div>
+                  <div id="exploreMetricGap" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Output gap</div>
+                  <div id="exploreMetricGapSize" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">AD shift still needed to close gap</div>
+                  <div id="exploreMetricNeeded" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="exploreMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+            <div id="exploreStatus" class="status-card">
+              <div class="status-title">Economic reading</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="data-card">
+              <div class="data-title">How to interpret the static AD–AS model</div>
+              <ul class="note-list">
+                <li><strong>Demand shocks:</strong> a left shift in AD lowers output and the price level; a right shift raises both.</li>
+                <li><strong>Supply shocks:</strong> an adverse SRAS shift lowers output and raises prices, producing stagflation; a favourable SRAS shift raises output and lowers prices.</li>
+                <li><strong>Inflationary and recessionary gaps:</strong> compare short-run equilibrium output with LRAS. A positive gap means output is above potential; a negative gap means unused capacity and weaker labour demand.</li>
+                <li><strong>Stabilization:</strong> fiscal and monetary policy mainly shift AD. That makes them powerful against demand shocks, but only imperfect against adverse supply shocks because closing the output gap can worsen inflation.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="practiceSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Scenario bank</label>
+            <div id="practiceScenarioBank" class="scenario-bank"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="practiceRandom">Random scenario</button>
+              <button class="btn-secondary" id="practiceResetGuess">Reset guess</button>
+              <button class="btn-primary" id="practiceCheck">Check answer</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="practiceCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line.baseline"></span>Baseline AD / SRAS / LRAS</span>
+              <span class="legend-item"><span class="legend-line.ad"></span>Current AD</span>
+              <span class="legend-item"><span class="legend-line.sras"></span>Current SRAS</span>
+              <span class="legend-item"><span class="legend-line.lras"></span>Current LRAS</span>
+              <span class="legend-item"><span class="legend-dot.guess"></span>Your equilibrium guess</span>
+              <span class="legend-item"><span class="legend-dot.revealed"></span>Correct equilibrium</span>
+            </div>
+            <div class="graph-note">
+              <strong>Student task:</strong> drag the purple point to where you think the new short-run equilibrium lies. Then identify which curve shifted, how output and the price level changed, what kind of gap appears, and what stabilization response is most appropriate.
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div id="practiceStatus" class="status-card">
+              <div class="status-title">Practice prompt</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="panel-card">
+              <div class="answer-title">Your answers</div>
+              <div class="answer-copy" style="margin-bottom: 10px;">Use the displayed curves to answer the comparative-statics questions.</div>
+              <div class="answer-grid">
+                <div>
+                  <label for="practiceAnswerCurve">Which curve shifted?</label>
+                  <select id="practiceAnswerCurve">
+                    <option value="">Choose</option>
+                    <option value="ad">AD</option>
+                    <option value="sras">SRAS</option>
+                    <option value="lras">LRAS</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerY">Real GDP relative to baseline?</label>
+                  <select id="practiceAnswerY">
+                    <option value="">Choose</option>
+                    <option value="higher">Higher</option>
+                    <option value="lower">Lower</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerP">Price level relative to baseline?</label>
+                  <select id="practiceAnswerP">
+                    <option value="">Choose</option>
+                    <option value="higher">Higher</option>
+                    <option value="lower">Lower</option>
+                    <option value="unchanged">Unchanged</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerGap">Gap type?</label>
+                  <select id="practiceAnswerGap">
+                    <option value="">Choose</option>
+                    <option value="inflationary">Inflationary gap</option>
+                    <option value="recessionary">Recessionary gap</option>
+                    <option value="none">No gap</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="practiceAnswerPolicy">Best stabilization response?</label>
+                  <select id="practiceAnswerPolicy">
+                    <option value="">Choose</option>
+                    <option value="expansionary">Expansionary demand policy</option>
+                    <option value="contractionary">Contractionary demand policy</option>
+                    <option value="supplySide">Supply-side relief / trade-off case</option>
+                    <option value="none">No major demand response needed</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div id="practiceFeedback" class="feedback-card neutral">
+              <div class="feedback-title">Feedback</div>
+              <div class="feedback-copy">Choose a scenario, move the purple point to your equilibrium guess, and then check your answers.</div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Answer check</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Your answer</th>
+                      <th>Correct answer</th>
+                    </tr>
+                  </thead>
+                  <tbody id="practiceTableBody"></tbody>
+                </table>
+              </div>
+              <div id="practiceTableNote" class="table-note" style="margin-top: 10px;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide">
+            <label>Case-study sequence</label>
+            <div id="caseStepRow" class="case-step-row"></div>
+          </div>
+          <div class="control-inline wide">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="casePlay">Play sequence</button>
+              <button class="btn-secondary" id="caseReset">Reset to step 1</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame">
+              <canvas id="caseCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            </div>
+            <div class="legend-row" style="margin-top: 12px;">
+              <span class="legend-item"><span class="legend-line.baseline"></span>Baseline 2019 curves</span>
+              <span class="legend-item"><span class="legend-line.ad"></span>Case-study AD</span>
+              <span class="legend-item"><span class="legend-line.ad-shock"></span>Case-study AD before policy</span>
+              <span class="legend-item"><span class="legend-line.sras"></span>Case-study SRAS</span>
+              <span class="legend-item"><span class="legend-line.lras"></span>Case-study LRAS</span>
+              <span class="legend-item"><span class="legend-dot.current"></span>Case-study equilibrium</span>
+              <span class="legend-item"><span class="legend-square gap"></span>Gap band</span>
+            </div>
+            <div class="graph-note">
+              <strong>Case-study mapping:</strong> the sequence is a stylized macro translation of Australian data, not a structural estimate of Australia’s full AD–AS system. The aim is to use official data to pin down the direction and broad scale of the shifts: pandemic recession, stimulus-supported rebound, inflation spike, and later disinflation.
+            </div>
+
+            <div class="chart-grid">
+              <div class="chart-card">
+                <div class="chart-title">Australia’s GDP level: shock and rebound</div>
+                <canvas id="caseGdpCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">Index uses ABS chain-volume GDP levels with <strong>Dec 2019 = 100</strong>.</div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">Inflation versus the cash rate</div>
+                <canvas id="caseInflationCanvas" width="420" height="240"></canvas>
+                <div class="small-muted" style="margin-top: 8px;">Annual CPI from the ABS and the cash-rate target from the RBA.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-stack">
+            <div id="caseStatus" class="status-card">
+              <div class="status-title">Current step</div>
+              <div class="status-copy">—</div>
+            </div>
+
+            <div class="metric-card">
+              <div class="card-title">Case-study metrics</div>
+              <div class="metric-grid">
+                <div class="metric-item">
+                  <div class="metric-label">Real GDP index</div>
+                  <div id="caseMetricY" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Price level index</div>
+                  <div id="caseMetricP" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Potential output</div>
+                  <div id="caseMetricYStar" class="metric-value">—</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Gap type</div>
+                  <div id="caseMetricGap" class="metric-value">—</div>
+                </div>
+              </div>
+              <div id="caseMetricNote" class="metric-note" style="margin-top: 10px;"></div>
+            </div>
+
+            <div class="table-card">
+              <div class="table-title">Observed Australian data used in the case</div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Observed series</th>
+                      <th>Data point</th>
+                      <th>How the graph uses it</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Pre-pandemic inflation</strong></td>
+                      <td>Annual CPI was 1.8% in Dec 2019</td>
+                      <td>Anchors the baseline near low inflation and roughly normal activity before the pandemic shock.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Pandemic recession</strong></td>
+                      <td>GDP fell 7.0% q/q in Jun 2020 and unemployment reached 7.5% in Jul 2020</td>
+                      <td>Mapped into a large leftward AD shock that creates a recessionary gap and lower prices.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Fiscal support</strong></td>
+                      <td>Treasury reported $259 billion of fiscal and balance-sheet support, around 13.3% of annual GDP, with direct fiscal measures around 6.9% of GDP</td>
+                      <td>Used as the real-world anchor for the expansionary fiscal component that shifts AD back toward potential.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Monetary support and later tightening</strong></td>
+                      <td>Cash rate 0.75% in Feb 2020, 0.10% by Nov 2020, and 4.35% by Nov 2023</td>
+                      <td>Used to motivate expansionary monetary policy in the recession step and contractionary monetary stabilization in the disinflation step.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Rebound and later inflation</strong></td>
+                      <td>GDP rose 3.4% q/q in Dec 2021 and was 3.4% above Dec 2019; annual CPI then peaked at 7.8% in Dec 2022</td>
+                      <td>Motivates the move from a closed gap to a high-price equilibrium shaped by both stronger demand and adverse supply conditions.</td>
+                    </tr>
+                    <tr>
+                      <td><strong>Disinflation</strong></td>
+                      <td>Annual CPI fell to 2.4% in Dec 2024 while unemployment was 4.0%</td>
+                      <td>Anchors the final step in which tighter policy cools demand and pushes inflation back toward target.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="source-card">
+              <div class="card-title">Interpretation note</div>
+              <div class="source-copy">
+                This is best read as a <strong>stylized macro teaching sequence</strong>. The official Australian data tell us that the economy moved from a severe recessionary gap in 2020, to a stimulus-supported recovery, to a high-inflation period in 2022–23, and then to disinflation by late 2024. The static AD–AS diagram turns that evidence into a clean classroom story about shocks, gaps, and the strengths and limits of stabilization policy.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+
+
+      <section id="aceCaseExerciseSection" class="module-section">
+        <div class="ace-control-panel">
+          <div class="ace-control">
+            <label for="aceFixedModel">OpenAI model</label>
+            <input type="text" id="aceFixedModel" value="gpt-5.5" placeholder="gpt-5.5" />
+          </div>
+          <div class="ace-control">
+            <label for="aceFixedApiEndpoint">API endpoint</label>
+            <input type="text" id="aceFixedApiEndpoint" value="https://api.openai.com/v1/responses" />
+          </div>
+          <div class="ace-control">
+            <label for="aceFixedApiKey">API key</label>
+            <input type="password" id="aceFixedApiKey" placeholder="Paste key for local testing" autocomplete="off" />
+          </div>
+          <div class="ace-control">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="aceFixedSubmitButton">Submit answer</button>
+          </div>
+          <div class="ace-control">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="aceFixedToggleEditorButton">Show/edit questions and answers</button>
+          </div>
+          <div class="ace-control">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="aceFixedResetButton">Reset exercise</button>
+          </div>
+        </div>
+
+        <div class="ace-workspace">
+          <div class="ace-stack">
+            <div class="notes-panel">
+              <div class="ace-panel-title">Select one case-study exercise</div>
+              <div id="aceFixedQuestionList" class="ace-exercise-list"></div>
+            </div>
+            <div class="notes-panel">
+              <div class="ace-source-card" id="aceFixedPromptBox">
+                <strong>Choose a question.</strong><br />Write your answer below. Teacher questions and sample answers are editable but hidden by default.
+              </div>
+              <div style="margin-top:12px;">
+                <label for="aceFixedStudentAnswer" style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">Student answer</label>
+                <textarea id="aceFixedStudentAnswer" class="ace-answer-area" placeholder="Write your answer here. Refer to the case evidence and the diagram's economic logic."></textarea>
+              </div>
+              <p class="ace-subtle-note">For local testing, paste an API key above. For public deployment, replace the endpoint with a secure server-side proxy so the API key is not exposed in the browser.</p>
+            </div>
+            <div class="feedback-panel feedback-neutral" id="aceFixedFeedback">Feedback and score will appear here after submission.</div>
+          </div>
+
+          <div class="ace-stack">
+            <div class="notes-panel">
+              <div class="ace-panel-title">How the AI marker evaluates answers</div>
+              <div class="ace-source-list">
+                <div class="ace-source-card"><strong>Model reasoning</strong><br><span class="ace-source-note">Does the answer correctly use the diagram's economic mechanism?</span></div>
+                <div class="ace-source-card"><strong>Case evidence</strong><br><span class="ace-source-note">Does the answer refer to the case sequence and observed/proxy outcomes?</span></div>
+                <div class="ace-source-card"><strong>Policy judgement</strong><br><span class="ace-source-note">Does the answer explain likely effects, trade-offs, and limitations?</span></div>
+              </div>
+            </div>
+            <div class="notes-panel ace-hidden" id="aceFixedEditorPanel">
+              <div class="ace-panel-title">Editable questions and sample answers</div>
+              <p class="ace-subtle-note">These teacher-editable benchmarks are used by the AI marker. They are hidden from students by default.</p>
+              <div id="aceFixedEditors" class="ace-editor-panel"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="aceCaseEngineSection" class="module-section">
+        <div class="ace-control-panel">
+          <div class="ace-control">
+            <label for="aceEngineModel">OpenAI model</label>
+            <input type="text" id="aceEngineModel" value="gpt-5.5" placeholder="gpt-5.5" />
+          </div>
+          <div class="ace-control">
+            <label for="aceEngineApiEndpoint">API endpoint</label>
+            <input type="text" id="aceEngineApiEndpoint" value="https://api.openai.com/v1/responses" />
+          </div>
+          <div class="ace-control">
+            <label for="aceEngineApiKey">API key</label>
+            <input type="password" id="aceEngineApiKey" placeholder="Paste key for local testing" autocomplete="off" />
+          </div>
+          <div class="ace-control">
+            <label for="aceEngineSearchToggle">Research mode</label>
+            <select id="aceEngineSearchToggle">
+              <option value="web">Use OpenAI web search</option>
+              <option value="notes">Use teacher notes only</option>
+            </select>
+          </div>
+          <div class="ace-control">
+            <label>&nbsp;</label>
+            <button class="btn-primary" id="aceEngineGenerateButton">Generate/update case</button>
+          </div>
+          <div class="ace-control">
+            <label>&nbsp;</label>
+            <button class="btn-secondary" id="aceEngineSaveButton">Save to browser</button>
+          </div>
+        </div>
+
+        <div class="ace-workspace">
+          <div class="ace-stack">
+            <div class="notes-panel">
+              <span id="aceEngineStatusBadge" class="ace-status-badge idle">Case placeholder</span>
+              <div class="ace-case-title" id="aceEngineTitleDisplay">Assignable case engine</div>
+              <div class="ace-case-subtitle" id="aceEngineSubtitleDisplay">Enter a topic and teacher notes, then generate or import a complete case package.</div>
+            </div>
+
+            <div class="notes-panel">
+              <div class="ace-panel-title">Teacher case input</div>
+              <div class="ace-teacher-grid">
+                <div class="ace-control wide">
+                  <label for="aceEngineTopic">Case topic</label>
+                  <input type="text" id="aceEngineTopic" value="" placeholder="Enter a case topic" />
+                </div>
+                <div class="ace-control wide">
+                  <label for="aceEngineTeacherNotes">Teacher-provided information</label>
+                  <textarea id="aceEngineTeacherNotes" class="ace-answer-area" style="min-height:110px;" placeholder="Paste information, data points, dates, links, or teaching emphasis. The generator can combine these notes with web search if enabled."></textarea>
+                </div>
+                <div class="ace-control">
+                  <label for="aceEnginePrimaryLabel">Primary indicator label</label>
+                  <input type="text" id="aceEnginePrimaryLabel" value="" />
+                </div>
+                <div class="ace-control">
+                  <label for="aceEngineSecondaryLabel">Secondary indicator label</label>
+                  <input type="text" id="aceEngineSecondaryLabel" value="" />
+                </div>
+                <div class="ace-control">
+                  <label for="aceEnginePrimaryPrefix">Primary prefix</label>
+                  <input type="text" id="aceEnginePrimaryPrefix" value="" placeholder="$" />
+                </div>
+                <div class="ace-control">
+                  <label for="aceEnginePrimarySuffix">Primary suffix</label>
+                  <input type="text" id="aceEnginePrimarySuffix" value="" placeholder="%, index, $/unit" />
+                </div>
+              </div>
+              <p class="ace-subtle-note">The case package is JSON-based: event sequence, observed/proxy indicators, evidence notes, six editable questions, and editable sample answers.</p>
+            </div>
+
+            <div class="ace-chart-grid">
+              <div class="ace-chart-card">
+                <div class="ace-chart-title" id="aceEnginePrimaryChartTitle">Primary indicator path</div>
+                <canvas id="aceEnginePrimaryChart" width="440" height="240"></canvas>
+              </div>
+              <div class="ace-chart-card">
+                <div class="ace-chart-title" id="aceEngineSecondaryChartTitle">Secondary indicator path</div>
+                <canvas id="aceEngineSecondaryChart" width="440" height="240"></canvas>
+              </div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="metric-grid" id="aceEngineMetricGrid"></div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="aceEngineFeedback">This placeholder package can be replaced by generated or imported case-study information.</div>
+
+            <div class="notes-panel">
+              <div class="ace-panel-title">Assignable case-study exercise</div>
+              <div id="aceEngineQuestionList" class="ace-exercise-list"></div>
+              <div class="ace-source-card" id="aceEnginePromptBox" style="margin-top:12px;"><strong>Choose a question.</strong><br>The six generated questions use the active assignable case package.</div>
+              <div style="margin-top:12px;">
+                <label for="aceEngineStudentAnswer" style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">Student answer</label>
+                <textarea id="aceEngineStudentAnswer" class="ace-answer-area" placeholder="Write your answer here. Use the active case sequence and the diagram's economic logic."></textarea>
+              </div>
+              <div class="ace-small-actions">
+                <button class="ace-btn-inline primary" id="aceEngineSubmitButton">Submit answer</button>
+                <button class="ace-btn-inline" id="aceEngineToggleEditorButton">Show/edit questions and answers</button>
+                <button class="ace-btn-inline" id="aceEngineResetExerciseButton">Reset exercise</button>
+              </div>
+              <div class="feedback-panel feedback-neutral" id="aceEngineExerciseFeedback">Feedback and score for the assignable case will appear here after submission.</div>
+            </div>
+          </div>
+
+          <div class="ace-stack">
+            <div class="notes-panel">
+              <div class="ace-panel-title">Case-study sequence</div>
+              <div class="ace-small-actions" style="margin-top:0; margin-bottom:10px;">
+                <button class="ace-btn-inline" id="aceEnginePrevStepButton">Previous step</button>
+                <button class="ace-btn-inline" id="aceEngineNextStepButton">Next step</button>
+                <button class="ace-btn-inline" id="aceEngineFullPathButton">Load full path</button>
+                <button class="ace-btn-inline" id="aceEngineResetPathButton">Reset path</button>
+              </div>
+              <div id="aceEngineStepList" class="ace-step-list"></div>
+            </div>
+            <div class="notes-panel">
+              <div class="ace-panel-title">Source cues and evidence notes</div>
+              <div class="ace-source-list" id="aceEngineSourceList"></div>
+            </div>
+            <div class="notes-panel ace-hidden" id="aceEngineEditorPanel">
+              <div class="ace-panel-title">Editable questions and sample answers for active case</div>
+              <p class="ace-subtle-note">These teacher-editable benchmarks are used by the AI marker and are hidden from students by default.</p>
+              <div id="aceEngineEditors" class="ace-editor-panel"></div>
+            </div>
+            <div class="notes-panel">
+              <div class="ace-panel-title">Import / export case package JSON</div>
+              <textarea id="aceEngineJsonArea" class="ace-json-area" placeholder="Paste or export a case package JSON object here."></textarea>
+              <div class="ace-small-actions">
+                <button class="ace-btn-inline" id="aceEngineExportJsonButton">Export active JSON</button>
+                <button class="ace-btn-inline primary" id="aceEngineImportJsonButton">Load JSON into engine</button>
+                <button class="ace-btn-inline" id="aceEngineDownloadJsonButton">Download JSON</button>
+                <button class="ace-btn-inline" id="aceEngineClearSavedButton">Clear saved case</button>
+              </div>
+              <div style="margin-top:10px;">
+                <label for="aceEngineJsonFileInput" style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">Load JSON file</label>
+                <input type="file" id="aceEngineJsonFileInput" accept="application/json,.json" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    (() => {
+      const theme = window.ECON_THEME;
+      const range = { yMin: 70, yMax: 130, pMin: 80, pMax: 130 };
+      const base = {
+        adIntercept: 160,
+        adSlope: 0.6,
+        srasIntercept: 20,
+        srasSlope: 0.8,
+        yPotential: 100,
+        pBaseline: 100
+      };
+      const gapTolerance = 1.0;
+      const guessTolerance = 2.8;
+
+      const palette = {
+        ad: theme.color.demand,
+        sras: theme.color.supply,
+        lras: theme.color.longRun,
+        policy: theme.color.government,
+        baseline: theme.color.baseline,
+        guess: theme.color.guess,
+        point: '#111827',
+        text: theme.color.text,
+        muted: theme.color.muted,
+        frame: theme.color.frame,
+        grid: theme.color.grid,
+        recessionFill: 'rgba(47,107,255,0.10)',
+        inflationFill: 'rgba(224,122,0,0.12)'
+      };
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function fmt(value, digits = 1) {
+        return Number(value).toFixed(digits).replace(/\.0$/, '');
+      }
+
+      function signed(value, digits = 1) {
+        const fixed = Number(value).toFixed(digits).replace(/\.0$/, '');
+        return `${value > 0 ? '+' : ''}${fixed}`;
+      }
+
+      function makeLinearTicks(min, max, step, axis) {
+        const ticks = [];
+        for (let value = min; value <= max + 0.0001; value += step) {
+          ticks.push({
+            label: value.toFixed(0),
+            x: axis === 'x' ? EconDraw.valueToX(value, min, max) : undefined,
+            y: axis === 'y' ? EconDraw.valueToY(value, min, max) : undefined
+          });
+        }
+        return ticks;
+      }
+
+      function plotX(y) {
+        return EconDraw.valueToX(y, range.yMin, range.yMax);
+      }
+
+      function plotY(p) {
+        return EconDraw.valueToY(p, range.pMin, range.pMax);
+      }
+
+      function adPrice(y, shift) {
+        return base.adIntercept + shift - base.adSlope * y;
+      }
+
+      function srasPrice(y, shift) {
+        return base.srasIntercept + shift + base.srasSlope * y;
+      }
+
+      function findEquilibrium(adShift, srasShift) {
+        const y = (base.adIntercept + adShift - base.srasIntercept - srasShift) / (base.adSlope + base.srasSlope);
+        const p = adPrice(y, adShift);
+        return { y, p };
+      }
+
+      function linePoints(curveFn) {
+        const pts = [];
+        for (let y = range.yMin; y <= range.yMax; y += 0.25) {
+          const p = curveFn(y);
+          if (Number.isFinite(p) && p >= range.pMin - 4 && p <= range.pMax + 4) {
+            pts.push({ x: plotX(y), y: plotY(p) });
+          }
+        }
+        return pts;
+      }
+
+      function verticalPoints(yValue) {
+        return [
+          { x: plotX(yValue), y: plotY(range.pMin) },
+          { x: plotX(yValue), y: plotY(range.pMax) }
+        ];
+      }
+
+      function drawGuide(ctx, x, y, color = palette.baseline, dash = theme.dash.guide) {
+        const plot = EconDraw.getPlotArea();
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash(dash);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, plot.bottom);
+        ctx.moveTo(x, y);
+        ctx.lineTo(plot.left, y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawPoint(ctx, point, label, style = {}) {
+        const x = plotX(point.y);
+        const y = plotY(point.p);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x, y, style.radius || 6, 0, Math.PI * 2);
+        ctx.fillStyle = style.fill || 'white';
+        ctx.fill();
+        ctx.lineWidth = style.lineWidth || 2;
+        ctx.strokeStyle = style.stroke || palette.text;
+        if (style.dash) ctx.setLineDash(style.dash);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        if (label) {
+          ctx.font = `700 13px ${theme.font.family}`;
+          ctx.fillStyle = style.text || style.stroke || palette.text;
+          ctx.fillText(label, x + 10, y - 10);
+        }
+        ctx.restore();
+      }
+
+      function drawCurveLabel(ctx, label, yVal, pVal, color, dx = 0, dy = 0) {
+        if (pVal < range.pMin + 1 || pVal > range.pMax - 1) return;
+        EconDraw.drawText(ctx, label, plotX(yVal) + dx, plotY(pVal) + dy, {
+          size: 13,
+          weight: '700',
+          color
+        });
+      }
+
+      function gapType(gap) {
+        if (gap > gapTolerance) return 'inflationary';
+        if (gap < -gapTolerance) return 'recessionary';
+        return 'none';
+      }
+
+      function gapLabel(gap) {
+        if (gap > gapTolerance) return 'Inflationary gap';
+        if (gap < -gapTolerance) return 'Recessionary gap';
+        return 'No significant gap';
+      }
+
+      function unemploymentLabel(gap) {
+        if (gap < -gapTolerance) return 'Higher unemployment pressure';
+        if (gap > gapTolerance) return 'Labour market runs hotter';
+        return 'Labour market broadly balanced';
+      }
+
+      function shockName(type) {
+        return {
+          none: 'No discretionary shock',
+          demandSlump: 'Demand slump',
+          demandBoom: 'Demand boom',
+          negativeSupply: 'Adverse supply shock',
+          positiveSupply: 'Favourable supply shock'
+        }[type] || 'Custom shock';
+      }
+
+      function shockShifts(type, size) {
+        const value = Number(size);
+        switch (type) {
+          case 'demandSlump':
+            return { ad: -value, sras: 0 };
+          case 'demandBoom':
+            return { ad: value, sras: 0 };
+          case 'negativeSupply':
+            return { ad: 0, sras: value };
+          case 'positiveSupply':
+            return { ad: 0, sras: -value };
+          default:
+            return { ad: 0, sras: 0 };
+        }
+      }
+
+      function describePolicy(totalPolicy) {
+        if (totalPolicy > 0.4) return 'Expansionary AD policy';
+        if (totalPolicy < -0.4) return 'Contractionary AD policy';
+        return 'Neutral demand policy';
+      }
+
+      function resolveScenario(input) {
+        const shock = shockShifts(input.shockType, input.shockSize);
+        const adPrePolicy = shock.ad + (input.extraAdShock || 0);
+        const srasShift = shock.sras + (input.extraSrasShift || 0);
+        const yPotential = base.yPotential + (input.potentialShift || 0);
+        const policyShift = (input.fiscal || 0) + (input.monetary || 0) + (input.policyAd || 0);
+        const adCurrent = adPrePolicy + policyShift;
+        const baseEq = findEquilibrium(0, 0);
+        const eqShock = findEquilibrium(adPrePolicy, srasShift);
+        const eqCurrent = findEquilibrium(adCurrent, srasShift);
+        const currentGap = eqCurrent.y - yPotential;
+        const neededAdShift = srasShift + (base.adSlope + base.srasSlope) * (yPotential - base.yPotential) - adPrePolicy;
+        return {
+          adPrePolicy,
+          adCurrent,
+          srasShift,
+          yPotential,
+          baseEq,
+          eqShock,
+          eqCurrent,
+          currentGap,
+          neededAdShift,
+          policyShift
+        };
+      }
+
+      function drawGapBand(ctx, yA, yB, type) {
+        if (Math.abs(yA - yB) < gapTolerance) return;
+        const plot = EconDraw.getPlotArea();
+        const left = plotX(Math.min(yA, yB));
+        const right = plotX(Math.max(yA, yB));
+        const fill = type === 'inflationary' ? palette.inflationFill : palette.recessionFill;
+        EconDraw.fillPolygon(ctx, [
+          { x: left, y: plot.top },
+          { x: right, y: plot.top },
+          { x: right, y: plot.bottom },
+          { x: left, y: plot.bottom }
+        ], { fill });
+        const label = type === 'inflationary' ? 'Inflationary gap' : 'Recessionary gap';
+        EconDraw.drawText(ctx, label, (left + right) / 2, plot.top + 14, {
+          size: 12,
+          weight: '700',
+          align: 'center',
+          color: palette.muted
+        });
+      }
+
+      function drawMacroGraph(ctx, config) {
+        EconDraw.clearCanvas(ctx);
+        EconDraw.drawFrame(ctx);
+
+        EconDraw.drawAxes(ctx, {
+          xLabel: 'Real GDP (index, baseline potential = 100)',
+          yLabel: 'Price level (index, baseline = 100)',
+          xTicks: makeLinearTicks(range.yMin, range.yMax, 10, 'x'),
+          yTicks: makeLinearTicks(range.pMin, range.pMax, 10, 'y'),
+          showGrid: true
+        });
+
+        if (config.showGap && gapType(config.eqCurrent.y - config.yPotential) !== 'none') {
+          drawGapBand(ctx, config.eqCurrent.y, config.yPotential, gapType(config.eqCurrent.y - config.yPotential));
+        }
+
+        if (config.showBaseline) {
+          EconDraw.drawLine(ctx, linePoints((y) => adPrice(y, 0)), {
+            color: palette.baseline,
+            lineWidth: 2,
+            dash: theme.dash.baseline
+          });
+          EconDraw.drawLine(ctx, linePoints((y) => srasPrice(y, 0)), {
+            color: palette.baseline,
+            lineWidth: 2,
+            dash: theme.dash.baseline
+          });
+          EconDraw.drawLine(ctx, verticalPoints(base.yPotential), {
+            color: palette.baseline,
+            lineWidth: 2,
+            dash: theme.dash.baseline
+          });
+          drawPoint(ctx, { y: config.baseEq.y, p: config.baseEq.p }, 'E₀', {
+            fill: 'white',
+            stroke: palette.baseline,
+            text: palette.baseline,
+            radius: 7
+          });
+          drawGuide(ctx, plotX(config.baseEq.y), plotY(config.baseEq.p), palette.baseline, theme.dash.baseline);
+          drawCurveLabel(ctx, 'AD₀', 82, adPrice(82, 0), palette.baseline, -18, -8);
+          drawCurveLabel(ctx, 'SRAS₀', 111, srasPrice(111, 0), palette.baseline, 8, -8);
+          EconDraw.drawText(ctx, 'LRAS₀', plotX(base.yPotential) + 8, plotY(range.pMax) + 18, {
+            size: 12,
+            weight: '700',
+            color: palette.baseline
+          });
+        }
+
+        if (config.showPrePolicy && Math.abs(config.adPrePolicy - config.adCurrent) > 0.05) {
+          EconDraw.drawLine(ctx, linePoints((y) => adPrice(y, config.adPrePolicy)), {
+            color: palette.ad,
+            lineWidth: 2.25,
+            dash: theme.dash.policy
+          });
+          drawCurveLabel(ctx, 'AD (post-shock)', 79, adPrice(79, config.adPrePolicy), palette.ad, -18, -8);
+        }
+
+        EconDraw.drawLine(ctx, linePoints((y) => adPrice(y, config.adCurrent)), {
+          color: palette.ad,
+          lineWidth: theme.line.main
+        });
+        EconDraw.drawLine(ctx, linePoints((y) => srasPrice(y, config.srasShift)), {
+          color: palette.sras,
+          lineWidth: theme.line.main
+        });
+        EconDraw.drawLine(ctx, verticalPoints(config.yPotential), {
+          color: palette.lras,
+          lineWidth: theme.line.main
+        });
+
+        drawCurveLabel(ctx, config.adLabel || 'AD', 79, adPrice(79, config.adCurrent), palette.ad, -18, -8);
+        drawCurveLabel(ctx, config.srasLabel || 'SRAS', 116, srasPrice(116, config.srasShift), palette.sras, 8, -8);
+        EconDraw.drawText(ctx, config.lrasLabel || 'LRAS', plotX(config.yPotential) + 8, plotY(range.pMax) + 18, {
+          size: 12,
+          weight: '700',
+          color: palette.lras
+        });
+
+        drawGuide(ctx, plotX(config.eqCurrent.y), plotY(config.eqCurrent.p), palette.muted);
+        if (!config.hideCurrentPoint) {
+          drawPoint(ctx, { y: config.eqCurrent.y, p: config.eqCurrent.p }, config.currentLabel || 'E₁', {
+            fill: palette.point,
+            stroke: palette.point,
+            text: palette.point,
+            radius: 5
+          });
+        }
+        if (config.guessPoint) {
+          drawPoint(ctx, { y: config.guessPoint.y, p: config.guessPoint.p }, 'G', {
+            fill: 'white',
+            stroke: palette.guess,
+            text: palette.guess,
+            dash: theme.dash.guess,
+            radius: 8,
+            lineWidth: 2.3
+          });
+        }
+        if (config.revealPoint) {
+          drawPoint(ctx, { y: config.revealPoint.y, p: config.revealPoint.p }, config.revealLabel || 'E₁', {
+            fill: 'white',
+            stroke: palette.policy,
+            text: palette.policy,
+            radius: 8,
+            lineWidth: 2.3
+          });
+        }
+
+        EconDraw.drawText(ctx, `Y* = ${fmt(config.yPotential, 1)}`, plotX(config.yPotential) - 4, plotY(range.pMin) + 32, {
+          size: 12,
+          weight: '700',
+          color: palette.lras,
+          align: 'center'
+        });
+
+        if (config.titleText) {
+          EconDraw.drawText(ctx, config.titleText, 100, 34, {
+            size: 13,
+            color: palette.muted
+          });
+        }
+        if (config.footText) {
+          EconDraw.drawText(ctx, config.footText, 100, 560, {
+            size: 12,
+            color: palette.muted
+          });
+        }
+      }
+
+      function getCanvasMouse(event, canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+          x: (event.clientX - rect.left) * scaleX,
+          y: (event.clientY - rect.top) * scaleY
+        };
+      }
+
+      function canvasToPoint(mouse) {
+        return {
+          y: clamp(EconDraw.xToValue(mouse.x, range.yMin, range.yMax), range.yMin, range.yMax),
+          p: clamp(EconDraw.yToValue(mouse.y, range.pMin, range.pMax), range.pMin, range.pMax)
+        };
+      }
+
+      function distanceCanvas(a, b) {
+        return Math.hypot(a.x - b.x, a.y - b.y);
+      }
+
+      function pointToCanvas(point) {
+        return { x: plotX(point.y), y: plotY(point.p) };
+      }
+
+      function policyRecommendation(shockKind, gapKind) {
+        if (shockKind === 'negativeSupply') return 'supplySide';
+        if (shockKind === 'none' && gapKind === 'none') return 'none';
+        if (gapKind === 'recessionary') return 'expansionary';
+        if (gapKind === 'inflationary') return 'contractionary';
+        return 'none';
+      }
+
+      function directionAnswer(current, baseline) {
+        if (current > baseline + 0.6) return 'higher';
+        if (current < baseline - 0.6) return 'lower';
+        return 'unchanged';
+      }
+
+      function narrativeHTML(resolved, shockType, includeTradeOff = true) {
+        const gapKind = gapType(resolved.currentGap);
+        const totalPolicy = resolved.policyShift;
+        const parts = [];
+        parts.push(`<p style="margin:0 0 8px 0;"><strong>${shockName(shockType)}.</strong> The current equilibrium is at real GDP ${fmt(resolved.eqCurrent.y, 1)} and price level ${fmt(resolved.eqCurrent.p, 1)}, compared with the baseline at (100, 100).</p>`);
+        if (gapKind === 'recessionary') {
+          parts.push(`<p style="margin:0 0 8px 0;">Output is ${fmt(Math.abs(resolved.currentGap), 1)} index points below potential, so the economy has a recessionary gap and weaker labour demand.</p>`);
+        } else if (gapKind === 'inflationary') {
+          parts.push(`<p style="margin:0 0 8px 0;">Output is ${fmt(resolved.currentGap, 1)} index points above potential, so the economy has an inflationary gap and the labour market is running hot.</p>`);
+        } else {
+          parts.push(`<p style="margin:0 0 8px 0;">Output is close to LRAS, so the short-run equilibrium is near potential.</p>`);
+        }
+        if (includeTradeOff) {
+          if (shockType === 'negativeSupply') {
+            parts.push(`<p style="margin:0;">An adverse supply shock raises prices and lowers output. Demand policy can reduce the recessionary gap, but fully offsetting it would push the AD curve right and leave the price level even higher. That is the classic static AD–AS trade-off.</p>`);
+          } else if (shockType === 'positiveSupply') {
+            parts.push(`<p style="margin:0;">A favourable supply shock lowers prices while raising output. It improves the short-run policy trade-off and generally does not call for aggressive demand stabilization.</p>`);
+          } else {
+            parts.push(`<p style="margin:0;">Total demand-policy shift is ${signed(totalPolicy, 1)}. Because fiscal and monetary policy mostly move AD, they are especially effective against demand-driven gaps.</p>`);
+          }
+        }
+        return parts.join('');
+      }
+
+      function drawMiniGroupedBarChart(canvas, config) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = palette.frame;
+        ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+        const margin = { left: 50, right: 18, top: 20, bottom: 46 };
+        const plotW = w - margin.left - margin.right;
+        const plotH = h - margin.top - margin.bottom;
+        const maxY = config.maxY;
+
+        ctx.strokeStyle = palette.grid;
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i += 1) {
+          const y = margin.top + (plotH * i) / 4;
+          ctx.beginPath();
+          ctx.moveTo(margin.left, y);
+          ctx.lineTo(w - margin.right, y);
+          ctx.stroke();
+          const value = maxY - (maxY * i) / 4;
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(config.tickFormat ? config.tickFormat(value) : fmt(value, 0), margin.left - 8, y);
+        }
+
+        ctx.strokeStyle = palette.text;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, margin.top);
+        ctx.lineTo(margin.left, h - margin.bottom);
+        ctx.lineTo(w - margin.right, h - margin.bottom);
+        ctx.stroke();
+
+        const groups = config.groups.length;
+        const seriesCount = config.series.length;
+        const slot = plotW / groups;
+        const barWidth = Math.min(26, (slot * 0.68) / seriesCount);
+        const gap = 8;
+
+        config.groups.forEach((group, gi) => {
+          const start = margin.left + gi * slot + (slot - (seriesCount * barWidth + (seriesCount - 1) * gap)) / 2;
+          config.series.forEach((series, si) => {
+            const value = series.values[gi];
+            const height = (value / maxY) * plotH;
+            const x = start + si * (barWidth + gap);
+            const y = margin.top + plotH - height;
+            ctx.fillStyle = series.color;
+            ctx.fillRect(x, y, barWidth, height);
+            ctx.fillStyle = palette.text;
+            ctx.font = `600 11px ${theme.font.family}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(series.valueFormat ? series.valueFormat(value) : fmt(value, 1), x + barWidth / 2, y - 4);
+          });
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(group, margin.left + gi * slot + slot / 2, h - margin.bottom + 10);
+        });
+
+        let lx = margin.left;
+        const ly = h - 24;
+        config.series.forEach((series) => {
+          ctx.fillStyle = series.color;
+          ctx.fillRect(lx, ly, 12, 12);
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillText(series.label, lx + 18, ly - 1);
+          lx += ctx.measureText(series.label).width + 42;
+        });
+      }
+
+      function drawMiniLineChart(canvas, config) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.strokeStyle = palette.frame;
+        ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+        const margin = { left: 52, right: 18, top: 20, bottom: 46 };
+        const plotW = w - margin.left - margin.right;
+        const plotH = h - margin.top - margin.bottom;
+        const minY = config.minY;
+        const maxY = config.maxY;
+
+        function xPos(i) {
+          if (config.groups.length === 1) return margin.left + plotW / 2;
+          return margin.left + (i / (config.groups.length - 1)) * plotW;
+        }
+        function yPos(v) {
+          return margin.top + plotH - ((v - minY) / (maxY - minY)) * plotH;
+        }
+
+        ctx.strokeStyle = palette.grid;
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i += 1) {
+          const y = margin.top + (plotH * i) / 4;
+          ctx.beginPath();
+          ctx.moveTo(margin.left, y);
+          ctx.lineTo(w - margin.right, y);
+          ctx.stroke();
+          const value = maxY - (i / 4) * (maxY - minY);
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(config.tickFormat ? config.tickFormat(value) : fmt(value, 0), margin.left - 8, y);
+        }
+
+        ctx.strokeStyle = palette.text;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(margin.left, margin.top);
+        ctx.lineTo(margin.left, h - margin.bottom);
+        ctx.lineTo(w - margin.right, h - margin.bottom);
+        ctx.stroke();
+
+        config.groups.forEach((group, i) => {
+          const x = xPos(i);
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(group, x, h - margin.bottom + 10);
+        });
+
+        config.series.forEach((series) => {
+          ctx.save();
+          ctx.strokeStyle = series.color;
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          series.values.forEach((value, i) => {
+            const x = xPos(i);
+            const y = yPos(value);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+          ctx.restore();
+
+          series.values.forEach((value, i) => {
+            const x = xPos(i);
+            const y = yPos(value);
+            ctx.beginPath();
+            ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = series.color;
+            ctx.stroke();
+
+            ctx.fillStyle = palette.text;
+            ctx.font = `600 11px ${theme.font.family}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(series.valueFormat ? series.valueFormat(value) : fmt(value, 1), x, y - 6);
+          });
+        });
+
+        let lx = margin.left;
+        const ly = h - 24;
+        config.series.forEach((series) => {
+          ctx.fillStyle = series.color;
+          ctx.fillRect(lx, ly, 12, 12);
+          ctx.fillStyle = palette.muted;
+          ctx.font = `${theme.font.tick}px ${theme.font.family}`;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'top';
+          ctx.fillText(series.label, lx + 18, ly - 1);
+          lx += ctx.measureText(series.label).width + 42;
+        });
+      }
+
+      const explore = {
+        canvas: document.getElementById('exploreCanvas'),
+        ctx: document.getElementById('exploreCanvas').getContext('2d'),
+        controls: {
+          shockType: document.getElementById('exploreShockType'),
+          shockSize: document.getElementById('exploreShockSize'),
+          potentialShift: document.getElementById('explorePotentialShift'),
+          fiscal: document.getElementById('exploreFiscal'),
+          monetary: document.getElementById('exploreMonetary')
+        },
+        labels: {
+          shockSize: document.getElementById('exploreShockSizeLabel'),
+          potentialShift: document.getElementById('explorePotentialShiftLabel'),
+          fiscal: document.getElementById('exploreFiscalLabel'),
+          monetary: document.getElementById('exploreMonetaryLabel')
+        },
+        metrics: {
+          y: document.getElementById('exploreMetricY'),
+          p: document.getElementById('exploreMetricP'),
+          yStar: document.getElementById('exploreMetricYStar'),
+          gap: document.getElementById('exploreMetricGap'),
+          gapSize: document.getElementById('exploreMetricGapSize'),
+          needed: document.getElementById('exploreMetricNeeded'),
+          note: document.getElementById('exploreMetricNote')
+        },
+        status: document.querySelector('#exploreStatus .status-copy'),
+        state: {
+          shockType: 'none',
+          shockSize: 8,
+          potentialShift: 0,
+          fiscal: 0,
+          monetary: 0,
+          showBaseline: true,
+          showGap: true,
+          showPrePolicy: true
+        }
+      };
+
+      function updateExploreLabels() {
+        explore.labels.shockSize.textContent = fmt(explore.state.shockSize, 0);
+        explore.labels.potentialShift.textContent = signed(explore.state.potentialShift, 1);
+        explore.labels.fiscal.textContent = signed(explore.state.fiscal, 1);
+        explore.labels.monetary.textContent = signed(explore.state.monetary, 1);
+      }
+
+      function syncExploreControls() {
+        explore.controls.shockType.value = explore.state.shockType;
+        explore.controls.shockSize.value = String(explore.state.shockSize);
+        explore.controls.potentialShift.value = String(explore.state.potentialShift);
+        explore.controls.fiscal.value = String(explore.state.fiscal);
+        explore.controls.monetary.value = String(explore.state.monetary);
+        updateExploreLabels();
+      }
+
+      function renderExplore() {
+        updateExploreLabels();
+        const resolved = resolveScenario({
+          shockType: explore.state.shockType,
+          shockSize: explore.state.shockSize,
+          potentialShift: explore.state.potentialShift,
+          fiscal: explore.state.fiscal,
+          monetary: explore.state.monetary
+        });
+
+        drawMacroGraph(explore.ctx, {
+          showBaseline: explore.state.showBaseline,
+          showGap: explore.state.showGap,
+          showPrePolicy: explore.state.showPrePolicy,
+          adPrePolicy: resolved.adPrePolicy,
+          adCurrent: resolved.adCurrent,
+          srasShift: resolved.srasShift,
+          yPotential: resolved.yPotential,
+          eqCurrent: resolved.eqCurrent,
+          baseEq: resolved.baseEq,
+          currentLabel: 'E₁',
+          titleText: 'Use the controls to compare demand shocks, supply shocks, LRAS shifts, and AD-based stabilization.',
+          footText: `Shock: ${shockName(explore.state.shockType)}. Total AD policy shift = ${signed(resolved.policyShift, 1)}.`
+        });
+
+        const gapKind = gapType(resolved.currentGap);
+        explore.metrics.y.textContent = fmt(resolved.eqCurrent.y, 1);
+        explore.metrics.p.textContent = fmt(resolved.eqCurrent.p, 1);
+        explore.metrics.yStar.textContent = fmt(resolved.yPotential, 1);
+        explore.metrics.gap.textContent = gapLabel(resolved.currentGap);
+        explore.metrics.gapSize.textContent = signed(resolved.currentGap, 1);
+        explore.metrics.needed.textContent = signed(resolved.neededAdShift - resolved.policyShift, 1);
+        if (explore.state.shockType === 'negativeSupply') {
+          explore.metrics.note.textContent = 'Against an adverse supply shock, closing the output gap entirely requires shifting AD right, which would leave the price level even higher.';
+        } else if (explore.state.shockType === 'positiveSupply') {
+          explore.metrics.note.textContent = 'A favourable supply shock improves the output-inflation trade-off. The model usually recommends little or no contractionary demand response.';
+        } else {
+          explore.metrics.note.textContent = `An extra AD shift of ${signed(resolved.neededAdShift - resolved.policyShift, 1)} would move equilibrium output back to LRAS in this static model.`;
+        }
+
+        const parts = [];
+        parts.push(`<p style="margin:0 0 8px 0;"><strong>${shockName(explore.state.shockType)}.</strong> Current real GDP is ${fmt(resolved.eqCurrent.y, 1)} and the price level is ${fmt(resolved.eqCurrent.p, 1)}.</p>`);
+        if (gapKind === 'recessionary') {
+          parts.push(`<p style="margin:0 0 8px 0;">Because output is below potential by ${fmt(Math.abs(resolved.currentGap), 1)}, the economy sits in a recessionary gap with ${unemploymentLabel(resolved.currentGap).toLowerCase()}.</p>`);
+        } else if (gapKind === 'inflationary') {
+          parts.push(`<p style="margin:0 0 8px 0;">Because output is above potential by ${fmt(resolved.currentGap, 1)}, the economy has an inflationary gap and tends to generate more price pressure over time.</p>`);
+        } else {
+          parts.push(`<p style="margin:0 0 8px 0;">Output is close to LRAS, so the economy is near potential in this static snapshot.</p>`);
+        }
+
+        if (explore.state.shockType === 'negativeSupply') {
+          if (Math.abs(resolved.policyShift) < 0.2) {
+            parts.push(`<p style="margin:0;">An adverse supply shock creates stagflation: lower output and a higher price level. That is why policymakers face a trade-off between stabilizing activity and stabilizing inflation.</p>`);
+          } else {
+            parts.push(`<p style="margin:0;">Your policy mix is ${describePolicy(resolved.policyShift).toLowerCase()}. In a supply-shock scenario, that can partly close the output gap, but it does not remove the inflation trade-off.</p>`);
+          }
+        } else {
+          parts.push(`<p style="margin:0;">Your policy mix is ${describePolicy(resolved.policyShift).toLowerCase()}. Because fiscal and monetary policy mostly shift AD, they are especially effective when the disturbance is demand-driven or when demand has not caught up with LRAS.</p>`);
+        }
+        explore.status.innerHTML = parts.join('');
+      }
+
+      function resetExplore() {
+        explore.state = {
+          shockType: 'none',
+          shockSize: 8,
+          potentialShift: 0,
+          fiscal: 0,
+          monetary: 0,
+          showBaseline: true,
+          showGap: true,
+          showPrePolicy: true
+        };
+        document.getElementById('toggleBaseline').classList.add('active');
+        document.getElementById('toggleGap').classList.add('active');
+        document.getElementById('togglePrePolicy').classList.add('active');
+        syncExploreControls();
+        renderExplore();
+      }
+
+      explore.controls.shockType.addEventListener('change', (event) => {
+        explore.state.shockType = event.target.value;
+        renderExplore();
+      });
+      explore.controls.shockSize.addEventListener('input', (event) => {
+        explore.state.shockSize = Number(event.target.value);
+        renderExplore();
+      });
+      explore.controls.potentialShift.addEventListener('input', (event) => {
+        explore.state.potentialShift = Number(event.target.value);
+        renderExplore();
+      });
+      explore.controls.fiscal.addEventListener('input', (event) => {
+        explore.state.fiscal = Number(event.target.value);
+        renderExplore();
+      });
+      explore.controls.monetary.addEventListener('input', (event) => {
+        explore.state.monetary = Number(event.target.value);
+        renderExplore();
+      });
+
+      document.getElementById('toggleBaseline').addEventListener('click', (event) => {
+        explore.state.showBaseline = !explore.state.showBaseline;
+        event.currentTarget.classList.toggle('active', explore.state.showBaseline);
+        renderExplore();
+      });
+      document.getElementById('toggleGap').addEventListener('click', (event) => {
+        explore.state.showGap = !explore.state.showGap;
+        event.currentTarget.classList.toggle('active', explore.state.showGap);
+        renderExplore();
+      });
+      document.getElementById('togglePrePolicy').addEventListener('click', (event) => {
+        explore.state.showPrePolicy = !explore.state.showPrePolicy;
+        event.currentTarget.classList.toggle('active', explore.state.showPrePolicy);
+        renderExplore();
+      });
+
+      document.getElementById('exploreNeutraliseGap').addEventListener('click', () => {
+        const resolved = resolveScenario({
+          shockType: explore.state.shockType,
+          shockSize: explore.state.shockSize,
+          potentialShift: explore.state.potentialShift,
+          fiscal: 0,
+          monetary: 0
+        });
+        const needed = clamp(resolved.neededAdShift, -24, 24);
+        explore.state.fiscal = clamp(needed / 2, -12, 12);
+        explore.state.monetary = clamp(needed / 2, -12, 12);
+        syncExploreControls();
+        renderExplore();
+      });
+      document.getElementById('exploreZeroPolicy').addEventListener('click', () => {
+        explore.state.fiscal = 0;
+        explore.state.monetary = 0;
+        syncExploreControls();
+        renderExplore();
+      });
+      document.getElementById('exploreRandom').addEventListener('click', () => {
+        const shocks = ['demandSlump', 'demandBoom', 'negativeSupply', 'positiveSupply'];
+        explore.state.shockType = shocks[Math.floor(Math.random() * shocks.length)];
+        explore.state.shockSize = Math.floor(4 + Math.random() * 8);
+        explore.state.potentialShift = Math.round((-2 + Math.random() * 4) * 2) / 2;
+        explore.state.fiscal = 0;
+        explore.state.monetary = 0;
+        syncExploreControls();
+        renderExplore();
+      });
+      document.getElementById('exploreReset').addEventListener('click', resetExplore);
+
+      const practiceScenarios = [
+        {
+          id: 'p1',
+          title: 'COVID-style demand slump',
+          copy: 'Private consumption and investment fall sharply. Identify the new equilibrium and the policy response.',
+          adPrePolicy: -10,
+          srasShift: 0,
+          yPotential: 100,
+          curve: 'ad',
+          policy: 'expansionary'
+        },
+        {
+          id: 'p2',
+          title: 'Overheated spending boom',
+          copy: 'Aggregate demand rises above sustainable capacity. Locate the new equilibrium and the right stabilization direction.',
+          adPrePolicy: 9,
+          srasShift: 0,
+          yPotential: 100,
+          curve: 'ad',
+          policy: 'contractionary'
+        },
+        {
+          id: 'p3',
+          title: 'Energy-cost supply shock',
+          copy: 'Higher energy and transport costs push short-run aggregate supply left. This is the classic stagflation case.',
+          adPrePolicy: 0,
+          srasShift: 8,
+          yPotential: 100,
+          curve: 'sras',
+          policy: 'supplySide'
+        },
+        {
+          id: 'p4',
+          title: 'Capacity growth outruns demand',
+          copy: 'Potential output expands, but current AD has not yet shifted. The task is to spot the recessionary gap despite unchanged short-run output and prices.',
+          adPrePolicy: 0,
+          srasShift: 0,
+          yPotential: 106,
+          curve: 'lras',
+          policy: 'expansionary'
+        }
+      ];
+
+      const practice = {
+        canvas: document.getElementById('practiceCanvas'),
+        ctx: document.getElementById('practiceCanvas').getContext('2d'),
+        status: document.querySelector('#practiceStatus .status-copy'),
+        scenarioBank: document.getElementById('practiceScenarioBank'),
+        feedback: document.querySelector('#practiceFeedback .feedback-copy'),
+        feedbackCard: document.getElementById('practiceFeedback'),
+        tableBody: document.getElementById('practiceTableBody'),
+        tableNote: document.getElementById('practiceTableNote'),
+        answers: {
+          curve: document.getElementById('practiceAnswerCurve'),
+          y: document.getElementById('practiceAnswerY'),
+          p: document.getElementById('practiceAnswerP'),
+          gap: document.getElementById('practiceAnswerGap'),
+          policy: document.getElementById('practiceAnswerPolicy')
+        },
+        state: {
+          scenarioIndex: 0,
+          guess: { y: 100, p: 100 },
+          dragging: false,
+          revealed: false
+        }
+      };
+
+      function practiceScenario() {
+        return practiceScenarios[practice.state.scenarioIndex];
+      }
+
+      function practiceResolved() {
+        const s = practiceScenario();
+        const baseEq = findEquilibrium(0, 0);
+        const eqCurrent = findEquilibrium(s.adPrePolicy, s.srasShift);
+        return {
+          baseEq,
+          eqCurrent,
+          adPrePolicy: s.adPrePolicy,
+          adCurrent: s.adPrePolicy,
+          srasShift: s.srasShift,
+          yPotential: s.yPotential,
+          currentGap: eqCurrent.y - s.yPotential
+        };
+      }
+
+      function resetPracticeGuess() {
+        practice.state.guess = { y: 100, p: 100 };
+        practice.state.revealed = false;
+        Object.values(practice.answers).forEach((el) => { el.value = ''; });
+      }
+
+      function renderPracticeScenarioBank() {
+        practice.scenarioBank.innerHTML = '';
+        practiceScenarios.forEach((scenario, index) => {
+          const button = document.createElement('button');
+          button.className = `scenario-chip${index === practice.state.scenarioIndex ? ' active' : ''}`;
+          button.textContent = scenario.title;
+          button.addEventListener('click', () => {
+            practice.state.scenarioIndex = index;
+            resetPracticeGuess();
+            renderPracticeScenarioBank();
+            renderPractice();
+            practice.feedbackCard.className = 'feedback-card neutral';
+            practice.feedback.textContent = 'Scenario changed. Make a new equilibrium guess and then check your answers.';
+          });
+          practice.scenarioBank.appendChild(button);
+        });
+      }
+
+      function renderPractice() {
+        const s = practiceScenario();
+        const resolved = practiceResolved();
+        const gapKind = gapType(resolved.currentGap);
+
+        drawMacroGraph(practice.ctx, {
+          showBaseline: true,
+          showGap: practice.state.revealed,
+          showPrePolicy: false,
+          adPrePolicy: resolved.adPrePolicy,
+          adCurrent: resolved.adCurrent,
+          srasShift: resolved.srasShift,
+          yPotential: resolved.yPotential,
+          eqCurrent: resolved.eqCurrent,
+          baseEq: resolved.baseEq,
+          hideCurrentPoint: true,
+          guessPoint: practice.state.guess,
+          revealPoint: practice.state.revealed ? resolved.eqCurrent : null,
+          revealLabel: 'E₁',
+          titleText: 'Drag G to the new short-run equilibrium implied by the shifted curve and LRAS.',
+          footText: practice.state.revealed
+            ? `Correct equilibrium: Y = ${fmt(resolved.eqCurrent.y, 1)}, P = ${fmt(resolved.eqCurrent.p, 1)}.`
+            : 'Purple G is your guess. The green ring is revealed after checking.'
+        });
+
+        practice.status.innerHTML = `
+          <p style="margin:0 0 8px 0;"><strong>${s.title}.</strong></p>
+          <p style="margin:0 0 8px 0;">${s.copy}</p>
+          <p style="margin:0;">Baseline equilibrium is at (100, 100). Potential output is ${fmt(s.yPotential, 1)} in this scenario.</p>
+        `;
+
+        const rows = [
+          { label: 'Equilibrium guess', user: practice.state.revealed ? `Y=${fmt(practice.state.guess.y,1)}, P=${fmt(practice.state.guess.p,1)}` : '—', actual: practice.state.revealed ? `Y=${fmt(resolved.eqCurrent.y,1)}, P=${fmt(resolved.eqCurrent.p,1)}` : 'Check answer' },
+          { label: 'Which curve shifted?', user: practice.answers.curve.value, actual: s.curve },
+          { label: 'Real GDP relative to baseline?', user: practice.answers.y.value, actual: directionAnswer(resolved.eqCurrent.y, resolved.baseEq.y) },
+          { label: 'Price level relative to baseline?', user: practice.answers.p.value, actual: directionAnswer(resolved.eqCurrent.p, resolved.baseEq.p) },
+          { label: 'Gap type?', user: practice.answers.gap.value, actual: gapKind },
+          { label: 'Best stabilization response?', user: practice.answers.policy.value, actual: s.policy }
+        ];
+        practice.tableBody.innerHTML = rows.map((row, index) => {
+          const revealed = practice.state.revealed;
+          const userText = row.user ? String(row.user) : '—';
+          const actualText = revealed ? String(row.actual) : 'Check answer';
+          let userClass = 'result-neutral';
+          if (revealed && index > 0) userClass = row.user === row.actual ? 'result-correct' : 'result-incorrect';
+          return `
+            <tr>
+              <td>${row.label}</td>
+              <td class="${userClass}">${userText}</td>
+              <td class="${revealed ? 'result-correct' : 'result-neutral'}">${actualText}</td>
+            </tr>
+          `;
+        }).join('');
+        const guessDistance = Math.hypot(practice.state.guess.y - resolved.eqCurrent.y, practice.state.guess.p - resolved.eqCurrent.p);
+        practice.tableNote.textContent = practice.state.revealed
+          ? `Your point G is ${fmt(guessDistance, 2)} diagram units away from the correct equilibrium.`
+          : 'After checking, the graph reveals the correct equilibrium and gap band.';
+      }
+
+      document.getElementById('practiceRandom').addEventListener('click', () => {
+        practice.state.scenarioIndex = Math.floor(Math.random() * practiceScenarios.length);
+        resetPracticeGuess();
+        renderPracticeScenarioBank();
+        renderPractice();
+        practice.feedbackCard.className = 'feedback-card neutral';
+        practice.feedback.textContent = 'Random scenario selected. Make a fresh guess.';
+      });
+      document.getElementById('practiceResetGuess').addEventListener('click', () => {
+        resetPracticeGuess();
+        renderPractice();
+        practice.feedbackCard.className = 'feedback-card neutral';
+        practice.feedback.textContent = 'Guess reset. Drag the purple point again and then check your answers.';
+      });
+      document.getElementById('practiceCheck').addEventListener('click', () => {
+        const s = practiceScenario();
+        const resolved = practiceResolved();
+        const gapKind = gapType(resolved.currentGap);
+        const guessDistance = Math.hypot(practice.state.guess.y - resolved.eqCurrent.y, practice.state.guess.p - resolved.eqCurrent.p);
+        const pointCorrect = guessDistance < guessTolerance;
+        const answersCorrect = [
+          practice.answers.curve.value === s.curve,
+          practice.answers.y.value === directionAnswer(resolved.eqCurrent.y, resolved.baseEq.y),
+          practice.answers.p.value === directionAnswer(resolved.eqCurrent.p, resolved.baseEq.p),
+          practice.answers.gap.value === gapKind,
+          practice.answers.policy.value === s.policy
+        ];
+        practice.state.revealed = true;
+        renderPractice();
+
+        const totalCorrect = answersCorrect.filter(Boolean).length + (pointCorrect ? 1 : 0);
+        const allCorrect = totalCorrect === 6;
+
+        if (allCorrect) {
+          practice.feedbackCard.className = 'feedback-card success';
+          practice.feedback.textContent = 'Correct. You located the new AD–AS intersection and matched the comparative statics and policy logic.';
+        } else {
+          practice.feedbackCard.className = 'feedback-card warning';
+          const problems = [];
+          if (!pointCorrect) problems.push(`your equilibrium guess is ${fmt(guessDistance, 2)} units away`);
+          if (!answersCorrect[0]) problems.push('the shifted-curve answer is off');
+          if (!answersCorrect[1]) problems.push('the real-GDP direction is off');
+          if (!answersCorrect[2]) problems.push('the price-level direction is off');
+          if (!answersCorrect[3]) problems.push('the gap classification is off');
+          if (!answersCorrect[4]) problems.push('the stabilization answer is off');
+          practice.feedback.textContent = `Not quite. Review ${problems.join('; ')}. The revealed equilibrium shows the correct short-run outcome.`;
+        }
+      });
+
+      practice.canvas.addEventListener('mousedown', (event) => {
+        const mouse = getCanvasMouse(event, practice.canvas);
+        const point = pointToCanvas(practice.state.guess);
+        if (distanceCanvas(mouse, point) < 14) practice.state.dragging = true;
+      });
+      window.addEventListener('mouseup', () => { practice.state.dragging = false; });
+      practice.canvas.addEventListener('mousemove', (event) => {
+        if (!practice.state.dragging || practice.state.revealed) return;
+        practice.state.guess = canvasToPoint(getCanvasMouse(event, practice.canvas));
+        renderPractice();
+      });
+
+      const caseSteps = [
+        {
+          title: 'Step 1 — Dec 2019: near-potential baseline',
+          adPrePolicy: 0,
+          policyAd: 0,
+          srasShift: 0,
+          yPotential: 100,
+          copy: 'Before the pandemic, annual CPI inflation was 1.8 per cent and the cash-rate target was 0.75 per cent. The diagram uses that as a near-potential baseline with low inflation.',
+          observed: 'ABS annual CPI 1.8% in Dec 2019; RBA cash rate 0.75% in Feb/Dec 2019.'
+        },
+        {
+          title: 'Step 2 — Mid 2020: recessionary gap after the COVID shock',
+          adPrePolicy: -12,
+          policyAd: 0,
+          srasShift: 2,
+          yPotential: 100,
+          copy: 'Lockdowns and extreme uncertainty crushed household spending and private investment. The stylized recession step combines a large AD fall with a small adverse supply effect, matching the broad pattern of lower output, much higher unemployment, and weak inflation.',
+          observed: 'ABS GDP fell 7.0% q/q in Jun 2020; unemployment reached 7.5% in Jul 2020.'
+        },
+        {
+          title: 'Step 3 — 2020–21: fiscal and monetary support pull AD back',
+          adPrePolicy: -12,
+          policyAd: 12,
+          srasShift: 1,
+          yPotential: 100,
+          copy: 'Treasury’s large support package and the RBA’s emergency easing shifted demand back toward potential. The graph shows policy offsetting most of the recessionary gap even while some short-run supply frictions remained.',
+          observed: 'Treasury support reached $259b, about 13.3% of GDP; RBA cut the cash rate to 0.10% by Nov 2020; GDP in Dec 2021 was 3.4% above Dec 2019.'
+        },
+        {
+          title: 'Step 4 — Late 2022 to 2023: inflation surge',
+          adPrePolicy: 9,
+          policyAd: 0,
+          srasShift: 5,
+          yPotential: 101,
+          copy: 'As the economy reopened, demand stayed strong while global supply constraints, energy costs, and domestic capacity pressures pushed SRAS left. The result was a higher price level and only modest output above potential — a useful way to visualize why inflation remained high.',
+          observed: 'ABS annual CPI reached 7.8% in Dec 2022; unemployment fell to 3.4% in late 2022; the RBA lifted the cash rate to 4.35% in Nov 2023.'
+        },
+        {
+          title: 'Step 5 — Late 2024: disinflation under tight policy',
+          adPrePolicy: 2,
+          policyAd: 0,
+          srasShift: 1.5,
+          yPotential: 101,
+          copy: 'With the cash rate held at 4.35 per cent and private demand cooling, inflation moved back toward target. The final step shows AD moving closer to what potential output can sustain, with only a small remaining gap.',
+          observed: 'ABS annual CPI fell to 2.4% in Dec 2024 and unemployment was 4.0%.'
+        }
+      ];
+
+      const caseModule = {
+        canvas: document.getElementById('caseCanvas'),
+        ctx: document.getElementById('caseCanvas').getContext('2d'),
+        stepRow: document.getElementById('caseStepRow'),
+        status: document.querySelector('#caseStatus .status-copy'),
+        metrics: {
+          y: document.getElementById('caseMetricY'),
+          p: document.getElementById('caseMetricP'),
+          yStar: document.getElementById('caseMetricYStar'),
+          gap: document.getElementById('caseMetricGap'),
+          note: document.getElementById('caseMetricNote')
+        },
+        charts: {
+          gdp: document.getElementById('caseGdpCanvas'),
+          inflation: document.getElementById('caseInflationCanvas')
+        },
+        state: {
+          stepIndex: 0,
+          timer: null
+        }
+      };
+
+      function caseResolved(step) {
+        const baseEq = findEquilibrium(0, 0);
+        const eqCurrent = findEquilibrium(step.adPrePolicy + step.policyAd, step.srasShift);
+        return {
+          baseEq,
+          eqCurrent,
+          adPrePolicy: step.adPrePolicy,
+          adCurrent: step.adPrePolicy + step.policyAd,
+          srasShift: step.srasShift,
+          yPotential: step.yPotential,
+          currentGap: eqCurrent.y - step.yPotential
+        };
+      }
+
+      function renderCaseButtons() {
+        caseModule.stepRow.innerHTML = '';
+        caseSteps.forEach((step, index) => {
+          const btn = document.createElement('button');
+          btn.className = `case-step-btn${index === caseModule.state.stepIndex ? ' active' : ''}`;
+          btn.textContent = `Step ${index + 1}`;
+          btn.addEventListener('click', () => {
+            caseModule.state.stepIndex = index;
+            if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+            caseModule.state.timer = null;
+            renderCaseButtons();
+            renderCase();
+          });
+          caseModule.stepRow.appendChild(btn);
+        });
+      }
+
+      function renderCaseCharts() {
+        drawMiniLineChart(caseModule.charts.gdp, {
+          groups: ['Dec-19', 'Jun-20', 'Dec-21'],
+          minY: 90,
+          maxY: 106,
+          tickFormat: (v) => fmt(v, 0),
+          series: [
+            {
+              label: 'GDP level index',
+              color: theme.color.output,
+              values: [100.0, 93.0, 103.4],
+              valueFormat: (v) => fmt(v, 1)
+            }
+          ]
+        });
+
+        drawMiniGroupedBarChart(caseModule.charts.inflation, {
+          groups: ['Dec-19', 'Dec-22', 'Dec-24'],
+          maxY: 9,
+          tickFormat: (v) => `${fmt(v, 0)}%`,
+          series: [
+            {
+              label: 'Annual CPI',
+              color: theme.color.inflation,
+              values: [1.8, 7.8, 2.4],
+              valueFormat: (v) => `${fmt(v, 1)}%`
+            },
+            {
+              label: 'Cash rate',
+              color: theme.color.policyRate,
+              values: [0.75, 3.10, 4.35],
+              valueFormat: (v) => `${fmt(v, 2)}%`
+            }
+          ]
+        });
+      }
+
+      function renderCase() {
+        const step = caseSteps[caseModule.state.stepIndex];
+        const resolved = caseResolved(step);
+        const gapKind = gapType(resolved.currentGap);
+
+        drawMacroGraph(caseModule.ctx, {
+          showBaseline: true,
+          showGap: true,
+          showPrePolicy: Math.abs(step.policyAd) > 0.05,
+          adPrePolicy: resolved.adPrePolicy,
+          adCurrent: resolved.adCurrent,
+          srasShift: resolved.srasShift,
+          yPotential: resolved.yPotential,
+          eqCurrent: resolved.eqCurrent,
+          baseEq: resolved.baseEq,
+          currentLabel: `C${caseModule.state.stepIndex + 1}`,
+          titleText: 'Australian macro case: baseline, recessionary gap, policy support, inflation surge, and disinflation.',
+          footText: step.observed
+        });
+
+        caseModule.status.innerHTML = `
+          <p style="margin:0 0 8px 0;"><strong>${step.title}</strong></p>
+          <p style="margin:0 0 8px 0;">${step.copy}</p>
+          <p style="margin:0; color: var(--color-muted);"><strong>Observed anchor:</strong> ${step.observed}</p>
+        `;
+
+        caseModule.metrics.y.textContent = fmt(resolved.eqCurrent.y, 1);
+        caseModule.metrics.p.textContent = fmt(resolved.eqCurrent.p, 1);
+        caseModule.metrics.yStar.textContent = fmt(resolved.yPotential, 1);
+        caseModule.metrics.gap.textContent = gapLabel(resolved.currentGap);
+
+        if (caseModule.state.stepIndex === 2) {
+          caseModule.metrics.note.textContent = 'This step is where the project’s fiscal and monetary stabilization logic is most explicit: AD is pulled back toward LRAS using real-world Australian support measures.';
+        } else if (caseModule.state.stepIndex === 3) {
+          caseModule.metrics.note.textContent = 'The inflation step combines stronger demand with an adverse SRAS shift, illustrating why 2022–23 looked like more than a pure demand-boom story.';
+        } else if (caseModule.state.stepIndex === 4) {
+          caseModule.metrics.note.textContent = 'The final step does not assume a perfect long-run return. It shows a near-balance outcome in which tighter policy cools demand enough for inflation to move back toward target.';
+        } else {
+          caseModule.metrics.note.textContent = `Stylized gap in this step: ${signed(resolved.currentGap, 1)} output-index points relative to LRAS.`;
+        }
+
+        renderCaseCharts();
+      }
+
+      document.getElementById('casePlay').addEventListener('click', () => {
+        if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+        caseModule.state.stepIndex = 0;
+        renderCaseButtons();
+        renderCase();
+        caseModule.state.timer = setInterval(() => {
+          caseModule.state.stepIndex += 1;
+          if (caseModule.state.stepIndex >= caseSteps.length) {
+            clearInterval(caseModule.state.timer);
+            caseModule.state.timer = null;
+            caseModule.state.stepIndex = caseSteps.length - 1;
+          }
+          renderCaseButtons();
+          renderCase();
+        }, 2000);
+      });
+
+      document.getElementById('caseReset').addEventListener('click', () => {
+        if (caseModule.state.timer) clearInterval(caseModule.state.timer);
+        caseModule.state.timer = null;
+        caseModule.state.stepIndex = 0;
+        renderCaseButtons();
+        renderCase();
+      });
+
+      const moduleTabs = Array.from(document.querySelectorAll('.module-tab'));
+      const moduleSections = Array.from(document.querySelectorAll('.module-section'));
+      moduleTabs.forEach((tab) => {
+        tab.addEventListener('click', () => {
+          moduleTabs.forEach((t) => t.classList.toggle('active', t === tab));
+          moduleSections.forEach((section) => section.classList.toggle('active', section.id === tab.dataset.target));
+          if (tab.dataset.target === 'exploreSection') renderExplore();
+          if (tab.dataset.target === 'practiceSection') renderPractice();
+          if (tab.dataset.target === 'caseSection') renderCase();
+        });
+      });
+
+      renderPracticeScenarioBank();
+      resetExplore();
+      resetPracticeGuess();
+      renderPractice();
+      renderCaseButtons();
+      renderCase();
+    })();
+  
+
+    // AI-supported case-study exercises and assignable case engine layer
+    (() => {
+      const ACE_PROFILE = {
+      "graphId": "G21",
+      "out": "G21_static_adas_case_engine.html",
+      "graphTitle": "Static AD–AS shocks and stabilisation policy",
+      "fixedCaseTitle": "Australian COVID recession, inflation surge and disinflation",
+      "diagramFocus": "AD, SRAS and LRAS shifts, inflationary and recessionary gaps, output, price level, unemployment pressure, and fiscal or monetary stabilisation",
+      "defaultTopic": "Australian inflation and output after COVID",
+      "primaryLabel": "Price level / inflation pressure index",
+      "secondaryLabel": "Real GDP / output index",
+      "caseLogic": "Identify AD, SRAS or LRAS shocks; explain price-level and output effects; discuss recessionary/inflationary gaps and stabilisation policy.",
+      "fixedQuestions": [
+            {
+                  "title": "1. Identify the key shock",
+                  "question": "In the built-in case study, what is the main shock or policy change? Explain it using the G21 model rather than only describing the historical event.",
+                  "sampleAnswer": "A strong answer identifies the main event in the Australian COVID recession, inflation surge and disinflation case and translates it into the relevant diagram logic. It should refer to AD, SRAS and LRAS shifts, inflationary and recessionary gaps, output, price level, unemployment pressure, and fiscal or monetary stabilisation. The answer should explain which curve, constraint, wedge, policy line, or schedule changes and why that change produces the observed outcome."
+            },
+            {
+                  "title": "2. Interpret the time path",
+                  "question": "The case study shows a sequence of outcomes over time. How should we interpret the changes in the two observed/proxy series?",
+                  "sampleAnswer": "The time path should be read as a sequence of new model outcomes rather than a single static point. A good answer links each step to the relevant mechanism: Identify AD, SRAS or LRAS shocks; explain price-level and output effects; discuss recessionary/inflationary gaps and stabilisation policy. It should distinguish the immediate effect from later adjustment."
+            },
+            {
+                  "title": "3. Explain the role of responsiveness",
+                  "question": "Which side of the market or model appears more responsive in the case, and why does this matter for the size of the price, quantity, output, welfare, or policy effect?",
+                  "sampleAnswer": "Responsiveness matters because it determines whether adjustment appears mainly in prices/policy indicators or in quantities/output/welfare. A good answer uses the case evidence to discuss elasticities, slope, short-run constraints, capacity limits, behavioural adjustment, or policy transmission, depending on the G21 model."
+            },
+            {
+                  "title": "4. Connect model and evidence",
+                  "question": "Choose one event in the case-study sequence and explain how the diagram helps organise the evidence.",
+                  "sampleAnswer": "A good answer chooses a specific event, states what changed, and then uses the diagram to explain the new outcome. It should not merely repeat the evidence; it should connect the evidence to AD, SRAS and LRAS shifts, inflationary and recessionary gaps, output, price level, unemployment pressure, and fiscal or monetary stabilisation."
+            },
+            {
+                  "title": "5. Evaluate a policy action",
+                  "question": "What policy action is suggested by the case, and what trade-off or unintended consequence should policymakers consider?",
+                  "sampleAnswer": "A good answer proposes a policy that follows from the model and discusses at least one trade-off. It should use the case logic: Identify AD, SRAS or LRAS shocks; explain price-level and output effects; discuss recessionary/inflationary gaps and stabilisation policy. It should also mention that the graph is a stylised teaching model, so policy conclusions require judgement and evidence."
+            },
+            {
+                  "title": "6. Short-run versus long-run effects",
+                  "question": "How might the short-run conclusion from the case differ from the long-run conclusion?",
+                  "sampleAnswer": "The short run often features limited adjustment, so prices, quantities, output, welfare or policy indicators can move sharply. In the long run, households, firms, governments or foreign markets respond, and the effect may weaken, reverse or shift to another margin. A strong answer compares the first and final steps of the case and explains the mechanism using the G21 diagram."
+            }
+      ],
+      "defaultCase": {
+            "title": "Assignable case placeholder: Australian inflation and output after COVID",
+            "subtitle": "Placeholder case package for Static AD–AS shocks and stabilisation policy. Replace it by generating a researched case from a topic, teacher notes, or imported JSON.",
+            "market": {
+                  "primaryLabel": "Price level / inflation pressure index",
+                  "secondaryLabel": "Real GDP / output index",
+                  "primaryPrefix": "",
+                  "primarySuffix": "",
+                  "secondaryPrefix": "",
+                  "secondarySuffix": ""
+            },
+            "notes": "Placeholder only. Review AI-generated content before using it with students.",
+            "steps": [
+                  {
+                        "label": "Baseline",
+                        "title": "Initial market or policy benchmark",
+                        "primaryValue": 100,
+                        "secondaryValue": 100,
+                        "summary": "Starting point for the G21 case before the new event sequence is introduced.",
+                        "evidence": "Placeholder benchmark. Generate or import a researched case package before assigning to students.",
+                        "sources": []
+                  },
+                  {
+                        "label": "Step 1",
+                        "title": "First shock changes incentives",
+                        "primaryValue": 106,
+                        "secondaryValue": 104,
+                        "summary": "A first event changes incentives in a way that can be interpreted through AD, SRAS and LRAS shifts, inflationary and recessionary gaps, output, price level, unemployment pressure, and fiscal or monetary stabilisation.",
+                        "evidence": "Placeholder logic: the event changes one or more curves or policy constraints.",
+                        "sources": []
+                  },
+                  {
+                        "label": "Step 2",
+                        "title": "Short-run adjustment with limited response",
+                        "primaryValue": 112,
+                        "secondaryValue": 103,
+                        "summary": "In the short run, one side of the market or model may adjust slowly, so much of the impact appears in the main price or policy indicator.",
+                        "evidence": "Placeholder logic: short-run responsiveness is limited.",
+                        "sources": []
+                  },
+                  {
+                        "label": "Step 3",
+                        "title": "Behavioural or supply response develops",
+                        "primaryValue": 108,
+                        "secondaryValue": 111,
+                        "summary": "Over time, households, firms or policymakers respond, changing the quantity, output, trade, welfare or policy indicator.",
+                        "evidence": "Placeholder logic: delayed response changes the equilibrium path.",
+                        "sources": []
+                  },
+                  {
+                        "label": "Step 4",
+                        "title": "Policy review or market normalisation",
+                        "primaryValue": 102,
+                        "secondaryValue": 116,
+                        "summary": "The market or macro system settles into a new configuration. Compare the final state with the baseline to interpret the policy lesson.",
+                        "evidence": "Placeholder logic: use this final step to discuss whether the intervention solved the original problem.",
+                        "sources": []
+                  }
+            ],
+            "questions": [
+                  {
+                        "title": "1. Diagnose the initial shock",
+                        "question": "In the first non-baseline step of the assigned case, what changed and how should it be represented in the diagram?",
+                        "sampleAnswer": "A good answer identifies the non-price determinant, policy intervention, or macro shock and maps it to the G21 diagram. It should explain which curve, line, wedge, or schedule shifts and why."
+                  },
+                  {
+                        "title": "2. Explain the main outcome path",
+                        "question": "How do the primary and secondary indicators change over the case sequence, and what economic mechanism explains that pattern?",
+                        "sampleAnswer": "A good answer describes the direction of the indicators and connects them to the model mechanism: Identify AD, SRAS or LRAS shocks; explain price-level and output effects; discuss recessionary/inflationary gaps and stabilisation policy. It should refer to specific steps rather than only giving a general statement."
+                  },
+                  {
+                        "title": "3. Distinguish impact and adjustment",
+                        "question": "Which part of the case reflects the immediate impact, and which part reflects later adjustment?",
+                        "sampleAnswer": "The answer should separate the initial shock from later behavioural, supply-side, demand-side, policy, or expectation responses. It should explain why the model outcome changes across steps."
+                  },
+                  {
+                        "title": "4. Use the graph for causal reasoning",
+                        "question": "What does the diagram help us understand that the raw time series alone does not show?",
+                        "sampleAnswer": "The diagram organises the causal interpretation. The raw time series shows what happened; the graph helps distinguish shocks, curve shifts, policy constraints, equilibrium movements, welfare effects, or policy transmission channels."
+                  },
+                  {
+                        "title": "5. Propose a policy response",
+                        "question": "What policy response would you recommend for this case, and what outcome would you expect in the diagram?",
+                        "sampleAnswer": "A good answer states a policy and predicts its effect using the G21 model. It should also identify a trade-off, distributional effect, welfare effect, or implementation constraint."
+                  },
+                  {
+                        "title": "6. Assess limitations",
+                        "question": "What are the limitations of using this stylised diagram for the assigned real-world case?",
+                        "sampleAnswer": "A good answer recognises that the diagram is a simplified teaching model. It should mention missing factors such as dynamics, expectations, institutions, heterogeneity, external shocks, data limitations, or endogeneity, while still explaining why the model is useful."
+                  }
+            ]
+      }
+};
+      const ACE_STORAGE_KEY = ACE_PROFILE.graphId + "_ASSIGNABLE_CASE_ENGINE_V1";
+      let aceFixedQuestions = JSON.parse(JSON.stringify(ACE_PROFILE.fixedQuestions || []));
+      let aceFixedState = { selectedIndex: 0, editorVisible: false };
+      let aceCase = JSON.parse(JSON.stringify(ACE_PROFILE.defaultCase));
+      let aceEngineState = { selectedStepIndex: 0, selectedQuestionIndex: 0, editorVisible: false };
+
+      function aceEscape(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function aceClamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function aceFormatNumber(value, digits = 1) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return "—";
+        return n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: digits });
+      }
+
+      function aceFormatPrimary(value) {
+        const m = aceCase.market || {};
+        return String(m.primaryPrefix || "") + aceFormatNumber(value, Math.abs(Number(value)) >= 100 ? 0 : 1) + String(m.primarySuffix || "");
+      }
+
+      function aceFormatSecondary(value) {
+        const m = aceCase.market || {};
+        return String(m.secondaryPrefix || "") + aceFormatNumber(value, Math.abs(Number(value)) >= 100 ? 0 : 1) + String(m.secondarySuffix || "");
+      }
+
+      function aceSetStatus(kind, text) {
+        const badge = document.getElementById("aceEngineStatusBadge");
+        if (!badge) return;
+        badge.className = "ace-status-badge " + kind;
+        badge.textContent = text;
+      }
+
+      function aceExtractResponseText(data) {
+        if (!data) return "";
+        if (typeof data.output_text === "string") return data.output_text;
+        if (Array.isArray(data.output)) {
+          return data.output.map((item) => {
+            if (!Array.isArray(item.content)) return "";
+            return item.content.map((contentItem) => contentItem.text || contentItem.output_text || "").join("\n");
+          }).join("\n").trim();
+        }
+        if (typeof data.choices?.[0]?.message?.content === "string") return data.choices[0].message.content;
+        return "";
+      }
+
+      function aceParseJson(text) {
+        try { return JSON.parse(text); } catch (error) {}
+        const match = String(text || "").match(/\{[\s\S]*\}/);
+        if (match) {
+          try { return JSON.parse(match[0]); } catch (error) {}
+        }
+        return null;
+      }
+
+      function aceRenderScoreFeedback(panel, parsed) {
+        const score = Number(parsed.score);
+        const safeScore = Number.isFinite(score) ? aceClamp(score, 0, 10) : "—";
+        const strengths = Array.isArray(parsed.strengths) ? parsed.strengths : [];
+        const improvements = Array.isArray(parsed.improvements) ? parsed.improvements : [];
+        const strengthsHtml = strengths.length ? '<strong>Strengths:</strong><ul class="ace-feedback-list">' + strengths.map((item) => '<li>' + aceEscape(item) + '</li>').join("") + '</ul>' : "";
+        const improvementsHtml = improvements.length ? '<strong>Ways to improve:</strong><ul class="ace-feedback-list">' + improvements.map((item) => '<li>' + aceEscape(item) + '</li>').join("") + '</ul>' : "";
+        panel.className = "feedback-panel " + (Number(safeScore) >= 7 ? "feedback-success" : "feedback-warning");
+        panel.innerHTML = '<span class="ace-score-badge">' + aceEscape(safeScore) + '/10</span><strong>AI feedback</strong><p style="margin:10px 0 0 0; line-height:1.45;">' + aceEscape(parsed.feedback || "No narrative feedback returned.") + '</p>' + strengthsHtml + improvementsHtml;
+      }
+
+      function aceBuildMarkerPrompt(contextTitle, contextSummary, sequence, question, sampleAnswer, studentAnswer) {
+        return [
+          "You are marking an introductory economics case-study exercise.",
+          "Graph/module: " + ACE_PROFILE.graphId + " — " + ACE_PROFILE.graphTitle,
+          "Economic focus: " + ACE_PROFILE.diagramFocus,
+          "Case title: " + contextTitle,
+          "Case summary: " + contextSummary,
+          "Relevant case sequence: " + JSON.stringify(sequence || []),
+          "Return ONLY valid JSON with this exact structure:",
+          '{"score":0,"feedback":"...","strengths":["..."],"improvements":["..."]}',
+          "Score must be an integer or one-decimal number from 0 to 10.",
+          "Reward correct use of the diagram, relevant case evidence, policy reasoning, and careful acknowledgement of limitations. Do not require wording to match the sample answer exactly.",
+          "Question: " + question,
+          "Sample answer: " + sampleAnswer,
+          "Student answer: " + studentAnswer
+        ].join("\n\n");
+      }
+
+      async function aceCallResponsesApi(endpoint, apiKey, model, input, options = {}) {
+        const headers = { "Content-Type": "application/json" };
+        if (apiKey) headers.Authorization = "Bearer " + apiKey;
+        const body = { model, input };
+        if (options.useSearch) {
+          body.tools = [{ type: "web_search" }];
+          body.tool_choice = "required";
+        }
+        const response = await fetch(endpoint, { method: "POST", headers, body: JSON.stringify(body) });
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error("API request failed: " + response.status + " " + errorText.slice(0, 500));
+        }
+        return await response.json();
+      }
+
+      function aceRenderQuestionList(containerId, questions, state, type) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = "";
+        questions.forEach((item, index) => {
+          const card = document.createElement("div");
+          card.className = "ace-exercise-card" + (index === state.selectedIndex || index === state.selectedQuestionIndex ? " active" : "");
+          const label = document.createElement("label");
+          const radio = document.createElement("input");
+          radio.type = "radio";
+          radio.name = type + "QuestionRadio";
+          radio.value = String(index);
+          radio.checked = index === (type === "fixed" ? state.selectedIndex : state.selectedQuestionIndex);
+          radio.addEventListener("change", () => {
+            if (type === "fixed") {
+              state.selectedIndex = index;
+              const answer = document.getElementById("aceFixedStudentAnswer");
+              if (answer) answer.value = "";
+              const feedback = document.getElementById("aceFixedFeedback");
+              if (feedback) { feedback.className = "feedback-panel feedback-neutral"; feedback.textContent = "Write your answer, then submit it for AI feedback."; }
+              aceRenderFixedExercises();
+            } else {
+              state.selectedQuestionIndex = index;
+              const answer = document.getElementById("aceEngineStudentAnswer");
+              if (answer) answer.value = "";
+              const feedback = document.getElementById("aceEngineExerciseFeedback");
+              if (feedback) { feedback.className = "feedback-panel feedback-neutral"; feedback.textContent = "Write your answer, then submit it for AI feedback."; }
+              aceRenderEngine();
+            }
+          });
+          const body = document.createElement("div");
+          body.innerHTML = '<div class="ace-exercise-title">' + aceEscape(item.title) + '</div><div class="ace-exercise-text">' + aceEscape(item.question) + '</div>';
+          label.appendChild(radio);
+          label.appendChild(body);
+          card.appendChild(label);
+          card.addEventListener("click", (event) => {
+            if (event.target.tagName.toLowerCase() !== "input") {
+              radio.checked = true;
+              radio.dispatchEvent(new Event("change"));
+            }
+          });
+          container.appendChild(card);
+        });
+      }
+
+      function aceRenderEditors(containerId, questions, onUpdate) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = "";
+        questions.forEach((item, index) => {
+          const card = document.createElement("div");
+          card.className = "ace-editor-card";
+          card.innerHTML = `
+            <label>Question title ${index + 1}</label>
+            <input type="text" data-field="title" data-index="${index}" value="${aceEscape(item.title)}" />
+            <label>Question text ${index + 1}</label>
+            <textarea data-field="question" data-index="${index}">${aceEscape(item.question)}</textarea>
+            <label>Sample answer ${index + 1}</label>
+            <textarea data-field="sampleAnswer" data-index="${index}">${aceEscape(item.sampleAnswer)}</textarea>
+          `;
+          card.querySelectorAll("input, textarea").forEach((field) => {
+            field.addEventListener("input", () => {
+              const idx = Number(field.dataset.index);
+              const key = field.dataset.field;
+              questions[idx][key] = field.value;
+              onUpdate(idx, key, field.value);
+            });
+          });
+          container.appendChild(card);
+        });
+      }
+
+      function aceRenderFixedExercises() {
+        aceRenderQuestionList("aceFixedQuestionList", aceFixedQuestions, aceFixedState, "fixed");
+        const selected = aceFixedQuestions[aceFixedState.selectedIndex];
+        const promptBox = document.getElementById("aceFixedPromptBox");
+        if (selected && promptBox) {
+          promptBox.innerHTML = '<strong>' + aceEscape(selected.title) + '</strong><br>' + aceEscape(selected.question);
+        }
+        const editorPanel = document.getElementById("aceFixedEditorPanel");
+        const toggleButton = document.getElementById("aceFixedToggleEditorButton");
+        if (editorPanel && toggleButton) {
+          editorPanel.classList.toggle("ace-hidden", !aceFixedState.editorVisible);
+          toggleButton.textContent = aceFixedState.editorVisible ? "Hide questions and answers" : "Show/edit questions and answers";
+        }
+      }
+
+      async function aceSubmitFixedAnswer() {
+        const feedback = document.getElementById("aceFixedFeedback");
+        const selected = aceFixedQuestions[aceFixedState.selectedIndex];
+        const studentAnswer = document.getElementById("aceFixedStudentAnswer")?.value.trim() || "";
+        const apiKey = document.getElementById("aceFixedApiKey")?.value.trim() || "";
+        const endpoint = document.getElementById("aceFixedApiEndpoint")?.value.trim() || "https://api.openai.com/v1/responses";
+        const model = document.getElementById("aceFixedModel")?.value.trim() || "gpt-5.5";
+        if (!selected || !feedback) return;
+        if (!studentAnswer) { feedback.className = "feedback-panel feedback-warning"; feedback.textContent = "Please write an answer before submitting."; return; }
+        if (!apiKey && endpoint.includes("api.openai.com")) { feedback.className = "feedback-panel feedback-warning"; feedback.textContent = "Please enter an OpenAI API key, or replace the endpoint with your own server-side proxy."; return; }
+        feedback.className = "feedback-panel feedback-neutral";
+        feedback.textContent = "Submitting answer for AI feedback...";
+        try {
+          const prompt = aceBuildMarkerPrompt(ACE_PROFILE.fixedCaseTitle, ACE_PROFILE.graphTitle, [], selected.question, selected.sampleAnswer, studentAnswer);
+          const data = await aceCallResponsesApi(endpoint, apiKey, model, prompt);
+          const outputText = aceExtractResponseText(data);
+          const parsed = aceParseJson(outputText);
+          if (!parsed) { feedback.className = "feedback-panel feedback-warning"; feedback.innerHTML = "The API returned feedback, but it was not valid JSON. Raw response:<br><br>" + aceEscape(outputText); return; }
+          aceRenderScoreFeedback(feedback, parsed);
+        } catch (error) {
+          feedback.className = "feedback-panel feedback-warning";
+          feedback.innerHTML = '<strong>Could not get API feedback.</strong><br>' + aceEscape(error.message);
+        }
+      }
+
+      function aceSanitizePackage(raw) {
+        const fallback = ACE_PROFILE.defaultCase;
+        const data = raw && typeof raw === "object" ? raw : {};
+        const market = data.market && typeof data.market === "object" ? data.market : {};
+        const steps = Array.isArray(data.steps) && data.steps.length ? data.steps : fallback.steps;
+        const questions = Array.isArray(data.questions) && data.questions.length ? data.questions : fallback.questions;
+        const cleanSteps = steps.slice(0, 8).map((step, index) => ({
+          label: String(step.label || (index === 0 ? "Baseline" : "Step " + index)),
+          title: String(step.title || "Case-study event"),
+          primaryValue: Number.isFinite(Number(step.primaryValue)) ? Number(step.primaryValue) : (100 + index * 2),
+          secondaryValue: Number.isFinite(Number(step.secondaryValue)) ? Number(step.secondaryValue) : (100 + index * 2),
+          summary: String(step.summary || "Teacher-editable event summary."),
+          evidence: String(step.evidence || "Teacher-editable evidence note."),
+          sources: Array.isArray(step.sources) ? step.sources.map((source) => typeof source === "string" ? { title: source, url: "" } : { title: String(source?.title || "Source cue"), url: String(source?.url || "") }) : []
+        }));
+        const cleanQuestions = questions.slice(0, 6).map((item, index) => ({
+          title: String(item.title || (index + 1) + ". Case-study question"),
+          question: String(item.question || "Explain the economic logic of this case-study step."),
+          sampleAnswer: String(item.sampleAnswer || item.answer || "A good answer should use the event sequence and the graph's economic logic.")
+        }));
+        while (cleanQuestions.length < 6) {
+          const n = cleanQuestions.length + 1;
+          cleanQuestions.push({ title: n + ". Additional case-study question", question: "Use the assigned case sequence to explain one important economic mechanism.", sampleAnswer: "A good answer should identify the relevant shock or policy, describe the model mechanism, and connect it to the evidence in the case." });
+        }
+        return {
+          title: String(data.title || fallback.title),
+          subtitle: String(data.subtitle || data.summary || fallback.subtitle),
+          market: {
+            primaryLabel: String(market.primaryLabel || document.getElementById("aceEnginePrimaryLabel")?.value || fallback.market.primaryLabel),
+            secondaryLabel: String(market.secondaryLabel || document.getElementById("aceEngineSecondaryLabel")?.value || fallback.market.secondaryLabel),
+            primaryPrefix: String(market.primaryPrefix ?? document.getElementById("aceEnginePrimaryPrefix")?.value ?? fallback.market.primaryPrefix ?? ""),
+            primarySuffix: String(market.primarySuffix ?? document.getElementById("aceEnginePrimarySuffix")?.value ?? fallback.market.primarySuffix ?? ""),
+            secondaryPrefix: String(market.secondaryPrefix ?? fallback.market.secondaryPrefix ?? ""),
+            secondarySuffix: String(market.secondarySuffix ?? fallback.market.secondarySuffix ?? "")
+          },
+          notes: String(data.notes || ""),
+          steps: cleanSteps,
+          questions: cleanQuestions
+        };
+      }
+
+      function aceApplyPackage(raw, options = {}) {
+        aceCase = aceSanitizePackage(raw);
+        aceEngineState.selectedStepIndex = 0;
+        aceEngineState.selectedQuestionIndex = 0;
+        aceEngineState.editorVisible = false;
+        const topic = document.getElementById("aceEngineTopic");
+        const notes = document.getElementById("aceEngineTeacherNotes");
+        const primary = document.getElementById("aceEnginePrimaryLabel");
+        const secondary = document.getElementById("aceEngineSecondaryLabel");
+        const prefix = document.getElementById("aceEnginePrimaryPrefix");
+        const suffix = document.getElementById("aceEnginePrimarySuffix");
+        if (topic) topic.value = aceCase.title;
+        if (notes && options.updateNotes !== false) notes.value = aceCase.notes || notes.value;
+        if (primary) primary.value = aceCase.market.primaryLabel;
+        if (secondary) secondary.value = aceCase.market.secondaryLabel;
+        if (prefix) prefix.value = aceCase.market.primaryPrefix || "";
+        if (suffix) suffix.value = aceCase.market.primarySuffix || "";
+        aceRenderEngine();
+        aceSyncJson();
+      }
+
+      function aceBuildMetricCard(label, value, detail) {
+        return '<div class="metric-item"><div class="metric-label">' + aceEscape(label) + (detail ? '<small>' + aceEscape(detail) + '</small>' : '') + '</div><div class="metric-value">' + aceEscape(value) + '</div></div>';
+      }
+
+      function aceDrawSeriesChart(canvas, config) {
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const width = canvas.width;
+        const height = canvas.height;
+        const pad = { left: 54, right: 18, top: 18, bottom: 42 };
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        const data = config.data || [];
+        if (!data.length) return;
+        const vals = data.map((d) => Number(d.value)).filter(Number.isFinite);
+        if (!vals.length) return;
+        let minY = Math.min(...vals);
+        let maxY = Math.max(...vals);
+        if (minY === maxY) { minY -= 1; maxY += 1; }
+        const span = maxY - minY;
+        minY -= span * 0.12;
+        maxY += span * 0.12;
+        const xFor = (i) => data.length <= 1 ? pad.left : pad.left + i / (data.length - 1) * (width - pad.left - pad.right);
+        const yFor = (v) => height - pad.bottom - ((v - minY) / (maxY - minY)) * (height - pad.top - pad.bottom);
+        ctx.save();
+        ctx.strokeStyle = ECON_THEME.color.axis;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, pad.top);
+        ctx.lineTo(pad.left, height - pad.bottom);
+        ctx.lineTo(width - pad.right, height - pad.bottom);
+        ctx.stroke();
+        ctx.font = "12px " + ECON_THEME.font.family;
+        ctx.fillStyle = ECON_THEME.color.muted;
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        for (let i = 0; i <= 4; i += 1) {
+          const value = minY + (i / 4) * (maxY - minY);
+          const y = yFor(value);
+          ctx.strokeStyle = ECON_THEME.color.grid;
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.moveTo(pad.left, y);
+          ctx.lineTo(width - pad.right, y);
+          ctx.stroke();
+          ctx.fillText(config.formatter(value), pad.left - 8, y);
+        }
+        ctx.strokeStyle = config.color || ECON_THEME.color.demand;
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        data.forEach((item, index) => {
+          const x = xFor(index);
+          const y = yFor(item.value);
+          if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+        data.forEach((item, index) => {
+          const x = xFor(index);
+          const y = yFor(item.value);
+          ctx.beginPath();
+          ctx.fillStyle = config.color || ECON_THEME.color.demand;
+          ctx.arc(x, y, index === config.highlightIndex ? 4.8 : 3.6, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.font = "11px " + ECON_THEME.font.family;
+        ctx.fillStyle = ECON_THEME.color.text;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        data.forEach((item, index) => ctx.fillText(String(item.label), xFor(index), height - pad.bottom + 10));
+        ctx.restore();
+      }
+
+      function aceRenderEngineSteps() {
+        const list = document.getElementById("aceEngineStepList");
+        if (!list) return;
+        list.innerHTML = "";
+        aceCase.steps.forEach((step, index) => {
+          const card = document.createElement("div");
+          card.className = "ace-step-card" + (index === aceEngineState.selectedStepIndex ? " active" : "");
+          card.innerHTML = '<div class="ace-step-title">' + aceEscape(step.label + " • " + step.title) + '</div><div class="ace-step-note">' + aceEscape(step.summary) + '</div>';
+          card.addEventListener("click", () => { aceEngineState.selectedStepIndex = index; aceRenderEngine(); });
+          list.appendChild(card);
+        });
+      }
+
+      function aceRenderEngineSources() {
+        const list = document.getElementById("aceEngineSourceList");
+        if (!list) return;
+        list.innerHTML = "";
+        aceCase.steps.forEach((step, index) => {
+          const card = document.createElement("div");
+          card.className = "ace-source-card";
+          const sources = Array.isArray(step.sources) && step.sources.length ? step.sources.map((source) => '<br><span class="ace-source-note">' + aceEscape(source.title || "Source") + (source.url ? ': ' + aceEscape(source.url) : '') + '</span>').join("") : "";
+          card.innerHTML = '<strong>' + aceEscape(step.label) + '</strong><br><span class="ace-source-note">' + aceEscape(step.evidence || "No evidence note supplied.") + sources + '</span>';
+          if (index === aceEngineState.selectedStepIndex) card.style.borderColor = "var(--color-demand)";
+          list.appendChild(card);
+        });
+      }
+
+      function aceRenderEngine() {
+        const step = aceCase.steps[aceEngineState.selectedStepIndex] || aceCase.steps[0];
+        const selectedQuestion = aceCase.questions[aceEngineState.selectedQuestionIndex] || aceCase.questions[0];
+        document.getElementById("aceEngineTitleDisplay").textContent = aceCase.title;
+        document.getElementById("aceEngineSubtitleDisplay").textContent = aceCase.subtitle;
+        document.getElementById("aceEnginePrimaryChartTitle").textContent = (aceCase.market.primaryLabel || "Primary indicator") + " path";
+        document.getElementById("aceEngineSecondaryChartTitle").textContent = (aceCase.market.secondaryLabel || "Secondary indicator") + " path";
+        const visibleSteps = aceCase.steps.slice(0, aceEngineState.selectedStepIndex + 1);
+        aceDrawSeriesChart(document.getElementById("aceEnginePrimaryChart"), {
+          data: visibleSteps.map((item) => ({ label: item.label, value: item.primaryValue })),
+          color: ECON_THEME.color.inflation,
+          formatter: aceFormatPrimary,
+          highlightIndex: visibleSteps.length - 1
+        });
+        aceDrawSeriesChart(document.getElementById("aceEngineSecondaryChart"), {
+          data: visibleSteps.map((item) => ({ label: item.label, value: item.secondaryValue })),
+          color: ECON_THEME.color.output,
+          formatter: aceFormatSecondary,
+          highlightIndex: visibleSteps.length - 1
+        });
+        const baseline = aceCase.steps[0] || step;
+        document.getElementById("aceEngineMetricGrid").innerHTML =
+          aceBuildMetricCard("Selected step", step.label, step.title) +
+          aceBuildMetricCard("Primary indicator", aceFormatPrimary(step.primaryValue), aceCase.market.primaryLabel) +
+          aceBuildMetricCard("Secondary indicator", aceFormatSecondary(step.secondaryValue), aceCase.market.secondaryLabel) +
+          aceBuildMetricCard("Change from baseline", "Δ1 = " + aceFormatPrimary(Number(step.primaryValue) - Number(baseline.primaryValue)) + ", Δ2 = " + aceFormatSecondary(Number(step.secondaryValue) - Number(baseline.secondaryValue)), "Stylised / observed proxy");
+        document.getElementById("aceEngineFeedback").className = "feedback-panel feedback-neutral";
+        document.getElementById("aceEngineFeedback").innerHTML = '<strong>' + aceEscape(step.title) + '</strong><p style="margin:8px 0 0 0; line-height:1.45;">' + aceEscape(step.summary) + '</p><p style="margin:8px 0 0 0; color:var(--color-muted); line-height:1.45;">Evidence note: ' + aceEscape(step.evidence) + '</p>';
+        aceRenderEngineSteps();
+        aceRenderEngineSources();
+        aceRenderQuestionList("aceEngineQuestionList", aceCase.questions, aceEngineState, "engine");
+        aceRenderEditors("aceEngineEditors", aceCase.questions, () => { aceSyncJson(false); if (selectedQuestion) document.getElementById("aceEnginePromptBox").innerHTML = '<strong>' + aceEscape(selectedQuestion.title) + '</strong><br>' + aceEscape(selectedQuestion.question); });
+        const promptBox = document.getElementById("aceEnginePromptBox");
+        if (selectedQuestion && promptBox) promptBox.innerHTML = '<strong>' + aceEscape(selectedQuestion.title) + '</strong><br>' + aceEscape(selectedQuestion.question);
+        const editorPanel = document.getElementById("aceEngineEditorPanel");
+        const toggleButton = document.getElementById("aceEngineToggleEditorButton");
+        if (editorPanel && toggleButton) {
+          editorPanel.classList.toggle("ace-hidden", !aceEngineState.editorVisible);
+          toggleButton.textContent = aceEngineState.editorVisible ? "Hide questions and answers" : "Show/edit questions and answers";
+        }
+        aceSyncJson(false);
+      }
+
+      function aceSyncJson(write = true) {
+        const area = document.getElementById("aceEngineJsonArea");
+        if (area && write) area.value = JSON.stringify(aceCase, null, 2);
+      }
+
+      function aceBuildCaseGeneratorPrompt() {
+        const topic = document.getElementById("aceEngineTopic")?.value.trim() || ACE_PROFILE.defaultTopic;
+        const notes = document.getElementById("aceEngineTeacherNotes")?.value.trim() || "No teacher notes supplied.";
+        const primaryLabel = document.getElementById("aceEnginePrimaryLabel")?.value.trim() || ACE_PROFILE.primaryLabel;
+        const secondaryLabel = document.getElementById("aceEngineSecondaryLabel")?.value.trim() || ACE_PROFILE.secondaryLabel;
+        const primaryPrefix = document.getElementById("aceEnginePrimaryPrefix")?.value || "";
+        const primarySuffix = document.getElementById("aceEnginePrimarySuffix")?.value || "";
+        return [
+          "You are building an introductory economics case-study package for an interactive diagram.",
+          "Graph/module: " + ACE_PROFILE.graphId + " — " + ACE_PROFILE.graphTitle,
+          "Economic focus: " + ACE_PROFILE.diagramFocus,
+          "Case logic to emphasise: " + ACE_PROFILE.caseLogic,
+          "Create a sequence of events for the topic below. Use current, reliable information when web search is available. If exact data are unavailable, use clearly labelled proxy indices and state this in evidence notes.",
+          "Return ONLY a single valid JSON object. Do not include markdown fences or prose outside JSON.",
+          "The JSON must follow this schema exactly:",
+          JSON.stringify({
+            title: "Case title",
+            subtitle: "One sentence case summary and teaching purpose.",
+            market: { primaryLabel, secondaryLabel, primaryPrefix, primarySuffix, secondaryPrefix: "", secondarySuffix: "" },
+            notes: "Brief teacher-facing note on data limitations and assumptions.",
+            steps: [{ label: "Baseline", title: "Event title", primaryValue: 100, secondaryValue: 100, summary: "Economic story for this step.", evidence: "Evidence note and data/proxy qualification.", sources: [{ title: "Source title", url: "https://..." }] }],
+            questions: [{ title: "1. Question title", question: "Student question", sampleAnswer: "Editable benchmark answer" }]
+          }, null, 2),
+          "Requirements:",
+          "- Provide 5 to 7 steps, with the first step as a baseline.",
+          "- primaryValue and secondaryValue must be numeric. Use index values starting near 100 if actual comparable data are unavailable.",
+          "- Provide exactly 6 questions and editable sample answers.",
+          "- Questions should cover: case understanding, graph interpretation, short-run versus long-run adjustment, policy action, evidence use, and limitations.",
+          "- Avoid unsupported certainty and clearly distinguish actual data from teaching proxies.",
+          "Topic: " + topic,
+          "Teacher-provided information: " + notes
+        ].join("\n\n");
+      }
+
+      async function aceGenerateCase() {
+        const feedback = document.getElementById("aceEngineFeedback");
+        const button = document.getElementById("aceEngineGenerateButton");
+        const apiKey = document.getElementById("aceEngineApiKey")?.value.trim() || "";
+        const endpoint = document.getElementById("aceEngineApiEndpoint")?.value.trim() || "https://api.openai.com/v1/responses";
+        const model = document.getElementById("aceEngineModel")?.value.trim() || "gpt-5.5";
+        const useSearch = document.getElementById("aceEngineSearchToggle")?.value === "web";
+        if (!apiKey && endpoint.includes("api.openai.com")) {
+          aceSetStatus("warning", "API key needed");
+          feedback.className = "feedback-panel feedback-warning";
+          feedback.textContent = "Please enter an OpenAI API key, or replace the endpoint with your own server-side proxy.";
+          return;
+        }
+        aceSetStatus("working", "Case Underconstruction");
+        if (button) button.disabled = true;
+        feedback.className = "feedback-panel feedback-neutral";
+        feedback.textContent = useSearch ? "Generating a researched case package with web search..." : "Generating a case package from teacher notes only...";
+        try {
+          const data = await aceCallResponsesApi(endpoint, apiKey, model, aceBuildCaseGeneratorPrompt(), { useSearch });
+          const outputText = aceExtractResponseText(data);
+          const parsed = aceParseJson(outputText);
+          if (!parsed) throw new Error("The API response was not valid JSON. Raw response starts: " + outputText.slice(0, 600));
+          aceApplyPackage(parsed);
+          localStorage.setItem(ACE_STORAGE_KEY, JSON.stringify(aceCase));
+          aceSetStatus("completed", "Case completed");
+          feedback.className = "feedback-panel feedback-success";
+          feedback.innerHTML = "<strong>Case package generated and loaded.</strong><br>The sequence, charts, source cues, six questions, and editable sample answers now use the new topic. The package was also saved to this browser.";
+        } catch (error) {
+          aceSetStatus("warning", "Case generation failed");
+          feedback.className = "feedback-panel feedback-warning";
+          feedback.innerHTML = '<strong>Could not generate the case package.</strong><br>' + aceEscape(error.message) + '<br><br><span style="color:var(--color-muted);">You can still paste a case package JSON into the import box and load it manually.</span>';
+        } finally {
+          if (button) button.disabled = false;
+        }
+      }
+
+      function aceExportJson() { aceSyncJson(); document.getElementById("aceEngineJsonArea")?.focus(); }
+      function aceImportJson() {
+        const area = document.getElementById("aceEngineJsonArea");
+        const feedback = document.getElementById("aceEngineFeedback");
+        try {
+          const parsed = JSON.parse(area.value);
+          aceApplyPackage(parsed, { updateNotes: false });
+          localStorage.setItem(ACE_STORAGE_KEY, JSON.stringify(aceCase));
+          aceSetStatus("completed", "Case completed");
+          feedback.className = "feedback-panel feedback-success";
+          feedback.textContent = "The imported case package has been loaded and saved to this browser.";
+        } catch (error) {
+          aceSetStatus("warning", "Import failed");
+          feedback.className = "feedback-panel feedback-warning";
+          feedback.textContent = "Could not load JSON: " + error.message;
+        }
+      }
+      function aceDownloadJson() {
+        const blob = new Blob([JSON.stringify(aceCase, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        const safeName = (aceCase.title || ACE_PROFILE.graphId + " case").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "case-study";
+        link.href = url;
+        link.download = safeName + ".json";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+      function aceSaveCase() {
+        localStorage.setItem(ACE_STORAGE_KEY, JSON.stringify(aceCase));
+        aceSetStatus("completed", "Case completed");
+        const feedback = document.getElementById("aceEngineFeedback");
+        feedback.className = "feedback-panel feedback-success";
+        feedback.textContent = "The active assignable case package has been saved to this browser.";
+      }
+      function aceClearSavedCase() {
+        localStorage.removeItem(ACE_STORAGE_KEY);
+        aceApplyPackage(ACE_PROFILE.defaultCase);
+        aceSetStatus("idle", "Case placeholder");
+        const feedback = document.getElementById("aceEngineFeedback");
+        feedback.className = "feedback-panel feedback-neutral";
+        feedback.textContent = "Saved browser case cleared. The placeholder package has been restored.";
+      }
+      async function aceSubmitEngineAnswer() {
+        const feedback = document.getElementById("aceEngineExerciseFeedback");
+        const selected = aceCase.questions[aceEngineState.selectedQuestionIndex];
+        const studentAnswer = document.getElementById("aceEngineStudentAnswer")?.value.trim() || "";
+        const apiKey = document.getElementById("aceEngineApiKey")?.value.trim() || "";
+        const endpoint = document.getElementById("aceEngineApiEndpoint")?.value.trim() || "https://api.openai.com/v1/responses";
+        const model = document.getElementById("aceEngineModel")?.value.trim() || "gpt-5.5";
+        if (!selected) { feedback.className = "feedback-panel feedback-warning"; feedback.textContent = "Please select a question first."; return; }
+        if (!studentAnswer) { feedback.className = "feedback-panel feedback-warning"; feedback.textContent = "Please write an answer before submitting."; return; }
+        if (!apiKey && endpoint.includes("api.openai.com")) { feedback.className = "feedback-panel feedback-warning"; feedback.textContent = "Please enter an OpenAI API key, or replace the endpoint with your own server-side proxy."; return; }
+        feedback.className = "feedback-panel feedback-neutral";
+        feedback.textContent = "Submitting answer for AI feedback...";
+        try {
+          const prompt = aceBuildMarkerPrompt(aceCase.title, aceCase.subtitle, aceCase.steps, selected.question, selected.sampleAnswer, studentAnswer);
+          const data = await aceCallResponsesApi(endpoint, apiKey, model, prompt);
+          const outputText = aceExtractResponseText(data);
+          const parsed = aceParseJson(outputText);
+          if (!parsed) { feedback.className = "feedback-panel feedback-warning"; feedback.innerHTML = "The API returned feedback, but it was not valid JSON. Raw response:<br><br>" + aceEscape(outputText); return; }
+          aceRenderScoreFeedback(feedback, parsed);
+        } catch (error) {
+          feedback.className = "feedback-panel feedback-warning";
+          feedback.innerHTML = '<strong>Could not get API feedback.</strong><br>' + aceEscape(error.message);
+        }
+      }
+
+      function aceBindControls() {
+        document.getElementById("aceFixedSubmitButton")?.addEventListener("click", aceSubmitFixedAnswer);
+        document.getElementById("aceFixedToggleEditorButton")?.addEventListener("click", () => { aceFixedState.editorVisible = !aceFixedState.editorVisible; aceRenderFixedExercises(); });
+        document.getElementById("aceFixedResetButton")?.addEventListener("click", () => {
+          aceFixedState.selectedIndex = 0;
+          const answer = document.getElementById("aceFixedStudentAnswer");
+          if (answer) answer.value = "";
+          const feedback = document.getElementById("aceFixedFeedback");
+          if (feedback) { feedback.className = "feedback-panel feedback-neutral"; feedback.textContent = "Feedback and score will appear here after submission."; }
+          aceRenderFixedExercises();
+        });
+        document.getElementById("aceEngineGenerateButton")?.addEventListener("click", aceGenerateCase);
+        document.getElementById("aceEngineSaveButton")?.addEventListener("click", aceSaveCase);
+        document.getElementById("aceEnginePrevStepButton")?.addEventListener("click", () => { aceEngineState.selectedStepIndex = Math.max(0, aceEngineState.selectedStepIndex - 1); aceRenderEngine(); });
+        document.getElementById("aceEngineNextStepButton")?.addEventListener("click", () => { aceEngineState.selectedStepIndex = Math.min(aceCase.steps.length - 1, aceEngineState.selectedStepIndex + 1); aceRenderEngine(); });
+        document.getElementById("aceEngineFullPathButton")?.addEventListener("click", () => { aceEngineState.selectedStepIndex = aceCase.steps.length - 1; aceRenderEngine(); });
+        document.getElementById("aceEngineResetPathButton")?.addEventListener("click", () => { aceEngineState.selectedStepIndex = 0; aceRenderEngine(); });
+        document.getElementById("aceEngineSubmitButton")?.addEventListener("click", aceSubmitEngineAnswer);
+        document.getElementById("aceEngineToggleEditorButton")?.addEventListener("click", () => { aceEngineState.editorVisible = !aceEngineState.editorVisible; aceRenderEngine(); });
+        document.getElementById("aceEngineResetExerciseButton")?.addEventListener("click", () => {
+          aceEngineState.selectedQuestionIndex = 0;
+          const answer = document.getElementById("aceEngineStudentAnswer");
+          if (answer) answer.value = "";
+          const feedback = document.getElementById("aceEngineExerciseFeedback");
+          if (feedback) { feedback.className = "feedback-panel feedback-neutral"; feedback.textContent = "Feedback and score for the assignable case will appear here after submission."; }
+          aceRenderEngine();
+        });
+        document.getElementById("aceEngineExportJsonButton")?.addEventListener("click", aceExportJson);
+        document.getElementById("aceEngineImportJsonButton")?.addEventListener("click", aceImportJson);
+        document.getElementById("aceEngineDownloadJsonButton")?.addEventListener("click", aceDownloadJson);
+        document.getElementById("aceEngineClearSavedButton")?.addEventListener("click", aceClearSavedCase);
+        document.getElementById("aceEngineJsonFileInput")?.addEventListener("change", async (event) => {
+          const file = event.target.files && event.target.files[0];
+          if (!file) return;
+          const text = await file.text();
+          document.getElementById("aceEngineJsonArea").value = text;
+          aceImportJson();
+          event.target.value = "";
+        });
+        ["aceEnginePrimaryLabel", "aceEngineSecondaryLabel", "aceEnginePrimaryPrefix", "aceEnginePrimarySuffix"].forEach((id) => {
+          document.getElementById(id)?.addEventListener("input", () => {
+            aceCase.market.primaryLabel = document.getElementById("aceEnginePrimaryLabel")?.value || aceCase.market.primaryLabel;
+            aceCase.market.secondaryLabel = document.getElementById("aceEngineSecondaryLabel")?.value || aceCase.market.secondaryLabel;
+            aceCase.market.primaryPrefix = document.getElementById("aceEnginePrimaryPrefix")?.value || "";
+            aceCase.market.primarySuffix = document.getElementById("aceEnginePrimarySuffix")?.value || "";
+            aceRenderEngine();
+            aceSyncJson();
+          });
+        });
+      }
+
+      function aceInitialise() {
+        document.getElementById("aceEngineTopic").value = ACE_PROFILE.defaultTopic;
+        document.getElementById("aceEnginePrimaryLabel").value = ACE_PROFILE.primaryLabel;
+        document.getElementById("aceEngineSecondaryLabel").value = ACE_PROFILE.secondaryLabel;
+        aceRenderEditors("aceFixedEditors", aceFixedQuestions, (idx) => { if (idx === aceFixedState.selectedIndex) { const selected = aceFixedQuestions[aceFixedState.selectedIndex]; const promptBox = document.getElementById("aceFixedPromptBox"); if (selected && promptBox) promptBox.innerHTML = '<strong>' + aceEscape(selected.title) + '</strong><br>' + aceEscape(selected.question); } });
+        aceRenderFixedExercises();
+        const saved = localStorage.getItem(ACE_STORAGE_KEY);
+        if (saved) {
+          try {
+            aceApplyPackage(JSON.parse(saved));
+            aceSetStatus("completed", "Case completed");
+          } catch (error) {
+            localStorage.removeItem(ACE_STORAGE_KEY);
+            aceApplyPackage(ACE_PROFILE.defaultCase);
+            aceSetStatus("idle", "Case placeholder");
+          }
+        } else {
+          aceApplyPackage(ACE_PROFILE.defaultCase);
+          aceSetStatus("idle", "Case placeholder");
+        }
+        aceBindControls();
+      }
+
+      aceInitialise();
+    })();
+
+</script>
+</body>
+</html>
