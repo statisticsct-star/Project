@@ -470,6 +470,26 @@
       color: #a12a1e;
     }
 
+
+
+    .ace-status-badge::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: currentColor;
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
+    }
+
+    .ace-status-badge.working::before {
+      animation: aceStatusPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes aceStatusPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.65; }
+    }
+
     .ace-exercise-list,
     .ace-step-list,
     .ace-source-list,
@@ -1052,11 +1072,11 @@
           </div>
           <div class="ace-control">
             <label for="aceFixedApiEndpoint">API endpoint</label>
-            <input type="text" id="aceFixedApiEndpoint" value="https://api.openai.com/v1/responses" />
+            <input type="text" id="aceFixedApiEndpoint" value="https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai" />
           </div>
           <div class="ace-control">
             <label for="aceFixedApiKey">API key</label>
-            <input type="password" id="aceFixedApiKey" placeholder="Paste key for local testing" autocomplete="off" />
+            <input type="password" id="aceFixedApiKey" placeholder="Optional local testing key only" autocomplete="off" />
           </div>
           <div class="ace-control">
             <label>&nbsp;</label>
@@ -1086,7 +1106,7 @@
                 <label for="aceFixedStudentAnswer" style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">Student answer</label>
                 <textarea id="aceFixedStudentAnswer" class="ace-answer-area" placeholder="Write your answer here. Refer to the case evidence and the diagram's economic logic."></textarea>
               </div>
-              <p class="ace-subtle-note">For local testing, paste an API key above. For public deployment, replace the endpoint with a secure server-side proxy so the API key is not exposed in the browser.</p>
+              <p class="ace-subtle-note">This deployment uses a secure Cloudflare Worker proxy by default. The API key box is only for local testing if you switch back to the direct OpenAI endpoint.</p>
             </div>
             <div class="feedback-panel feedback-neutral" id="aceFixedFeedback">Feedback and score will appear here after submission.</div>
           </div>
@@ -1117,11 +1137,11 @@
           </div>
           <div class="ace-control">
             <label for="aceEngineApiEndpoint">API endpoint</label>
-            <input type="text" id="aceEngineApiEndpoint" value="https://api.openai.com/v1/responses" />
+            <input type="text" id="aceEngineApiEndpoint" value="https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai" />
           </div>
           <div class="ace-control">
             <label for="aceEngineApiKey">API key</label>
-            <input type="password" id="aceEngineApiKey" placeholder="Paste key for local testing" autocomplete="off" />
+            <input type="password" id="aceEngineApiKey" placeholder="Optional local testing key only" autocomplete="off" />
           </div>
           <div class="ace-control">
             <label for="aceEngineSearchToggle">Research mode</label>
@@ -1143,7 +1163,7 @@
         <div class="ace-workspace">
           <div class="ace-stack">
             <div class="notes-panel">
-              <span id="aceEngineStatusBadge" class="ace-status-badge idle">Case placeholder</span>
+              <span id="aceEngineStatusBadge" class="ace-status-badge completed" role="status" aria-live="polite">Case completed</span>
               <div class="ace-case-title" id="aceEngineTitleDisplay">Assignable case engine</div>
               <div class="ace-case-subtitle" id="aceEngineSubtitleDisplay">Enter a topic and teacher notes, then generate or import a complete case package.</div>
             </div>
@@ -2583,6 +2603,7 @@
         if (!badge) return;
         badge.className = "ace-status-badge " + kind;
         badge.textContent = text;
+        badge.setAttribute("aria-label", text);
       }
 
       function aceExtractResponseText(data) {
@@ -2744,7 +2765,7 @@
         const selected = aceFixedQuestions[aceFixedState.selectedIndex];
         const studentAnswer = document.getElementById("aceFixedStudentAnswer")?.value.trim() || "";
         const apiKey = document.getElementById("aceFixedApiKey")?.value.trim() || "";
-        const endpoint = document.getElementById("aceFixedApiEndpoint")?.value.trim() || "https://api.openai.com/v1/responses";
+        const endpoint = document.getElementById("aceFixedApiEndpoint")?.value.trim() || "https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai";
         const model = document.getElementById("aceFixedModel")?.value.trim() || "gpt-5.5";
         if (!selected || !feedback) return;
         if (!studentAnswer) { feedback.className = "feedback-panel feedback-warning"; feedback.textContent = "Please write an answer before submitting."; return; }
@@ -3012,7 +3033,7 @@
         const feedback = document.getElementById("aceEngineFeedback");
         const button = document.getElementById("aceEngineGenerateButton");
         const apiKey = document.getElementById("aceEngineApiKey")?.value.trim() || "";
-        const endpoint = document.getElementById("aceEngineApiEndpoint")?.value.trim() || "https://api.openai.com/v1/responses";
+        const endpoint = document.getElementById("aceEngineApiEndpoint")?.value.trim() || "https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai";
         const model = document.getElementById("aceEngineModel")?.value.trim() || "gpt-5.5";
         const useSearch = document.getElementById("aceEngineSearchToggle")?.value === "web";
         if (!apiKey && endpoint.includes("api.openai.com")) {
@@ -3093,7 +3114,7 @@
         const selected = aceCase.questions[aceEngineState.selectedQuestionIndex];
         const studentAnswer = document.getElementById("aceEngineStudentAnswer")?.value.trim() || "";
         const apiKey = document.getElementById("aceEngineApiKey")?.value.trim() || "";
-        const endpoint = document.getElementById("aceEngineApiEndpoint")?.value.trim() || "https://api.openai.com/v1/responses";
+        const endpoint = document.getElementById("aceEngineApiEndpoint")?.value.trim() || "https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai";
         const model = document.getElementById("aceEngineModel")?.value.trim() || "gpt-5.5";
         if (!selected) { feedback.className = "feedback-panel feedback-warning"; feedback.textContent = "Please select a question first."; return; }
         if (!studentAnswer) { feedback.className = "feedback-panel feedback-warning"; feedback.textContent = "Please write an answer before submitting."; return; }
