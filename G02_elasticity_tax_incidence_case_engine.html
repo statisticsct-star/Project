@@ -723,6 +723,27 @@
       border: 1px solid #ffc38a;
     }
 
+
+
+    .engine-status-badge::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      margin-right: 7px;
+      background: currentColor;
+      display: inline-block;
+    }
+
+    .engine-status-badge.status-building::before {
+      animation: statusPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.65; }
+    }
+
     .engine-source-url {
       overflow-wrap: anywhere;
       color: var(--color-muted);
@@ -1010,11 +1031,11 @@
           </div>
           <div class="control-group compact">
             <label for="caseExerciseApiEndpoint">API endpoint</label>
-            <input type="text" id="caseExerciseApiEndpoint" value="https://api.openai.com/v1/responses" />
+            <input type="text" id="caseExerciseApiEndpoint" value="https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai" />
           </div>
           <div class="control-group compact">
             <label for="caseExerciseApiKey">API key</label>
-            <input type="password" id="caseExerciseApiKey" placeholder="Paste key for local testing" autocomplete="off" />
+            <input type="password" id="caseExerciseApiKey" placeholder="Optional local testing key only" autocomplete="off" />
           </div>
           <div class="control-group compact">
             <label>&nbsp;</label>
@@ -1047,7 +1068,7 @@
                 <textarea id="caseExerciseStudentAnswer" class="exercise-answer-area" placeholder="Write your answer here. Try to refer to elasticity, tax incidence, pass-through, quantity response, and the OPEC case evidence where relevant."></textarea>
               </div>
               <p class="api-note">
-                This local version calls the OpenAI endpoint directly for classroom testing. For a public website, replace the endpoint with a server-side proxy so the API key is not exposed in the browser.
+                This deployment uses a secure Cloudflare Worker proxy by default. The API key box is only for local testing if you switch back to the direct OpenAI endpoint.
               </p>
             </div>
 
@@ -1085,11 +1106,11 @@
           </div>
           <div class="control-group compact">
             <label for="caseEngineApiEndpoint">API endpoint</label>
-            <input type="text" id="caseEngineApiEndpoint" value="https://api.openai.com/v1/responses" />
+            <input type="text" id="caseEngineApiEndpoint" value="https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai" />
           </div>
           <div class="control-group compact">
             <label for="caseEngineApiKey">API key</label>
-            <input type="password" id="caseEngineApiKey" placeholder="Paste key for local testing" autocomplete="off" />
+            <input type="password" id="caseEngineApiKey" placeholder="Optional local testing key only" autocomplete="off" />
           </div>
           <div class="control-group compact">
             <label for="caseEngineSearchToggle">Research mode</label>
@@ -1100,7 +1121,7 @@
           </div>
           <div class="control-group compact">
             <label>Case status</label>
-            <span id="caseEngineStatus" class="engine-status-badge status-idle">Case placeholder</span>
+            <span id="caseEngineStatus" class="engine-status-badge status-complete" role="status" aria-live="polite">Case completed</span>
           </div>
           <div class="control-group compact">
             <label>&nbsp;</label>
@@ -1150,7 +1171,7 @@
                 </div>
               </div>
               <p class="api-note">
-                For current policy topics, choose <strong>Use OpenAI web search</strong>. Generated cases are teaching calibrations and should be reviewed before assignment.
+                For current policy topics, choose <strong>Use OpenAI web search</strong>. The AI request goes through the secure Cloudflare Worker proxy by default. Generated cases are teaching calibrations and should be reviewed before assignment.
               </p>
             </div>
 
@@ -3028,6 +3049,7 @@ function renderCase() {
       if (!badge) return;
       badge.className = 'engine-status-badge status-' + status;
       badge.textContent = label;
+      badge.setAttribute('aria-label', label);
     }
 
     function renderEditableExerciseList(containerId, questions, selectedIndex, onSelect) {
@@ -3174,7 +3196,7 @@ function renderCase() {
       const selected = OPEC_CASE_EXERCISES[caseExerciseState.selectedIndex];
       const studentAnswer = document.getElementById('caseExerciseStudentAnswer').value.trim();
       const apiKey = document.getElementById('caseExerciseApiKey').value.trim();
-      const endpoint = document.getElementById('caseExerciseApiEndpoint').value.trim() || 'https://api.openai.com/v1/responses';
+      const endpoint = document.getElementById('caseExerciseApiEndpoint').value.trim() || 'https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai';
       const model = document.getElementById('caseExerciseModel').value.trim() || 'gpt-5.5';
 
       if (!selected) {
@@ -3512,7 +3534,7 @@ function renderCase() {
       const feedback = document.getElementById('caseEngineFeedback');
       const button = document.getElementById('caseEngineGenerateButton');
       const apiKey = document.getElementById('caseEngineApiKey').value.trim();
-      const endpoint = document.getElementById('caseEngineApiEndpoint').value.trim() || 'https://api.openai.com/v1/responses';
+      const endpoint = document.getElementById('caseEngineApiEndpoint').value.trim() || 'https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai';
       const model = document.getElementById('caseEngineModel').value.trim() || 'gpt-5.5';
       const useSearch = document.getElementById('caseEngineSearchToggle').value === 'web';
 
@@ -3656,7 +3678,7 @@ function renderCase() {
       const selected = assignableElasticityCase.questions[engineState.selectedQuestionIndex];
       const studentAnswer = document.getElementById('engineStudentAnswer').value.trim();
       const apiKey = document.getElementById('caseEngineApiKey').value.trim();
-      const endpoint = document.getElementById('caseEngineApiEndpoint').value.trim() || 'https://api.openai.com/v1/responses';
+      const endpoint = document.getElementById('caseEngineApiEndpoint').value.trim() || 'https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai';
       const model = document.getElementById('caseEngineModel').value.trim() || 'gpt-5.5';
 
       if (!selected) {

@@ -619,6 +619,122 @@
       margin-bottom: 8px;
     }
 
+    .case-engine-status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .case-status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--color-frame);
+      background: #f3f6fb;
+      color: var(--color-muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    .case-status-indicator::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--color-baseline);
+      box-shadow: 0 0 0 3px rgba(163,170,181,0.18);
+    }
+
+    .case-status-building {
+      background: #fff7ed;
+      border-color: #fed7aa;
+      color: #92400e;
+    }
+
+    .case-status-building::before {
+      background: #f59e0b;
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.20);
+      animation: statusPulse 1s ease-in-out infinite;
+    }
+
+    .case-status-completed {
+      background: #ecfdf5;
+      border-color: #a7f3d0;
+      color: #065f46;
+    }
+
+    .case-status-completed::before {
+      background: var(--color-government);
+      box-shadow: 0 0 0 3px rgba(46,139,87,0.18);
+    }
+
+    .case-status-warning {
+      background: #fff7ed;
+      border-color: #fdba74;
+      color: #9a3412;
+    }
+
+    .case-status-warning::before {
+      background: var(--color-inflation);
+      box-shadow: 0 0 0 3px rgba(224,122,0,0.20);
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.65; }
+    }
+
+    .question-editor-title,
+    .question-editor-field,
+    .sample-answer-field {
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid var(--color-frame);
+      border-radius: 8px;
+      font-family: var(--font-family-base);
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--color-text);
+      background: white;
+    }
+
+    .question-editor-title {
+      font-weight: 600;
+    }
+
+    .question-editor-field {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .sample-answer-field {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    .editor-field-block {
+      margin-top: 10px;
+    }
+
+    .editor-field-block:first-of-type {
+      margin-top: 0;
+    }
+
+    .editor-field-block label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: 6px;
+      line-height: 1.35;
+    }
+
     .engine-warning {
       border-left: 4px solid var(--color-inflation);
       background: #fffaf2;
@@ -978,7 +1094,7 @@
           </div>
           <div class="control-group">
             <label for="caseExerciseApiKey">API key</label>
-            <input type="password" id="caseExerciseApiKey" placeholder="Optional local testing key only" autocomplete="off" />
+            <input type="password" id="caseExerciseApiKey" placeholder="Paste key for local testing" autocomplete="off" />
           </div>
           <div class="control-group">
             <label>&nbsp;</label>
@@ -986,7 +1102,7 @@
           </div>
           <div class="control-group">
             <label>&nbsp;</label>
-            <button class="btn-secondary" id="caseExerciseToggleAnswersButton">Show/edit sample answers</button>
+            <button class="btn-secondary" id="caseExerciseToggleAnswersButton">Show/edit questions and sample answers</button>
           </div>
           <div class="control-group">
             <label>&nbsp;</label>
@@ -1031,9 +1147,9 @@
             </div>
 
             <div class="notes-panel hidden" id="caseExerciseAnswerEditorPanel">
-              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Editable sample answers</div>
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Editable questions and sample answers</div>
               <p class="subtle-note" style="margin-top:0;">
-                These answers are the benchmark used by the AI marker. They are hidden from students by default. Edit them here before students submit, if you want to adjust the expected answer.
+                These questions and answers are the benchmark used by the AI marker. They are hidden from students by default. Edit them here before students submit, if you want to adjust the task or expected answer.
               </p>
               <div id="caseExerciseAnswerEditors" class="exercise-editor-panel"></div>
             </div>
@@ -1077,7 +1193,11 @@
             <div class="notes-panel">
               <div class="engine-case-title" id="caseEngineTitleDisplay">Assignable case study engine</div>
               <div class="engine-case-subtitle" id="caseEngineSubtitleDisplay">
-                Enter a topic and any teacher notes, then generate or import a complete demand-and-supply case package. The active package drives the event sequence, graph, six exercises, editable answers, and AI marking.
+                Enter a topic and any teacher notes, then generate or import a complete demand-and-supply case package. The active package drives the event sequence, graph, six editable exercises, editable answers, and AI marking.
+              </div>
+              <div class="case-engine-status-row">
+                <span id="caseEngineStatusIndicator" class="case-status-indicator case-status-completed" role="status" aria-live="polite">Case completed</span>
+                <span class="subtle-note">The indicator turns yellow while AI generation is running and green when the active case package is ready.</span>
               </div>
             </div>
 
@@ -1155,7 +1275,7 @@
               </div>
               <div class="engine-small-actions">
                 <button class="btn-inline primary" id="engineSubmitAnswerButton">Submit answer</button>
-                <button class="btn-inline secondary" id="engineToggleAnswersButton">Show/edit sample answers</button>
+                <button class="btn-inline secondary" id="engineToggleAnswersButton">Show/edit questions and sample answers</button>
                 <button class="btn-inline secondary" id="engineResetExerciseButton">Reset exercise</button>
               </div>
               <div class="feedback-panel feedback-neutral" id="engineExerciseFeedback">
@@ -1181,8 +1301,8 @@
             </div>
 
             <div class="notes-panel hidden" id="engineAnswerEditorPanel">
-              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Editable sample answers for active case</div>
-              <p class="subtle-note" style="margin-top:0;">These are the answers used by the AI marker for the assignable case. They are hidden from students by default.</p>
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Editable questions and sample answers for active case</div>
+              <p class="subtle-note" style="margin-top:0;">These are the questions and benchmark answers used by the AI marker for the assignable case. They are hidden from students by default and can be edited before assignment.</p>
               <div id="engineAnswerEditors" class="exercise-editor-panel"></div>
             </div>
 
@@ -1791,7 +1911,8 @@
       answersVisible: false,
       showBaseline: true,
       showObserved: true,
-      activeModel: null
+      activeModel: null,
+      generationStatus: "completed"
     };
 
     function renderExploreScenarioList() {
@@ -2297,36 +2418,86 @@
         const card = document.createElement("div");
         card.className = "sample-answer-card";
 
-        const label = document.createElement("label");
-        label.setAttribute("for", "caseExerciseSampleAnswer" + index);
-        label.textContent = item.title;
+        const titleBlock = document.createElement("div");
+        titleBlock.className = "editor-field-block";
+        const titleLabel = document.createElement("label");
+        titleLabel.setAttribute("for", "caseExerciseQuestionTitle" + index);
+        titleLabel.textContent = "Question " + (index + 1) + " title";
+        const titleInput = document.createElement("input");
+        titleInput.type = "text";
+        titleInput.id = "caseExerciseQuestionTitle" + index;
+        titleInput.className = "question-editor-title";
+        titleInput.value = item.title;
+        titleInput.addEventListener("input", () => {
+          caseExerciseQuestions[index].title = titleInput.value;
+          updateCaseExercisePromptOnly();
+        });
+        titleInput.addEventListener("change", () => {
+          renderCaseExerciseQuestions();
+          updateCaseExercisePromptOnly();
+        });
+        titleBlock.appendChild(titleLabel);
+        titleBlock.appendChild(titleInput);
 
+        const questionBlock = document.createElement("div");
+        questionBlock.className = "editor-field-block";
+        const questionLabel = document.createElement("label");
+        questionLabel.setAttribute("for", "caseExerciseQuestionText" + index);
+        questionLabel.textContent = "Student question";
+        const questionTextarea = document.createElement("textarea");
+        questionTextarea.id = "caseExerciseQuestionText" + index;
+        questionTextarea.className = "question-editor-field";
+        questionTextarea.value = item.question;
+        questionTextarea.addEventListener("input", () => {
+          caseExerciseQuestions[index].question = questionTextarea.value;
+          updateCaseExercisePromptOnly();
+        });
+        questionTextarea.addEventListener("change", () => {
+          renderCaseExerciseQuestions();
+          updateCaseExercisePromptOnly();
+        });
+        questionBlock.appendChild(questionLabel);
+        questionBlock.appendChild(questionTextarea);
+
+        const answerBlock = document.createElement("div");
+        answerBlock.className = "editor-field-block";
+        const answerLabel = document.createElement("label");
+        answerLabel.setAttribute("for", "caseExerciseSampleAnswer" + index);
+        answerLabel.textContent = "Editable sample answer";
         const textarea = document.createElement("textarea");
         textarea.id = "caseExerciseSampleAnswer" + index;
+        textarea.className = "sample-answer-field";
         textarea.dataset.sampleAnswerIndex = String(index);
         textarea.value = item.sampleAnswer;
         textarea.addEventListener("input", () => {
           caseExerciseQuestions[index].sampleAnswer = textarea.value;
         });
+        answerBlock.appendChild(answerLabel);
+        answerBlock.appendChild(textarea);
 
-        card.appendChild(label);
-        card.appendChild(textarea);
+        card.appendChild(titleBlock);
+        card.appendChild(questionBlock);
+        card.appendChild(answerBlock);
         container.appendChild(card);
       });
     }
 
-    function renderCaseExercises() {
-      renderCaseExerciseQuestions();
+    function updateCaseExercisePromptOnly() {
       const selected = caseExerciseQuestions[caseExerciseState.selectedIndex];
       const promptBox = document.getElementById("caseExercisePromptBox");
       if (promptBox && selected) {
-        promptBox.innerHTML = '<strong>' + escapeHtml(selected.title) + '</strong>' + escapeHtml(selected.question);
+        promptBox.innerHTML = '<strong>' + escapeHtml(selected.title) + '</strong><br>' + escapeHtml(selected.question);
       }
+    }
+
+    function renderCaseExercises() {
+      renderCaseExerciseQuestions();
+      updateCaseExercisePromptOnly();
       const editorPanel = document.getElementById("caseExerciseAnswerEditorPanel");
       const toggleButton = document.getElementById("caseExerciseToggleAnswersButton");
       if (editorPanel && toggleButton) {
         editorPanel.classList.toggle("hidden", !caseExerciseState.answersVisible);
-        toggleButton.textContent = caseExerciseState.answersVisible ? "Hide sample answers" : "Show/edit sample answers";
+        toggleButton.textContent = caseExerciseState.answersVisible ? "Hide questions and sample answers" : "Show/edit questions and sample answers";
       }
     }
 
@@ -2594,6 +2765,22 @@
       });
     }
 
+    function setCaseEngineStatus(status, message) {
+      engineState.generationStatus = status;
+      const badge = document.getElementById("caseEngineStatusIndicator");
+      if (!badge) return;
+      const statusMap = {
+        building: { className: "case-status-indicator case-status-building", text: "Case Underconstruction" },
+        completed: { className: "case-status-indicator case-status-completed", text: "Case completed" },
+        warning: { className: "case-status-indicator case-status-warning", text: "Case generation failed" },
+        idle: { className: "case-status-indicator", text: "Case ready" }
+      };
+      const next = statusMap[status] || statusMap.idle;
+      badge.className = next.className;
+      badge.textContent = message || next.text;
+      badge.setAttribute("aria-label", badge.textContent);
+    }
+
     function renderEngineStepList() {
       const container = document.getElementById("engineStepList");
       if (!container) return;
@@ -2658,6 +2845,14 @@
       });
     }
 
+    function updateEngineQuestionPromptOnly() {
+      const selectedQuestion = assignableCase.questions[engineState.selectedQuestionIndex];
+      const promptBox = document.getElementById("engineExercisePromptBox");
+      if (selectedQuestion && promptBox) {
+        promptBox.innerHTML = '<strong>' + escapeHtml(selectedQuestion.title) + '</strong><br>' + escapeHtml(selectedQuestion.question);
+      }
+    }
+
     function renderEngineAnswerEditors() {
       const container = document.getElementById("engineAnswerEditors");
       if (!container) return;
@@ -2665,19 +2860,73 @@
       assignableCase.questions.forEach((item, index) => {
         const card = document.createElement("div");
         card.className = "sample-answer-card";
-        const label = document.createElement("label");
-        label.setAttribute("for", "engineSampleAnswer" + index);
-        label.textContent = item.title;
+
+        const titleBlock = document.createElement("div");
+        titleBlock.className = "editor-field-block";
+        const titleLabel = document.createElement("label");
+        titleLabel.setAttribute("for", "engineQuestionTitle" + index);
+        titleLabel.textContent = "Question " + (index + 1) + " title";
+        const titleInput = document.createElement("input");
+        titleInput.type = "text";
+        titleInput.id = "engineQuestionTitle" + index;
+        titleInput.className = "question-editor-title";
+        titleInput.value = item.title;
+        titleInput.addEventListener("input", () => {
+          assignableCase.questions[index].title = titleInput.value;
+          updateEngineQuestionPromptOnly();
+          syncEngineJson(false);
+        });
+        titleInput.addEventListener("change", () => {
+          renderEngineQuestions();
+          updateEngineQuestionPromptOnly();
+          syncEngineJson();
+        });
+        titleBlock.appendChild(titleLabel);
+        titleBlock.appendChild(titleInput);
+
+        const questionBlock = document.createElement("div");
+        questionBlock.className = "editor-field-block";
+        const questionLabel = document.createElement("label");
+        questionLabel.setAttribute("for", "engineQuestionText" + index);
+        questionLabel.textContent = "Student question";
+        const questionTextarea = document.createElement("textarea");
+        questionTextarea.id = "engineQuestionText" + index;
+        questionTextarea.className = "question-editor-field";
+        questionTextarea.value = item.question;
+        questionTextarea.addEventListener("input", () => {
+          assignableCase.questions[index].question = questionTextarea.value;
+          updateEngineQuestionPromptOnly();
+          syncEngineJson(false);
+        });
+        questionTextarea.addEventListener("change", () => {
+          renderEngineQuestions();
+          updateEngineQuestionPromptOnly();
+          syncEngineJson();
+        });
+        questionBlock.appendChild(questionLabel);
+        questionBlock.appendChild(questionTextarea);
+
+        const answerBlock = document.createElement("div");
+        answerBlock.className = "editor-field-block";
+        const answerLabel = document.createElement("label");
+        answerLabel.setAttribute("for", "engineSampleAnswer" + index);
+        answerLabel.textContent = "Editable sample answer";
         const textarea = document.createElement("textarea");
         textarea.id = "engineSampleAnswer" + index;
+        textarea.className = "sample-answer-field";
         textarea.dataset.engineSampleAnswerIndex = String(index);
         textarea.value = item.sampleAnswer;
         textarea.addEventListener("input", () => {
           assignableCase.questions[index].sampleAnswer = textarea.value;
           syncEngineJson(false);
         });
-        card.appendChild(label);
-        card.appendChild(textarea);
+        textarea.addEventListener("change", () => syncEngineJson());
+        answerBlock.appendChild(answerLabel);
+        answerBlock.appendChild(textarea);
+
+        card.appendChild(titleBlock);
+        card.appendChild(questionBlock);
+        card.appendChild(answerBlock);
         container.appendChild(card);
       });
     }
@@ -2710,6 +2959,7 @@
 
       renderCaseEngine();
       syncEngineJson();
+      if (options.updateStatus !== false) setCaseEngineStatus("completed");
     }
 
     function renderCaseEngine() {
@@ -2774,16 +3024,12 @@
       renderEngineQuestions();
       renderEngineAnswerEditors();
 
-      const selectedQuestion = assignableCase.questions[engineState.selectedQuestionIndex];
-      const promptBox = document.getElementById("engineExercisePromptBox");
-      if (selectedQuestion && promptBox) {
-        promptBox.innerHTML = '<strong>' + escapeHtml(selectedQuestion.title) + '</strong>' + escapeHtml(selectedQuestion.question);
-      }
+      updateEngineQuestionPromptOnly();
       const editorPanel = document.getElementById("engineAnswerEditorPanel");
       const toggleButton = document.getElementById("engineToggleAnswersButton");
       if (editorPanel && toggleButton) {
         editorPanel.classList.toggle("hidden", !engineState.answersVisible);
-        toggleButton.textContent = engineState.answersVisible ? "Hide sample answers" : "Show/edit sample answers";
+        toggleButton.textContent = engineState.answersVisible ? "Hide questions and sample answers" : "Show/edit questions and sample answers";
       }
     }
 
@@ -2867,11 +3113,19 @@
       if (!apiKey && endpoint.includes("api.openai.com")) {
         feedback.className = "feedback-panel feedback-warning";
         feedback.textContent = "Please enter an OpenAI API key, or replace the endpoint with your own server-side proxy.";
+        setCaseEngineStatus("warning", "API key required");
         return;
       }
 
       feedback.className = "feedback-panel feedback-neutral";
       feedback.textContent = useSearch ? "Generating a researched case package with web search..." : "Generating a case package from teacher notes only...";
+      setCaseEngineStatus("building", "Case Underconstruction");
+      const generateButton = document.getElementById("caseEngineGenerateButton");
+      if (generateButton) {
+        generateButton.disabled = true;
+        generateButton.textContent = "Generating...";
+        generateButton.setAttribute("aria-busy", "true");
+      }
 
       try {
         const headers = { "Content-Type": "application/json" };
@@ -2902,11 +3156,20 @@
         }
         applyCasePackage(parsed);
         localStorage.setItem(CASE_ENGINE_STORAGE_KEY, JSON.stringify(assignableCase));
+        setCaseEngineStatus("completed", "Case completed");
         feedback.className = "feedback-panel feedback-success";
-        feedback.innerHTML = "<strong>Case package generated and loaded.</strong><br>The sequence, graph, source cues, six questions, and editable sample answers now use the new topic. The package was also saved to this browser.";
+        feedback.innerHTML = "<strong>Case package generated and loaded.</strong><br>The sequence, graph, source cues, six editable questions, and editable sample answers now use the new topic. The package was also saved to this browser.";
       } catch (error) {
+        setCaseEngineStatus("warning", "Case generation failed");
         feedback.className = "feedback-panel feedback-warning";
         feedback.innerHTML = '<strong>Could not generate the case package.</strong><br>' + escapeHtml(error.message) + '<br><br><span style="color:var(--color-muted);">You can still paste a case package JSON into the import box and load it manually.</span>';
+      } finally {
+        const generateButton = document.getElementById("caseEngineGenerateButton");
+        if (generateButton) {
+          generateButton.disabled = false;
+          generateButton.textContent = "Generate/update case";
+          generateButton.removeAttribute("aria-busy");
+        }
       }
     }
 
