@@ -735,6 +735,87 @@
       line-height: 1.35;
     }
 
+
+    .teacher-protected-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .teacher-protected-label::before {
+      content: "🔒";
+      font-size: 12px;
+    }
+
+    .reusable-case-panel {
+      border-left: 4px solid var(--color-government);
+    }
+
+    .reusable-case-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .teacher-gate-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+
+    .teacher-only-button::before {
+      content: "🔒 ";
+    }
+
+
+
+    .assigned-case-panel {
+      border-left: 4px solid var(--color-demand);
+    }
+
+    .assigned-case-status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .assigned-case-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid #c8d7ff;
+      background: #eef4ff;
+      color: var(--color-demand);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .assigned-case-chip::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--color-demand);
+      box-shadow: 0 0 0 3px rgba(47,103,246,0.18);
+    }
+
+    .teacher-lock-button {
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+
+    .teacher-lock-button:hover {
+      background: #fff1f2;
+      border-color: #fca5a5;
+    }
+
     .engine-warning {
       border-left: 4px solid var(--color-inflation);
       background: #fffaf2;
@@ -783,7 +864,8 @@
         <button class="module-tab" data-target="practiceSection">Practice and check</button>
         <button class="module-tab" data-target="caseStudySection">Perth housing case study</button>
         <button class="module-tab" data-target="caseExerciseSection">Case-study exercises</button>
-        <button class="module-tab" data-target="caseEngineSection">Assignable case engine</button>
+        <button class="module-tab" data-target="assignedCaseSection">Assigned generated case</button>
+        <button class="module-tab teacher-protected-label" data-target="caseEngineSection" data-teacher-protected="true">Assignable case engine</button>
       </div>
 
       <section id="exploreSection" class="module-section active">
@@ -1102,7 +1184,7 @@
           </div>
           <div class="control-group">
             <label>&nbsp;</label>
-            <button class="btn-secondary" id="caseExerciseToggleAnswersButton">Show/edit questions and sample answers</button>
+            <button class="btn-secondary teacher-only-button" id="caseExerciseToggleAnswersButton">Show/edit questions and sample answers</button>
           </div>
           <div class="control-group">
             <label>&nbsp;</label>
@@ -1127,7 +1209,7 @@
                 <textarea id="caseExerciseStudentAnswer" class="exercise-answer-area" placeholder="Write your answer here. Try to refer to demand shifts, supply shifts, price, quantity, and policy implications where relevant."></textarea>
               </div>
               <p class="api-note">
-                For a public website, replace the endpoint above with a small server-side proxy so the API key is not exposed in the browser. The direct OpenAI endpoint is included for local classroom testing.
+                The deployed version uses the secure Cloudflare Worker proxy endpoint. The API key box is only for local testing if you switch back to the direct OpenAI endpoint.
               </p>
             </div>
 
@@ -1152,6 +1234,96 @@
                 These questions and answers are the benchmark used by the AI marker. They are hidden from students by default. Edit them here before students submit, if you want to adjust the task or expected answer.
               </p>
               <div id="caseExerciseAnswerEditors" class="exercise-editor-panel"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="assignedCaseSection" class="module-section">
+        <div class="workspace">
+          <div class="stack">
+            <div class="notes-panel assigned-case-panel">
+              <div class="engine-case-title" id="assignedCaseTitleDisplay">Assigned generated case study</div>
+              <div class="engine-case-subtitle" id="assignedCaseSubtitleDisplay">
+                This student-facing placeholder loads the reusable case published by the teacher. Students can use it without the teacher password.
+              </div>
+              <div class="assigned-case-status-row">
+                <span id="assignedCaseStatusChip" class="assigned-case-chip">Assigned case ready</span>
+                <span class="subtle-note" id="assignedCaseSourceNote">The page checks for a browser-saved assigned case and then for <code>G01_saved_case.json</code>.</span>
+              </div>
+            </div>
+
+            <div class="graph-frame">
+              <canvas id="assignedCaseCanvas" class="graph-canvas fixed" width="960" height="600"></canvas>
+              <div class="legend-row">
+                <div class="legend-item"><span class="legend-line baseline"></span><span>Baseline curves</span></div>
+                <div class="legend-item"><span class="legend-line demand"></span><span>Assigned-case demand</span></div>
+                <div class="legend-item"><span class="legend-line supply"></span><span>Assigned-case supply</span></div>
+              </div>
+            </div>
+
+            <div class="series-grid">
+              <div class="series-card">
+                <div class="series-title" id="assignedCasePriceSeriesTitle">Assigned case price path</div>
+                <canvas id="assignedCasePriceSeries" width="440" height="240"></canvas>
+              </div>
+              <div class="series-card">
+                <div class="series-title" id="assignedCaseQuantitySeriesTitle">Assigned case quantity path</div>
+                <canvas id="assignedCaseQuantitySeries" width="440" height="240"></canvas>
+              </div>
+            </div>
+
+            <div class="metrics-panel">
+              <div class="metric-grid tight" id="assignedCaseMetricGrid"></div>
+            </div>
+
+            <div class="feedback-panel feedback-neutral" id="assignedCaseFeedback">
+              The assigned case will appear here after the teacher publishes a generated case or uploads <code>G01_saved_case.json</code> to the site.
+            </div>
+
+            <div class="notes-panel">
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Assigned case exercise</div>
+              <div id="assignedCaseExerciseQuestionList" class="exercise-list"></div>
+              <div class="status-box" id="assignedCaseExercisePromptBox" style="margin-top:12px;">
+                <strong>Choose a question.</strong>
+                These questions use the teacher-published assigned case.
+              </div>
+              <div style="margin-top:12px;">
+                <label for="assignedCaseStudentAnswer" style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Student answer</label>
+                <textarea id="assignedCaseStudentAnswer" class="exercise-answer-area" placeholder="Write your answer here. Refer to the assigned case sequence, demand/supply shifts, price, quantity, and policy implications."></textarea>
+              </div>
+              <div class="engine-small-actions">
+                <button class="btn-inline primary" id="assignedCaseSubmitAnswerButton">Submit answer</button>
+                <button class="btn-inline secondary" id="assignedCaseResetExerciseButton">Reset exercise</button>
+              </div>
+              <div class="feedback-panel feedback-neutral" id="assignedCaseExerciseFeedback">
+                Feedback and score for the assigned case will appear here after submission.
+              </div>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="notes-panel">
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Assigned case sequence</div>
+              <div class="engine-small-actions" style="margin-top:0; margin-bottom:10px;">
+                <button class="btn-inline secondary" id="assignedCaseNextButton">Apply next step</button>
+                <button class="btn-inline secondary" id="assignedCaseFullButton">Load full path</button>
+                <button class="btn-inline secondary" id="assignedCaseResetPathButton">Reset path</button>
+              </div>
+              <div id="assignedCaseStepList" class="determinant-bank"></div>
+            </div>
+
+            <div class="notes-panel">
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Source cues and evidence notes</div>
+              <div class="source-list" id="assignedCaseSourceList"></div>
+            </div>
+
+            <div class="notes-panel">
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">For students</div>
+              <p class="subtle-note" style="margin:0;">
+                This tab is the public, student-facing version of the generated case. It does not expose the teacher's case-generation controls or editable sample answers.
+              </p>
             </div>
           </div>
         </div>
@@ -1185,6 +1357,10 @@
           <div class="control-group">
             <label>&nbsp;</label>
             <button class="btn-secondary" id="caseEngineSaveLocalButton">Save to browser</button>
+          </div>
+          <div class="control-group">
+            <label>&nbsp;</label>
+            <button class="btn-secondary teacher-only-button teacher-lock-button" id="teacherLockButton">Lock teacher access</button>
           </div>
         </div>
 
@@ -1230,7 +1406,7 @@
                 </div>
               </div>
               <p class="api-note">
-                For current policy topics, choose <strong>Use OpenAI web search</strong>. For a deployed class website, use a server-side proxy instead of exposing an API key in the browser.
+                For current policy topics, choose <strong>Use OpenAI web search</strong>. The deployed version uses the Cloudflare Worker proxy endpoint, so the API key remains hidden from the browser.
               </p>
             </div>
 
@@ -1275,7 +1451,7 @@
               </div>
               <div class="engine-small-actions">
                 <button class="btn-inline primary" id="engineSubmitAnswerButton">Submit answer</button>
-                <button class="btn-inline secondary" id="engineToggleAnswersButton">Show/edit questions and sample answers</button>
+                <button class="btn-inline secondary teacher-only-button" id="engineToggleAnswersButton">Show/edit questions and sample answers</button>
                 <button class="btn-inline secondary" id="engineResetExerciseButton">Reset exercise</button>
               </div>
               <div class="feedback-panel feedback-neutral" id="engineExerciseFeedback">
@@ -1306,8 +1482,29 @@
               <div id="engineAnswerEditors" class="exercise-editor-panel"></div>
             </div>
 
+            <div class="notes-panel reusable-case-panel">
+              <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Reusable / assigned student case placeholder</div>
+              <p class="subtle-note" style="margin-top:0;">
+                This placeholder holds the generated case that students use in the <strong>Assigned generated case</strong> tab. For the public GitHub site, place a JSON file named <strong>G01_saved_case.json</strong> in the same folder as this HTML. This page will try to load it automatically. You can also store or overwrite the assigned case in this browser for testing.
+              </p>
+              <div class="reusable-case-actions">
+                <button class="btn-inline secondary" id="engineLoadReusableCaseButton">Load reusable case</button>
+                <button class="btn-inline primary teacher-only-button" id="engineOverwriteReusableCaseButton">Publish/overwrite assigned student case</button>
+                <button class="btn-inline secondary teacher-only-button" id="engineDownloadSiteCaseButton">Download site case JSON</button>
+                <button class="btn-inline secondary teacher-only-button" id="engineClearReusableCaseButton">Clear browser assigned case</button>
+              </div>
+              <div class="status-box" id="reusableCaseStatus" style="margin-top:10px;">
+                <strong>Assigned case placeholder</strong>
+                Students will use the assigned case shown in the Assigned generated case tab. The page uses the built-in placeholder unless a browser-saved assigned case or a site-level <code>G01_saved_case.json</code> file is available.
+              </div>
+              <p class="teacher-gate-note">Teacher-only actions are password protected. Site-wide reuse still requires replacing/uploading <code>G01_saved_case.json</code> in the GitHub repository. After publishing, use <strong>Lock teacher access</strong>.</p>
+            </div>
+
             <div class="notes-panel">
               <div class="panel-title" style="font-size:13px; font-weight:600; margin-bottom:10px;">Import / export case package JSON</div>
+              <p class="subtle-note" style="margin-top:0;">
+                Use this panel to move case studies in and out of the diagram as JSON. Export/download creates an external reusable case file; import/load lets you reuse a previously saved case package.
+              </p>
               <textarea id="engineJsonArea" class="engine-json-area" placeholder="Paste or export a case package JSON object here."></textarea>
               <div class="engine-small-actions">
                 <button class="btn-inline secondary" id="engineExportJsonButton">Export active JSON</button>
@@ -1337,6 +1534,11 @@
 
 
     const CASE_ENGINE_STORAGE_KEY = "G01_ASSIGNABLE_CASE_ENGINE_PACKAGE_V1";
+    const REUSABLE_CASE_STORAGE_KEY = "G01_REUSABLE_SITE_CASE_PACKAGE_V1";
+    const STUDENT_ASSIGNED_CASE_STORAGE_KEY = REUSABLE_CASE_STORAGE_KEY;
+    const SITE_CASE_JSON_URL = "./G01_saved_case.json";
+    const TEACHER_SESSION_KEY = "G01_TEACHER_UNLOCKED_V1";
+    const TEACHER_PASSWORD_HASH = "690bc7bcb456885977b4b1a6f246999a1c22c92d7c7cf99fd36d459f2238131e"; // default password: ECON5012-Teacher-2026
 
     const defaultAssignableCase = {
       title: "Assignable case placeholder: Solar panel rebates in WA",
@@ -1452,6 +1654,7 @@
     };
 
     let assignableCase = JSON.parse(JSON.stringify(defaultAssignableCase));
+    let studentAssignedCase = JSON.parse(JSON.stringify(defaultAssignableCase));
 
     const GENERIC_MODEL = {
       qMin: 0,
@@ -1915,6 +2118,12 @@
       generationStatus: "completed"
     };
 
+    const assignedCaseState = {
+      currentIndex: 0,
+      selectedQuestionIndex: 0,
+      activeModel: null
+    };
+
     function renderExploreScenarioList() {
       const container = document.getElementById("exploreScenarioList");
       const indices = visibleScenarioIndices(exploreState.filterText, exploreState.family);
@@ -2366,6 +2575,60 @@
         .replaceAll("'", "&#039;");
     }
 
+
+    async function sha256Hex(value) {
+      if (!window.crypto || !window.crypto.subtle) {
+        throw new Error("Secure password checking requires HTTPS or localhost.");
+      }
+      const bytes = new TextEncoder().encode(value);
+      const digest = await window.crypto.subtle.digest("SHA-256", bytes);
+      return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+    }
+
+    function isTeacherUnlocked() {
+      return sessionStorage.getItem(TEACHER_SESSION_KEY) === "unlocked";
+    }
+
+    async function requestTeacherAccess(actionLabel) {
+      if (isTeacherUnlocked()) return true;
+      const password = window.prompt("Teacher password required to " + actionLabel + ".");
+      if (password === null) return false;
+      try {
+        const digest = await sha256Hex(password);
+        if (digest === TEACHER_PASSWORD_HASH) {
+          sessionStorage.setItem(TEACHER_SESSION_KEY, "unlocked");
+          return true;
+        }
+      } catch (error) {
+        window.alert(error.message + " Try the deployed HTTPS page or use a local server.");
+        return false;
+      }
+      window.alert("Incorrect teacher password.");
+      return false;
+    }
+
+
+    function activateModuleSection(targetId) {
+      Array.from(document.querySelectorAll(".module-tab")).forEach((button) => {
+        button.classList.toggle("active", button.dataset.target === targetId);
+      });
+      Array.from(document.querySelectorAll(".module-section")).forEach((section) => {
+        section.classList.toggle("active", section.id === targetId);
+      });
+    }
+
+    function lockTeacherAccess(message) {
+      sessionStorage.removeItem(TEACHER_SESSION_KEY);
+      engineState.answersVisible = false;
+      caseExerciseState.answersVisible = false;
+      const engineEditorPanel = document.getElementById("engineAnswerEditorPanel");
+      const caseEditorPanel = document.getElementById("caseExerciseAnswerEditorPanel");
+      if (engineEditorPanel) engineEditorPanel.classList.add("hidden");
+      if (caseEditorPanel) caseEditorPanel.classList.add("hidden");
+      activateModuleSection("assignedCaseSection");
+      window.alert(message || "Teacher access has been locked. Students can now use the assigned generated case tab.");
+    }
+
     function getEditableSampleAnswer(index) {
       const editor = document.querySelector('textarea[data-sample-answer-index="' + index + '"]');
       if (editor) return editor.value.trim();
@@ -2780,6 +3043,295 @@
       badge.textContent = message || next.text;
       badge.setAttribute("aria-label", badge.textContent);
     }
+
+
+
+    function formatAssignedCasePrice(value) {
+      const market = studentAssignedCase.market || {};
+      const prefix = market.pricePrefix || "";
+      const suffix = market.priceSuffix || "";
+      const digits = Math.abs(value) >= 100 ? 0 : 1;
+      return prefix + formatNumber(value, digits) + suffix;
+    }
+
+    function formatAssignedCaseQuantity(value) {
+      const market = studentAssignedCase.market || {};
+      const prefix = market.quantityPrefix || "";
+      const suffix = market.quantitySuffix || "";
+      const digits = Math.abs(value) >= 100 ? 0 : 1;
+      return prefix + formatNumber(value, digits) + suffix;
+    }
+
+    function currentAssignedCaseStep() {
+      return studentAssignedCase.steps[assignedCaseState.currentIndex] || studentAssignedCase.steps[0];
+    }
+
+    function assignedCaseSeriesData() {
+      const model = assignedCaseState.activeModel || deriveCaseModel(studentAssignedCase);
+      return studentAssignedCase.steps.slice(0, assignedCaseState.currentIndex + 1).map((step) => {
+        const eq = equilibrium(model, step.demandShift, step.supplyShift);
+        return { label: step.label, price: eq.p, quantity: eq.q };
+      });
+    }
+
+    function setAssignedCaseStatus(message, kind = "ready") {
+      const chip = document.getElementById("assignedCaseStatusChip");
+      const note = document.getElementById("assignedCaseSourceNote");
+      if (chip) chip.textContent = kind === "empty" ? "No assigned case yet" : "Assigned case ready";
+      if (note && message) note.innerHTML = escapeHtml(message);
+    }
+
+    function applyAssignedCasePackage(raw, options = {}) {
+      studentAssignedCase = sanitizeCasePackage(raw);
+      assignedCaseState.currentIndex = 0;
+      assignedCaseState.selectedQuestionIndex = 0;
+      assignedCaseState.activeModel = deriveCaseModel(studentAssignedCase);
+      if (options.saveToBrowser) {
+        localStorage.setItem(STUDENT_ASSIGNED_CASE_STORAGE_KEY, JSON.stringify(studentAssignedCase));
+      }
+      renderAssignedCase();
+      setAssignedCaseStatus(options.statusMessage || "Loaded the assigned generated case.", "ready");
+    }
+
+    function renderAssignedCaseStepList() {
+      const container = document.getElementById("assignedCaseStepList");
+      if (!container) return;
+      container.innerHTML = "";
+      studentAssignedCase.steps.forEach((step, index) => {
+        const item = document.createElement("div");
+        item.className = "case-item" + (index === assignedCaseState.currentIndex ? " active" : "");
+        item.innerHTML = '<div class="case-title">' + escapeHtml(step.label + " • " + step.title) + '</div><div class="case-note">' + escapeHtml(step.summary) + '</div>';
+        item.addEventListener("click", () => {
+          assignedCaseState.currentIndex = index;
+          renderAssignedCase();
+        });
+        container.appendChild(item);
+      });
+    }
+
+    function renderAssignedCaseSources() {
+      const container = document.getElementById("assignedCaseSourceList");
+      if (!container) return;
+      const html = studentAssignedCase.steps.map((step, index) => {
+        const sources = ensureArray(step.sources);
+        const sourceHtml = sources.length
+          ? sources.map((source) => '<br><span class="engine-source-url">' + escapeHtml(source.title || "Source") + (source.url ? ": " + source.url : "") + '</span>').join("")
+          : "";
+        return '<div class="pill" style="' + (index === assignedCaseState.currentIndex ? "border-color: var(--color-demand); background:#f5f8ff;" : "") + '"><strong>' + escapeHtml(step.label) + '</strong><br><span style="color:var(--color-muted); line-height:1.4;">' + escapeHtml(step.evidence || "No evidence note supplied.") + sourceHtml + '</span></div>';
+      }).join("");
+      container.innerHTML = html || '<div class="subtle-note">No source cues supplied.</div>';
+    }
+
+    function renderAssignedCaseQuestions() {
+      const container = document.getElementById("assignedCaseExerciseQuestionList");
+      if (!container) return;
+      container.innerHTML = "";
+      studentAssignedCase.questions.forEach((item, index) => {
+        const card = document.createElement("div");
+        card.className = "exercise-card" + (index === assignedCaseState.selectedQuestionIndex ? " active" : "");
+        const label = document.createElement("label");
+        const radio = document.createElement("input");
+        radio.type = "radio";
+        radio.name = "assignedCaseExerciseRadio";
+        radio.value = String(index);
+        radio.checked = index === assignedCaseState.selectedQuestionIndex;
+        radio.addEventListener("change", () => {
+          assignedCaseState.selectedQuestionIndex = index;
+          document.getElementById("assignedCaseStudentAnswer").value = "";
+          document.getElementById("assignedCaseExerciseFeedback").className = "feedback-panel feedback-neutral";
+          document.getElementById("assignedCaseExerciseFeedback").textContent = "Write your answer, then submit it for AI feedback.";
+          renderAssignedCase();
+        });
+        const body = document.createElement("div");
+        body.innerHTML = '<div class="exercise-question-title">' + escapeHtml(item.title) + '</div><div class="exercise-question-text">' + escapeHtml(item.question) + '</div>';
+        label.appendChild(radio);
+        label.appendChild(body);
+        card.appendChild(label);
+        card.addEventListener("click", (event) => {
+          if (event.target.tagName.toLowerCase() !== "input") {
+            radio.checked = true;
+            radio.dispatchEvent(new Event("change"));
+          }
+        });
+        container.appendChild(card);
+      });
+    }
+
+    function updateAssignedCaseQuestionPromptOnly() {
+      const selectedQuestion = studentAssignedCase.questions[assignedCaseState.selectedQuestionIndex];
+      const promptBox = document.getElementById("assignedCaseExercisePromptBox");
+      if (selectedQuestion && promptBox) {
+        promptBox.innerHTML = '<strong>' + escapeHtml(selectedQuestion.title) + '</strong><br>' + escapeHtml(selectedQuestion.question);
+      }
+    }
+
+    function renderAssignedCase() {
+      if (!studentAssignedCase || !studentAssignedCase.steps || !studentAssignedCase.steps.length) {
+        studentAssignedCase = JSON.parse(JSON.stringify(defaultAssignableCase));
+      }
+      assignedCaseState.currentIndex = Math.max(0, Math.min(assignedCaseState.currentIndex, studentAssignedCase.steps.length - 1));
+      assignedCaseState.selectedQuestionIndex = Math.max(0, Math.min(assignedCaseState.selectedQuestionIndex, studentAssignedCase.questions.length - 1));
+      assignedCaseState.activeModel = deriveCaseModel(studentAssignedCase);
+      const model = assignedCaseState.activeModel;
+      const step = currentAssignedCaseStep();
+      const eq = equilibrium(model, step.demandShift, step.supplyShift);
+      const baselineEq = equilibrium(model, 0, 0);
+
+      document.getElementById("assignedCaseTitleDisplay").textContent = studentAssignedCase.title || "Assigned generated case study";
+      document.getElementById("assignedCaseSubtitleDisplay").textContent = studentAssignedCase.subtitle || "Student-facing assigned case.";
+      document.getElementById("assignedCasePriceSeriesTitle").textContent = (studentAssignedCase.market.yLabel || "Price") + " path";
+      document.getElementById("assignedCaseQuantitySeriesTitle").textContent = (studentAssignedCase.market.xLabel || "Quantity") + " path";
+
+      drawMarketGraph(document.getElementById("assignedCaseCanvas"), model, {
+        demandShift: step.demandShift,
+        supplyShift: step.supplyShift,
+        showBaseline: true,
+        priceFormatter: formatAssignedCasePrice,
+        quantityFormatter: formatAssignedCaseQuantity,
+        currentLabel: "E"
+      });
+
+      const data = assignedCaseSeriesData();
+      drawSeriesChart(document.getElementById("assignedCasePriceSeries"), {
+        data: data.map((item) => ({ label: item.label, value: item.price })),
+        observed: studentAssignedCase.steps.slice(0, assignedCaseState.currentIndex + 1).map((item) => ({ label: item.label, value: item.observedPrice })),
+        color: ECON_THEME.color.inflation,
+        formatter: formatAssignedCasePrice,
+        highlightIndex: data.length - 1,
+        showObserved: true
+      });
+
+      drawSeriesChart(document.getElementById("assignedCaseQuantitySeries"), {
+        data: data.map((item) => ({ label: item.label, value: item.quantity })),
+        observed: studentAssignedCase.steps.slice(0, assignedCaseState.currentIndex + 1).map((item) => ({ label: item.label, value: item.observedQuantity })),
+        color: ECON_THEME.color.output,
+        formatter: formatAssignedCaseQuantity,
+        highlightIndex: data.length - 1,
+        showObserved: true
+      });
+
+      document.getElementById("assignedCaseMetricGrid").innerHTML =
+        buildMetricCard("Selected step", escapeHtml(step.label), step.title) +
+        buildMetricCard("Model equilibrium", "P = " + formatAssignedCasePrice(eq.p) + ", Q = " + formatAssignedCaseQuantity(eq.q), "From assigned-case shifts") +
+        buildMetricCard("Observed/proxy point", "P = " + formatAssignedCasePrice(step.observedPrice) + ", Q = " + formatAssignedCaseQuantity(step.observedQuantity), "Teacher/generated evidence") +
+        buildMetricCard("Demand shift", (step.demandShift >= 0 ? "+" : "") + formatAssignedCaseQuantity(step.demandShift), "Cumulative") +
+        buildMetricCard("Supply shift", (step.supplyShift >= 0 ? "+" : "") + formatAssignedCaseQuantity(step.supplyShift), "Cumulative") +
+        buildMetricCard("Change from baseline", "ΔP = " + formatAssignedCasePrice(eq.p - baselineEq.p) + ", ΔQ = " + formatAssignedCaseQuantity(eq.q - baselineEq.q), "Model-implied");
+
+      document.getElementById("assignedCaseFeedback").className = "feedback-panel feedback-neutral";
+      document.getElementById("assignedCaseFeedback").innerHTML = '<span class="engine-current-chip">' + escapeHtml(step.label) + '</span><br><strong>' + escapeHtml(step.title) + '</strong><p style="margin:8px 0 0 0; line-height:1.45;">' + escapeHtml(step.summary) + '</p><p style="margin:8px 0 0 0; color:var(--color-muted); line-height:1.45;">Evidence note: ' + escapeHtml(step.evidence) + '</p>';
+
+      renderAssignedCaseStepList();
+      renderAssignedCaseSources();
+      renderAssignedCaseQuestions();
+      updateAssignedCaseQuestionPromptOnly();
+    }
+
+    function assignedCaseNextStep() {
+      if (assignedCaseState.currentIndex < studentAssignedCase.steps.length - 1) {
+        assignedCaseState.currentIndex += 1;
+        renderAssignedCase();
+      }
+    }
+
+    function assignedCaseLoadFullPath() {
+      assignedCaseState.currentIndex = studentAssignedCase.steps.length - 1;
+      renderAssignedCase();
+    }
+
+    function assignedCaseResetPath() {
+      assignedCaseState.currentIndex = 0;
+      renderAssignedCase();
+    }
+
+    function resetAssignedCaseExercise() {
+      assignedCaseState.selectedQuestionIndex = 0;
+      document.getElementById("assignedCaseStudentAnswer").value = "";
+      document.getElementById("assignedCaseExerciseFeedback").className = "feedback-panel feedback-neutral";
+      document.getElementById("assignedCaseExerciseFeedback").textContent = "Feedback and score for the assigned case will appear here after submission.";
+      renderAssignedCase();
+    }
+
+    function buildAssignedCaseMarkerPrompt(question, sampleAnswer, studentAnswer) {
+      return [
+        "You are marking an introductory microeconomics demand-and-supply case-study exercise.",
+        "Case title: " + studentAssignedCase.title,
+        "Case summary: " + studentAssignedCase.subtitle,
+        "Return ONLY valid JSON with this exact structure:",
+        '{"score":0,"feedback":"...","strengths":["..."],"improvements":["..."]}',
+        "Score must be an integer or one-decimal number from 0 to 10.",
+        "Reward correct use of demand shifts, supply shifts, movement along curves, price/quantity evidence, and policy implications. Do not require wording to match the sample answer exactly.",
+        "Relevant case sequence: " + JSON.stringify(studentAssignedCase.steps),
+        "Question: " + question,
+        "Sample answer: " + sampleAnswer,
+        "Student answer: " + studentAnswer
+      ].join("\n\n");
+    }
+
+    async function submitAssignedCaseExerciseAnswer() {
+      const feedback = document.getElementById("assignedCaseExerciseFeedback");
+      const selected = studentAssignedCase.questions[assignedCaseState.selectedQuestionIndex];
+      const studentAnswer = document.getElementById("assignedCaseStudentAnswer").value.trim();
+      const apiKey = document.getElementById("caseExerciseApiKey")?.value.trim() || "";
+      const endpoint = document.getElementById("caseExerciseApiEndpoint")?.value.trim() || "https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai";
+      const model = document.getElementById("caseExerciseModel")?.value.trim() || "gpt-5.5";
+
+      if (!selected) {
+        feedback.className = "feedback-panel feedback-warning";
+        feedback.textContent = "Please select a question first.";
+        return;
+      }
+      if (!studentAnswer) {
+        feedback.className = "feedback-panel feedback-warning";
+        feedback.textContent = "Please write an answer before submitting.";
+        return;
+      }
+      if (!apiKey && endpoint.includes("api.openai.com")) {
+        feedback.className = "feedback-panel feedback-warning";
+        feedback.textContent = "Please enter an OpenAI API key, or use the deployed Cloudflare Worker endpoint.";
+        return;
+      }
+
+      feedback.className = "feedback-panel feedback-neutral";
+      feedback.textContent = "Submitting answer for AI feedback...";
+
+      try {
+        const headers = { "Content-Type": "application/json" };
+        if (apiKey) headers.Authorization = "Bearer " + apiKey;
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            model,
+            input: buildAssignedCaseMarkerPrompt(selected.question, selected.sampleAnswer, studentAnswer)
+          })
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error("API request failed: " + response.status + " " + errorText.slice(0, 500));
+        }
+        const data = await response.json();
+        const outputText = extractResponseText(data);
+        const parsed = parseJsonFeedback(outputText);
+        if (!parsed) {
+          feedback.className = "feedback-panel feedback-warning";
+          feedback.innerHTML = "The API returned feedback, but it was not valid JSON. Raw response:<br><br>" + escapeHtml(outputText);
+          return;
+        }
+        const score = Number(parsed.score);
+        const safeScore = Number.isFinite(score) ? Math.max(0, Math.min(10, score)) : "—";
+        const strengths = Array.isArray(parsed.strengths) ? parsed.strengths : [];
+        const improvements = Array.isArray(parsed.improvements) ? parsed.improvements : [];
+        const strengthsHtml = strengths.length ? '<strong>Strengths:</strong><ul class="feedback-list">' + strengths.map((item) => '<li>' + escapeHtml(item) + '</li>').join("") + '</ul>' : "";
+        const improvementsHtml = improvements.length ? '<strong>Ways to improve:</strong><ul class="feedback-list">' + improvements.map((item) => '<li>' + escapeHtml(item) + '</li>').join("") + '</ul>' : "";
+        feedback.className = "feedback-panel " + (Number(safeScore) >= 7 ? "feedback-success" : "feedback-warning");
+        feedback.innerHTML = '<span class="score-badge">' + escapeHtml(safeScore) + '/10</span><strong>AI feedback</strong><p style="margin:10px 0 0 0; line-height:1.45;">' + escapeHtml(parsed.feedback || "No narrative feedback returned.") + '</p>' + strengthsHtml + improvementsHtml;
+      } catch (error) {
+        feedback.className = "feedback-panel feedback-warning";
+        feedback.innerHTML = '<strong>Could not get API feedback.</strong><br>' + escapeHtml(error.message);
+      }
+    }
+
 
     function renderEngineStepList() {
       const container = document.getElementById("engineStepList");
@@ -3220,19 +3772,132 @@
       document.getElementById("caseEngineFeedback").textContent = "Saved browser case cleared. The placeholder package has been restored.";
     }
 
-    function loadEngineFromLocalStorage() {
+
+    function updateReusableCaseStatus(message, kind = "neutral") {
+      const status = document.getElementById("reusableCaseStatus");
+      if (!status) return;
+      const title = kind === "success" ? "Reusable case ready" :
+        kind === "warning" ? "Reusable case warning" :
+        "Reusable case placeholder";
+      status.innerHTML = "<strong>" + escapeHtml(title) + "</strong>" + escapeHtml(message || "");
+      status.className = "status-box" + (kind === "warning" ? " engine-warning" : "");
+    }
+
+    async function fetchExternalReusableCasePackage() {
+      try {
+        const response = await fetch(SITE_CASE_JSON_URL, { cache: "no-store" });
+        if (!response.ok) return null;
+        const contentType = response.headers.get("Content-Type") || "";
+        const data = await response.json();
+        return data && typeof data === "object" ? data : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+
+
+    async function loadAssignedCaseForStudents() {
+      const savedReusable = localStorage.getItem(STUDENT_ASSIGNED_CASE_STORAGE_KEY);
+      if (savedReusable) {
+        try {
+          applyAssignedCasePackage(JSON.parse(savedReusable), { statusMessage: "Loaded the browser-saved assigned case." });
+          return true;
+        } catch (error) {
+          localStorage.removeItem(STUDENT_ASSIGNED_CASE_STORAGE_KEY);
+        }
+      }
+
+      const externalCase = await fetchExternalReusableCasePackage();
+      if (externalCase) {
+        applyAssignedCasePackage(externalCase, { statusMessage: "Loaded the assigned case from G01_saved_case.json." });
+        return true;
+      }
+
+      applyAssignedCasePackage(defaultAssignableCase, { statusMessage: "No assigned generated case has been published yet; the built-in placeholder is loaded." });
+      return false;
+    }
+
+    async function loadReusableCasePackage() {
+      const savedReusable = localStorage.getItem(REUSABLE_CASE_STORAGE_KEY);
+      if (savedReusable) {
+        try {
+          const parsedReusable = JSON.parse(savedReusable);
+          applyCasePackage(parsedReusable, { updateNotes: false });
+          applyAssignedCasePackage(parsedReusable, { statusMessage: "Loaded the browser-saved assigned case." });
+          localStorage.setItem(CASE_ENGINE_STORAGE_KEY, JSON.stringify(assignableCase));
+          updateReusableCaseStatus("Loaded the reusable case saved in this browser. Students can use it in the Assigned generated case tab.", "success");
+          return true;
+        } catch (error) {
+          localStorage.removeItem(REUSABLE_CASE_STORAGE_KEY);
+        }
+      }
+
+      const externalCase = await fetchExternalReusableCasePackage();
+      if (externalCase) {
+        applyCasePackage(externalCase, { updateNotes: false });
+        applyAssignedCasePackage(externalCase, { statusMessage: "Loaded site-level assigned case from G01_saved_case.json." });
+        localStorage.setItem(CASE_ENGINE_STORAGE_KEY, JSON.stringify(assignableCase));
+        updateReusableCaseStatus("Loaded site-level reusable case from G01_saved_case.json. Students can use it in the Assigned generated case tab.", "success");
+        return true;
+      }
+
+      applyCasePackage(defaultAssignableCase, { updateNotes: false });
+      applyAssignedCasePackage(defaultAssignableCase, { statusMessage: "No assigned generated case has been published yet; the built-in placeholder is loaded." });
+      updateReusableCaseStatus("No browser-saved case or G01_saved_case.json file was found. The built-in placeholder is loaded.", "neutral");
+      return false;
+    }
+
+    async function overwriteReusableCaseWithActive() {
+      const ok = await requestTeacherAccess("overwrite the reusable case with the active case");
+      if (!ok) return;
+      localStorage.setItem(REUSABLE_CASE_STORAGE_KEY, JSON.stringify(assignableCase));
+      localStorage.setItem(CASE_ENGINE_STORAGE_KEY, JSON.stringify(assignableCase));
+      applyAssignedCasePackage(assignableCase, { statusMessage: "The teacher-published assigned case is now available to students in this browser." });
+      updateReusableCaseStatus("The active case has overwritten the reusable/assigned case in this browser. To make it reusable for all students, download the site case JSON and upload it to GitHub as G01_saved_case.json.", "success");
+      if (window.confirm("The assigned student case has been overwritten in this browser. Lock teacher access now?")) {
+        lockTeacherAccess("Teacher access has been locked. Students can now use the Assigned generated case tab.");
+      }
+    }
+
+    async function downloadSiteCaseJson() {
+      const ok = await requestTeacherAccess("download the site case JSON");
+      if (!ok) return;
+      const blob = new Blob([JSON.stringify(assignableCase, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "G01_saved_case.json";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      updateReusableCaseStatus("Downloaded G01_saved_case.json. Upload/replace this file in the same GitHub folder as the HTML to make the case reusable site-wide.", "success");
+    }
+
+    async function clearReusableCase() {
+      const ok = await requestTeacherAccess("clear the browser-saved reusable case");
+      if (!ok) return;
+      localStorage.removeItem(REUSABLE_CASE_STORAGE_KEY);
+      await loadAssignedCaseForStudents();
+      updateReusableCaseStatus("Browser-saved reusable case cleared. The site-level JSON file, if it exists in GitHub, is not changed.", "warning");
+    }
+
+    async function loadEngineFromLocalStorage() {
       const saved = localStorage.getItem(CASE_ENGINE_STORAGE_KEY);
       if (saved) {
         try {
           applyCasePackage(JSON.parse(saved));
           document.getElementById("caseEngineFeedback").className = "feedback-panel feedback-success";
           document.getElementById("caseEngineFeedback").textContent = "Saved assignable case package loaded from this browser.";
+          updateReusableCaseStatus("Loaded the active case saved in this browser. Use the overwrite button if you want it to become the reusable existing case.", "success");
           return;
         } catch (error) {
           localStorage.removeItem(CASE_ENGINE_STORAGE_KEY);
         }
       }
-      applyCasePackage(defaultAssignableCase);
+
+      await loadReusableCasePackage();
     }
 
     function resetEngineExercise() {
@@ -3389,13 +4054,24 @@
 
 
     document.getElementById("caseExerciseSubmitButton").addEventListener("click", submitCaseExerciseAnswer);
-    document.getElementById("caseExerciseToggleAnswersButton").addEventListener("click", () => {
+    document.getElementById("caseExerciseToggleAnswersButton").addEventListener("click", async () => {
+      const ok = await requestTeacherAccess("show or edit the case-study questions and sample answers");
+      if (!ok) return;
       caseExerciseState.answersVisible = !caseExerciseState.answersVisible;
       renderCaseExercises();
     });
     document.getElementById("caseExerciseResetButton").addEventListener("click", resetCaseExercise);
 
 
+
+
+
+    document.getElementById("assignedCaseNextButton")?.addEventListener("click", assignedCaseNextStep);
+    document.getElementById("assignedCaseFullButton")?.addEventListener("click", assignedCaseLoadFullPath);
+    document.getElementById("assignedCaseResetPathButton")?.addEventListener("click", assignedCaseResetPath);
+    document.getElementById("assignedCaseSubmitAnswerButton")?.addEventListener("click", submitAssignedCaseExerciseAnswer);
+    document.getElementById("assignedCaseResetExerciseButton")?.addEventListener("click", resetAssignedCaseExercise);
+    document.getElementById("teacherLockButton")?.addEventListener("click", () => lockTeacherAccess("Teacher access has been locked. Students can now use the Assigned generated case tab."));
 
     document.getElementById("caseEngineGenerateButton").addEventListener("click", generateAssignableCase);
     document.getElementById("caseEngineSaveLocalButton").addEventListener("click", saveEngineLocal);
@@ -3406,9 +4082,15 @@
     document.getElementById("engineImportJsonButton").addEventListener("click", importEngineJson);
     document.getElementById("engineDownloadJsonButton").addEventListener("click", downloadEngineJson);
     document.getElementById("engineClearLocalButton").addEventListener("click", clearEngineLocal);
+    document.getElementById("engineLoadReusableCaseButton")?.addEventListener("click", loadReusableCasePackage);
+    document.getElementById("engineOverwriteReusableCaseButton")?.addEventListener("click", overwriteReusableCaseWithActive);
+    document.getElementById("engineDownloadSiteCaseButton")?.addEventListener("click", downloadSiteCaseJson);
+    document.getElementById("engineClearReusableCaseButton")?.addEventListener("click", clearReusableCase);
     document.getElementById("engineSubmitAnswerButton").addEventListener("click", submitEngineExerciseAnswer);
     document.getElementById("engineResetExerciseButton").addEventListener("click", resetEngineExercise);
-    document.getElementById("engineToggleAnswersButton").addEventListener("click", () => {
+    document.getElementById("engineToggleAnswersButton").addEventListener("click", async () => {
+      const ok = await requestTeacherAccess("show or edit the assignable-case questions and sample answers");
+      if (!ok) return;
       engineState.answersVisible = !engineState.answersVisible;
       renderCaseEngine();
     });
@@ -3435,7 +4117,11 @@
     });
 
     Array.from(document.querySelectorAll(".module-tab")).forEach((tab) => {
-      tab.addEventListener("click", () => {
+      tab.addEventListener("click", async () => {
+        if (tab.dataset.target === "caseEngineSection") {
+          const ok = await requestTeacherAccess("open the Assignable Case Engine");
+          if (!ok) return;
+        }
         Array.from(document.querySelectorAll(".module-tab")).forEach((button) => button.classList.remove("active"));
         Array.from(document.querySelectorAll(".module-section")).forEach((section) => section.classList.remove("active"));
         tab.classList.add("active");
