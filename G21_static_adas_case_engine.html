@@ -674,7 +674,72 @@
       line-height: 1.45;
     }
 
-    @media (max-width: 1040px) {
+    
+
+    /* Teacher protection and assigned-case safeguards */
+    .ace-teacher-protected-label,
+    .ace-teacher-only-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ace-teacher-protected-label::before,
+    .ace-teacher-only-button::before {
+      content: "🔒";
+      font-size: 12px;
+    }
+
+    .ace-reusable-case-panel {
+      border-left: 4px solid var(--color-government);
+    }
+
+    .ace-assigned-case-panel {
+      border-left: 4px solid var(--color-demand);
+    }
+
+    .ace-assigned-case-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid #c8d7ff;
+      background: #eef4ff;
+      color: var(--color-demand);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      margin-bottom: 8px;
+    }
+
+    .ace-assigned-case-chip::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--color-demand);
+      box-shadow: 0 0 0 3px rgba(47,103,246,0.18);
+    }
+
+    .ace-teacher-lock-button {
+      border-color: #fecaca !important;
+      color: #991b1b !important;
+    }
+
+    .ace-teacher-lock-button:hover {
+      background: #fff1f2 !important;
+      border-color: #fca5a5 !important;
+    }
+
+    .ace-teacher-gate-note {
+      font-size: 12px;
+      color: var(--color-muted);
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+
+@media (max-width: 1040px) {
       .ace-workspace {
         grid-template-columns: 1fr;
       }
@@ -1111,7 +1176,7 @@
           </div>
           <div class="ace-control">
             <label>&nbsp;</label>
-            <button class="btn-secondary" id="aceFixedToggleEditorButton" class="ace-teacher-only-button">Show/edit questions and answers</button>
+            <button class="btn-secondary ace-teacher-only-button" id="aceFixedToggleEditorButton">Show/edit questions and answers</button>
           </div>
           <div class="ace-control">
             <label>&nbsp;</label>
@@ -1247,7 +1312,7 @@
           </div>
           <div class="ace-control">
             <label>&nbsp;</label>
-            <button class="btn-primary" id="aceEngineGenerateButton">Generate/update case</button>
+            <button class="btn-primary ace-teacher-only-button" id="aceEngineGenerateButton">Generate/update case</button>
           </div>
           <div class="ace-control">
             <label>&nbsp;</label>
@@ -1325,7 +1390,7 @@
               </div>
               <div class="ace-small-actions">
                 <button class="ace-btn-inline primary" id="aceEngineSubmitButton">Submit answer</button>
-                <button class="ace-btn-inline" id="aceEngineToggleEditorButton" class="ace-teacher-only-button">Show/edit questions and answers</button>
+                <button class="ace-btn-inline ace-teacher-only-button" id="aceEngineToggleEditorButton">Show/edit questions and answers</button>
                 <button class="ace-btn-inline" id="aceEngineResetExerciseButton">Reset exercise</button>
               </div>
               <div class="feedback-panel feedback-neutral" id="aceEngineExerciseFeedback">Feedback and score for the assignable case will appear here after submission.</div>
@@ -2866,6 +2931,21 @@
         });
       }
 
+      function aceProtectTeacherTabs() {
+        document.querySelectorAll('[data-teacher-protected="true"]').forEach((tab) => {
+          if (tab.dataset.aceTeacherGateBound === "true") return;
+          tab.dataset.aceTeacherGateBound = "true";
+          tab.addEventListener("click", async (event) => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            const ok = await aceRequestTeacherAccess("open the Assignable Case Engine");
+            if (!ok) return;
+            aceActivateModuleSection(tab.dataset.target);
+          }, true);
+        });
+      }
+
+
       function aceLockTeacherAccess(message) {
         sessionStorage.removeItem(ACE_TEACHER_SESSION_KEY);
         aceEngineState.editorVisible = false;
@@ -3631,7 +3711,10 @@
       }
 
       async function aceGenerateCase() {
-        const feedback = document.getElementById("aceEngineFeedback");
+        
+        const teacherOkForGenerate = await aceRequestTeacherAccess("generate or update a case");
+        if (!teacherOkForGenerate) return;
+const feedback = document.getElementById("aceEngineFeedback");
         const button = document.getElementById("aceEngineGenerateButton");
         const apiKey = document.getElementById("aceEngineApiKey")?.value.trim() || "";
         const endpoint = document.getElementById("aceEngineApiEndpoint")?.value.trim() || "https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai";
@@ -3798,7 +3881,9 @@
       }
 
       function aceInitialise() {
-        document.getElementById("aceEngineTopic").value = ACE_PROFILE.defaultTopic;
+        
+        aceProtectTeacherTabs();
+document.getElementById("aceEngineTopic").value = ACE_PROFILE.defaultTopic;
         document.getElementById("aceEnginePrimaryLabel").value = ACE_PROFILE.primaryLabel;
         document.getElementById("aceEngineSecondaryLabel").value = ACE_PROFILE.secondaryLabel;
         aceRenderEditors("aceFixedEditors", aceFixedQuestions, (idx) => { if (idx === aceFixedState.selectedIndex) { const selected = aceFixedQuestions[aceFixedState.selectedIndex]; const promptBox = document.getElementById("aceFixedPromptBox"); if (selected && promptBox) promptBox.innerHTML = '<strong>' + aceEscape(selected.title) + '</strong><br>' + aceEscape(selected.question); } });
@@ -3817,6 +3902,7 @@
           aceApplyPackage(ACE_PROFILE.defaultCase);
           aceSetStatus("idle", "Case placeholder");
         }
+        aceLoadAssignedCaseForStudents();
         aceBindControls();
       }
 
