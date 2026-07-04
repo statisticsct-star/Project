@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monetary Policy AD-AS Engine</title>
+  <link rel="stylesheet" href="./econ-theme.css" />
+  <style>
+    .module-tabs,.summary-strip,.legend-row,.button-row,.metric-grid,.toggle-row,.series-grid,.case-step-row,.determinant-bank,.small-actions{display:flex;flex-wrap:wrap;gap:8px}.module-tabs,.summary-strip,.case-step-row{margin-bottom:16px}.module-tab,.determinant-chip,.case-step-btn,.toggle-chip,.ghost-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;border-radius:999px;border:1px solid var(--color-frame);background:white;color:var(--color-text);font-size:13px;font-weight:650;cursor:pointer;transition:transform .12s ease,background-color .12s ease,border-color .12s ease;text-align:center;line-height:1.25}.module-tab:hover,.determinant-chip:hover,.case-step-btn:hover,.toggle-chip:hover,.ghost-btn:hover{transform:translateY(-1px);background:#f8fbff}.module-tab.active,.determinant-chip.active,.case-step-btn.active,.toggle-chip.active{background:#eef5ff;border-color:var(--color-demand);color:var(--color-demand)}.module-section{display:none}.module-section.active{display:block}.summary-chip,.pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--color-frame);background:white;color:var(--color-muted);font-size:12px;line-height:1.3}.control-row{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:end;margin:0 0 16px 0;padding:14px;background:#fbfcfe;border:1px solid var(--color-frame);border-radius:10px}.control-inline{display:flex;flex-direction:column;gap:6px;min-width:165px}.control-inline.wide{min-width:250px}.control-inline.full{flex:1 1 100%}.control-inline label{font-size:var(--font-panel);color:var(--color-text);font-weight:600}.inline-value{color:var(--color-muted);font-weight:400;margin-left:6px}input[type="range"]{width:220px}.workspace{display:grid;grid-template-columns:minmax(0,1.52fr) minmax(320px,.98fr);gap:16px;align-items:start}.graph-card,.panel-card,.status-card,.metric-card,.data-card,.table-card,.feedback-card,.source-card,.notes-panel{background:#fbfcfe;border:1px solid var(--color-frame);border-radius:10px;padding:14px}.panel-stack,.stack{display:grid;gap:16px}.metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.metric-item{padding:10px 12px;border:1px solid var(--color-frame);border-radius:8px;background:white}.metric-label,.table-wrap th{font-size:12px;color:var(--color-muted);margin-bottom:4px;font-weight:700}.metric-label small{display:block;font-weight:400;margin-top:2px}.metric-value{font-size:16px;font-weight:800;color:var(--color-text);line-height:1.3}.card-title,.status-title,.data-title,.chart-title,.table-title,.feedback-title,.answer-title,.legend-title,.panel-title{font-size:13px;font-weight:800;margin-bottom:8px;color:var(--color-text)}.small-muted,.graph-note,.status-copy,.source-copy,.feedback-copy,.table-note,.answer-copy,.metric-note,.note-list li,.subtle-note{font-size:12px;color:var(--color-muted);line-height:1.55}.small-muted strong,.graph-note strong,.status-copy strong,.source-copy strong,.feedback-copy strong,.answer-copy strong,.metric-note strong{color:var(--color-text)}.legend-row{margin-top:12px}.legend-item{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--color-muted);line-height:1.35}.legend-line{width:30px;height:0;border-top:3px solid var(--color-text)}.legend-line.ad{border-color:var(--color-demand)}.legend-line.sras{border-color:var(--color-supply)}.legend-line.lras{border-color:var(--color-long-run)}.legend-line.policy{border-color:var(--color-government);border-top-style:dashed}.legend-line.benchmark{border-color:rgba(163,170,181,.52);border-top-style:dashed}.legend-dot{width:12px;height:12px;border-radius:999px;border:2px solid var(--color-text);background:white;flex:0 0 auto}.legend-dot.current{border-color:#111827;background:#111827}.legend-dot.benchmark{border-color:rgba(163,170,181,.75);background:white}.legend-square{width:12px;height:12px;border-radius:4px;border:2px solid var(--color-baseline);background:rgba(163,170,181,.16);flex:0 0 auto}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px 8px;border-bottom:1px solid #e6eaf0;text-align:left;vertical-align:top}th{color:var(--color-muted);font-weight:800;background:rgba(249,251,255,.85)}td strong{color:var(--color-text)}.chart-grid,.series-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}.chart-card,.series-card{background:#fbfcfe;border:1px solid var(--color-frame);border-radius:10px;padding:12px}.chart-card canvas,.series-card canvas{width:100%;height:auto;display:block;border:1px solid var(--color-frame);border-radius:8px;background:white}.note-list{padding-left:18px;margin:8px 0 0 0}.note-list li+li{margin-top:6px}.determinant-bank{align-items:stretch}.determinant-chip{border-radius:12px;justify-content:flex-start;min-height:56px;max-width:240px;text-align:left}.determinant-chip span{display:block}.determinant-chip small{display:block;font-weight:400;color:var(--color-muted);margin-top:3px}.exercise-list,.step-list,.source-list,.editor-panel{display:grid;gap:10px}.exercise-card,.step-card,.source-card-item,.editor-card{border:1px solid var(--color-frame);border-radius:10px;padding:12px 14px;background:white;line-height:1.45}.exercise-card,.step-card{cursor:pointer;transition:transform .12s ease,background-color .12s ease,border-color .12s ease}.exercise-card:hover,.step-card:hover{transform:translateY(-1px);border-color:#90a6c4;background:#fbfcff}.exercise-card.active,.step-card.active{border-color:var(--color-demand);background:#f5f8ff}.exercise-card label{display:grid;grid-template-columns:auto 1fr;gap:10px;cursor:pointer;align-items:start}.exercise-title,.step-title{font-size:13px;font-weight:800;color:var(--color-text);margin-bottom:4px}.exercise-text,.step-note,.source-note{font-size:12px;color:var(--color-muted);line-height:1.45}.answer-area{width:100%;min-height:180px;resize:vertical;padding:10px 12px;border:1px solid var(--color-frame);border-radius:10px;font-family:var(--font-family-base);font-size:13px;line-height:1.5;color:var(--color-text);background:white}.editor-card label{display:block;font-size:12px;font-weight:800;color:var(--color-text);margin:8px 0 5px}.editor-card input,.editor-card textarea,input[type="text"],input[type="password"],input[type="file"],textarea,select,.json-area{font-family:var(--font-family-base)}.editor-card input,.editor-card textarea,.teacher-grid input,.teacher-grid textarea,.teacher-grid select,.json-area{width:100%;padding:8px 10px;border:1px solid var(--color-frame);border-radius:8px;background:white;color:var(--color-text);font-size:13px}.editor-card textarea{min-height:110px;resize:vertical}.json-area{min-height:230px;resize:vertical;line-height:1.35;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}.small-actions{align-items:center;margin-top:10px}.btn-inline{padding:8px 12px;border-radius:8px;border:1px solid var(--color-frame);background:white;color:var(--color-text);font-size:13px;cursor:pointer}.btn-inline.primary{background:var(--color-government);border-color:var(--color-government);color:white}.btn-inline:hover{background:#f8fbff}.btn-inline.primary:hover{background:var(--color-government)}.hidden{display:none!important}.score-badge{display:inline-flex;align-items:center;justify-content:center;min-width:76px;padding:8px 12px;border-radius:999px;font-weight:800;background:#eef4ff;color:var(--color-demand);border:1px solid #c8d7ff;margin-right:10px}.feedback-list{margin:8px 0 0 0;padding-left:18px}.feedback-list li{margin:4px 0;line-height:1.4}.teacher-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.teacher-grid .wide{grid-column:1/-1}.status-badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;border:1px solid var(--color-frame);background:#f3f6fb;color:var(--color-muted);margin-right:8px}.status-badge.idle{background:#f3f6fb;color:var(--color-muted)}.status-badge.working{background:#fff4cc;border-color:#f5c84b;color:#8a5a00}.status-badge.completed{background:#e8f7ee;border-color:#70c894;color:#17663a}.status-badge.warning{background:#fff1f0;border-color:#ffb4ad;color:#a12a1e}.status-badge::before{content:"";width:9px;height:9px;border-radius:999px;background:currentColor;box-shadow:0 0 0 3px rgba(0,0,0,.08)}.status-badge.working::before{animation:statusPulse 1s ease-in-out infinite}@keyframes statusPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.65}}.teacher-protected-label,.teacher-only-button{display:inline-flex;align-items:center;gap:6px}.teacher-protected-label::before,.teacher-only-button::before{content:"🔒";font-size:12px}.reusable-case-panel{border-left:4px solid var(--color-government)}.assigned-case-panel{border-left:4px solid var(--color-demand)}.assigned-case-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;border:1px solid #c8d7ff;background:#eef4ff;color:var(--color-demand);font-size:12px;font-weight:800;white-space:nowrap;margin-bottom:8px}.assigned-case-chip::before{content:"";width:10px;height:10px;border-radius:999px;background:var(--color-demand);box-shadow:0 0 0 3px rgba(47,103,246,.18)}.teacher-lock-button{border-color:#fecaca!important;color:#991b1b!important}.teacher-lock-button:hover{background:#fff1f2!important;border-color:#fca5a5!important}.teacher-gate-note{font-size:12px;color:var(--color-muted);line-height:1.45;margin-top:8px}@media(max-width:1080px){.workspace,.chart-grid,.series-grid{grid-template-columns:1fr}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:760px){.metric-grid,.teacher-grid{grid-template-columns:1fr}.teacher-grid .wide{grid-column:auto}}
+  </style>
+</head>
+<body>
+  <div class="diagram-app">
+    <div class="diagram-card">
+      <div class="diagram-header">
+        <h1 class="diagram-title">Monetary policy in a dynamic AD–AS model</h1>
+        <p class="diagram-subtitle">Use a dynamic AD–AS graph to analyse how cash-rate changes, liquidity operations, forward guidance and unconventional monetary policy shift aggregate demand, short-run aggregate supply and long-run productive capacity. The built-in case studies the RBA response to the Global Financial Crisis.</p>
+      </div>
+      <div class="summary-strip">
+        <span class="summary-chip">Cash-rate channel</span>
+        <span class="summary-chip">Expansionary and contractionary policy</span>
+        <span class="summary-chip">Liquidity and credit-market support</span>
+        <span class="summary-chip">Forward guidance and unconventional tools</span>
+        <span class="summary-chip">AD, SRAS and LRAS effects</span>
+        <span class="summary-chip">RBA RBA GFC case study</span>
+      </div>
+
+      <div class="module-tabs">
+        <button class="module-tab active" data-target="exploreSection">Monetary determinants</button>
+        <button class="module-tab" data-target="gfcCaseSection">Australian RBA GFC case</button>
+        <button class="module-tab" data-target="caseExerciseSection">Case-study exercises</button>
+        <button class="module-tab" data-target="assignedCaseSection">Assigned generated case</button>
+        <button class="module-tab teacher-protected-label" data-target="caseEngineSection" data-teacher-protected="true">Designable case engine</button>
+        <button class="module-tab" data-target="pathSection">Policy path table</button>
+        <button class="module-tab" data-target="guideSection">Teaching guide</button>
+      </div>
+
+      <section id="exploreSection" class="module-section active">
+        <div class="control-row">
+          <div class="control-inline full">
+            <label>Monetary policy as a non-price determinant</label>
+            <div id="determinantBank" class="determinant-bank"></div>
+          </div>
+          <div class="control-inline">
+            <label for="timeSlider">Time step <span id="timeLabel" class="inline-value"></span></label>
+            <input id="timeSlider" type="range" min="0" max="12" step="1" value="0" />
+          </div>
+          <div class="control-inline">
+            <label for="growthSlider">Potential GDP growth/step <span id="growthLabel" class="inline-value"></span></label>
+            <input id="growthSlider" type="range" min="0.5" max="2.5" step="0.1" value="1.4" />
+          </div>
+          <div class="control-inline">
+            <label for="inflationSlider">Benchmark price growth/step <span id="inflationLabel" class="inline-value"></span></label>
+            <input id="inflationSlider" type="range" min="0" max="2" step="0.1" value="0.8" />
+          </div>
+          <div class="control-inline">
+            <label for="policySizeSlider">Policy size <span id="policySizeLabel" class="inline-value"></span></label>
+            <input id="policySizeSlider" type="range" min="0" max="12" step="0.5" value="7" />
+          </div>
+          <div class="control-inline">
+            <label for="supplyDesignSlider">Supply-side design <span id="supplyDesignLabel" class="inline-value"></span></label>
+            <input id="supplyDesignSlider" type="range" min="0" max="1" step="0.05" value="0.35" />
+          </div>
+          <div class="control-inline full">
+            <label>&nbsp;</label>
+            <div class="button-row">
+              <button class="btn-secondary" id="prevButton">Previous step</button>
+              <button class="btn-primary" id="playButton">Play path</button>
+              <button class="btn-secondary" id="nextButton">Next step</button>
+              <button class="btn-secondary" id="fullPathButton">Load final step</button>
+              <button class="btn-secondary" id="resetButton">Reset</button>
+            </div>
+          </div>
+        </div>
+        <div class="workspace">
+          <div class="graph-card">
+            <div class="graph-frame"><canvas id="adasCanvas" class="graph-canvas" width="960" height="600"></canvas></div>
+            <div class="legend-row">
+              <span class="legend-item"><span class="legend-line benchmark"></span>Weak benchmark curves/path</span>
+              <span class="legend-item"><span class="legend-line ad"></span>Realised AD</span>
+              <span class="legend-item"><span class="legend-line sras"></span>Realised SRAS</span>
+              <span class="legend-item"><span class="legend-line lras"></span>Realised LRAS</span>
+              <span class="legend-item"><span class="legend-line policy"></span>Pre-policy AD</span>
+              <span class="legend-item"><span class="legend-dot benchmark"></span>Benchmark point</span>
+              <span class="legend-item"><span class="legend-dot current"></span>Realised point</span>
+              <span class="legend-item"><span class="legend-square"></span>Output gap</span>
+            </div>
+            <div class="graph-note"><strong>Dynamic monetary-policy reading:</strong> the weak benchmark is the path the economy would follow under steady potential GDP and price-level growth. Strong realised curves show how monetary policy and the macro shock move AD, SRAS and LRAS relative to that benchmark.</div>
+            <div class="chart-grid">
+              <div class="chart-card"><div class="chart-title">Real GDP over time</div><canvas id="gdpSeriesCanvas" width="440" height="240"></canvas><div class="small-muted" style="margin-top:8px;">Weak dashed line is benchmark potential GDP. Strong line is realised GDP up to the selected time.</div></div>
+              <div class="chart-card"><div class="chart-title">Price level over time</div><canvas id="priceSeriesCanvas" width="440" height="240"></canvas><div class="small-muted" style="margin-top:8px;">The price benchmark is weak and upward sloping; monetary effects appear as deviations around it.</div></div>
+            </div>
+          </div>
+          <div class="panel-stack">
+            <div class="metric-card"><div class="card-title">Live monetary-policy metrics</div><div class="metric-grid" id="metricGrid"></div><div id="metricNote" class="metric-note" style="margin-top:10px;"></div></div>
+            <div id="economicReading" class="status-card feedback-neutral"><div class="status-title">Economic reading</div><div class="status-copy">—</div></div>
+            <div class="panel-card"><div class="card-title">Transmission channel</div><ul class="note-list" id="transmissionList"></ul></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="gfcCaseSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline wide"><label>RBA monetary-policy response during the GFC: avoiding recession</label><div class="button-row" id="gfcCaseButtons"></div></div>
+          <div class="control-inline wide"><label>&nbsp;</label><div class="button-row"><button class="btn-secondary" id="gfcPrevButton">Previous step</button><button class="btn-primary" id="gfcPlayButton">Play case</button><button class="btn-secondary" id="gfcNextButton">Next step</button><button class="btn-secondary" id="gfcResetButton">Reset case</button></div></div>
+        </div>
+        <div class="workspace">
+          <div class="graph-card">
+            <canvas id="gfcCanvas" class="graph-canvas" width="960" height="600"></canvas>
+            <div class="legend-row"><span class="legend-item"><span class="legend-line benchmark"></span>Weak benchmark</span><span class="legend-item"><span class="legend-line ad"></span>Case AD</span><span class="legend-item"><span class="legend-line sras"></span>Case SRAS</span><span class="legend-item"><span class="legend-line lras"></span>Case LRAS</span><span class="legend-item"><span class="legend-dot current"></span>Case equilibrium</span></div>
+            <div class="chart-grid"><div class="chart-card"><div class="chart-title">RBA GFC case: real GDP path — flattening, then recovery</div><canvas id="gfcGdpSeriesCanvas" width="440" height="240"></canvas></div><div class="chart-card"><div class="chart-title">RBA GFC case: price-level path under stimulus</div><canvas id="gfcPriceSeriesCanvas" width="440" height="240"></canvas></div></div>
+          </div>
+          <div class="panel-stack">
+            <div class="status-card"><div class="status-title">Current case step</div><div class="status-copy" id="gfcReading">—</div></div>
+            <div class="metric-card"><div class="card-title">Case metrics</div><div class="metric-grid" id="gfcMetricGrid"></div></div>
+            <div class="source-card"><div class="card-title">Source cues used in the stylised RBA GFC case</div><div class="source-copy" id="gfcSourceNotes"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="caseExerciseSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline"><label for="fixedModel">OpenAI model</label><input type="text" id="fixedModel" value="gpt-5.5" /></div>
+          <div class="control-inline wide"><label for="fixedApiEndpoint">API endpoint</label><input type="text" id="fixedApiEndpoint" value="https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai" /></div>
+          <div class="control-inline"><label for="fixedApiKey">API key</label><input type="password" id="fixedApiKey" placeholder="Optional local testing key only" autocomplete="off" /></div>
+          <div class="control-inline"><label>&nbsp;</label><button class="btn-primary" id="fixedSubmitButton">Submit answer</button></div>
+          <div class="control-inline"><label>&nbsp;</label><button class="btn-secondary teacher-only-button" id="fixedToggleAnswersButton">Show/edit questions and answers</button></div>
+          <div class="control-inline"><label>&nbsp;</label><button class="btn-secondary" id="fixedResetButton">Reset exercise</button></div>
+        </div>
+        <div class="workspace">
+          <div class="stack"><div class="notes-panel"><div class="panel-title">Select one RBA GFC monetary-policy exercise</div><div id="fixedQuestionList" class="exercise-list"></div></div><div class="notes-panel"><div class="source-card-item" id="fixedPromptBox"><strong>Choose a question.</strong><br>Write your answer below. Teacher questions and sample answers are editable but hidden by default.</div><div style="margin-top:12px;"><label for="fixedStudentAnswer" style="display:block;font-size:13px;font-weight:700;margin-bottom:6px;">Student answer</label><textarea id="fixedStudentAnswer" class="answer-area" placeholder="Write your answer here. Refer to AD, SRAS, LRAS, monetary policy and the RBA GFC case evidence."></textarea></div><p class="subtle-note">This deployment uses the secure Cloudflare Worker proxy by default. The API key box is only for local testing if you switch back to the direct OpenAI endpoint.</p></div><div class="feedback-card feedback-neutral" id="fixedFeedback">Feedback and score will appear here after submission.</div></div>
+          <div class="stack"><div class="notes-panel"><div class="panel-title">How the AI marker evaluates answers</div><div class="source-list"><div class="source-card-item"><strong>Monetary transmission</strong><br><span class="source-note">Does the answer correctly link cash rate changes, liquidity operations or unconventional monetary policy to AD, SRAS and LRAS?</span></div><div class="source-card-item"><strong>Case evidence</strong><br><span class="source-note">Does the answer use the GFC timeline and stimulus measures?</span></div><div class="source-card-item"><strong>Policy judgement</strong><br><span class="source-note">Does the answer identify the output-inflation trade-off and limitations?</span></div></div></div><div class="notes-panel hidden" id="fixedAnswerEditorPanel"><div class="panel-title">Editable questions and sample answers</div><p class="subtle-note">These benchmarks are used by the AI marker. They are hidden from students by default.</p><div id="fixedAnswerEditors" class="editor-panel"></div></div></div>
+        </div>
+      </section>
+
+      <section id="assignedCaseSection" class="module-section">
+        <div class="workspace">
+          <div class="stack">
+            <div class="notes-panel assigned-case-panel"><span id="assignedCaseStatusChip" class="assigned-case-chip">Assigned case ready</span><div class="card-title" id="assignedCaseTitleDisplay">Assigned generated monetary-policy case</div><div class="small-muted" id="assignedCaseSubtitleDisplay">This student-facing placeholder loads the reusable case published by the teacher.</div><p class="subtle-note" id="assignedCaseSourceNote">The page checks for a browser-saved assigned case and then for <code>monetary_policy_adas_saved_case.json</code>.</p></div>
+            <div class="graph-card"><canvas id="assignedCanvas" class="graph-canvas" width="960" height="600"></canvas></div>
+            <div class="series-grid"><div class="series-card"><div class="chart-title">Assigned case GDP path</div><canvas id="assignedGdpSeries" width="440" height="240"></canvas></div><div class="series-card"><div class="chart-title">Assigned case price-level path</div><canvas id="assignedPriceSeries" width="440" height="240"></canvas></div></div>
+            <div class="metric-card"><div class="metric-grid" id="assignedMetricGrid"></div></div>
+            <div class="feedback-card feedback-neutral" id="assignedFeedback">The assigned case will appear here after the teacher publishes a generated case or uploads <code>monetary_policy_adas_saved_case.json</code> to the site.</div>
+            <div class="notes-panel"><div class="panel-title">Assigned case exercise</div><div id="assignedQuestionList" class="exercise-list"></div><div class="source-card-item" id="assignedPromptBox" style="margin-top:12px;"><strong>Choose a question.</strong><br>These questions use the teacher-published assigned case.</div><div style="margin-top:12px;"><label for="assignedStudentAnswer" style="display:block;font-size:13px;font-weight:700;margin-bottom:6px;">Student answer</label><textarea id="assignedStudentAnswer" class="answer-area" placeholder="Write your answer here. Use the assigned case sequence and monetary-policy AD–AS logic."></textarea></div><div class="small-actions"><button class="btn-inline primary" id="assignedSubmitButton">Submit answer</button><button class="btn-inline" id="assignedResetExerciseButton">Reset exercise</button></div><div class="feedback-card feedback-neutral" id="assignedExerciseFeedback">Feedback and score for the assigned case will appear here after submission.</div></div>
+          </div>
+          <div class="stack"><div class="notes-panel"><div class="panel-title">Assigned case sequence</div><div class="small-actions" style="margin-top:0;margin-bottom:10px;"><button class="btn-inline" id="assignedPrevStepButton">Previous step</button><button class="btn-inline" id="assignedNextStepButton">Next step</button><button class="btn-inline" id="assignedFullPathButton">Load full path</button><button class="btn-inline" id="assignedResetPathButton">Reset path</button></div><div id="assignedStepList" class="step-list"></div></div><div class="notes-panel"><div class="panel-title">Source cues and evidence notes</div><div class="source-list" id="assignedSourceList"></div></div><div class="notes-panel"><div class="panel-title">For students</div><p class="subtle-note" style="margin:0;">This tab is the public student-facing version of the generated monetary-policy case. It does not expose teacher case-generation controls or editable sample answers.</p></div></div>
+        </div>
+      </section>
+
+      <section id="caseEngineSection" class="module-section">
+        <div class="control-row">
+          <div class="control-inline"><label for="engineModel">OpenAI model</label><input type="text" id="engineModel" value="gpt-5.5" /></div>
+          <div class="control-inline wide"><label for="engineApiEndpoint">API endpoint</label><input type="text" id="engineApiEndpoint" value="https://econ5012-ai-proxy.chenpu08.workers.dev/api/openai" /></div>
+          <div class="control-inline"><label for="engineApiKey">API key</label><input type="password" id="engineApiKey" placeholder="Optional local testing key only" autocomplete="off" /></div>
+          <div class="control-inline"><label for="engineSearchToggle">Research mode</label><select id="engineSearchToggle"><option value="web">Use OpenAI web search</option><option value="notes">Use teacher notes only</option></select></div>
+          <div class="control-inline"><label>&nbsp;</label><button class="btn-primary teacher-only-button" id="engineGenerateButton">Generate/update case</button></div>
+          <div class="control-inline"><label>&nbsp;</label><button class="btn-secondary" id="engineSaveButton">Save to browser</button></div>
+          <div class="control-inline"><label>&nbsp;</label><button class="btn-secondary teacher-only-button teacher-lock-button" id="teacherLockButton">Lock teacher access</button></div>
+        </div>
+        <div class="workspace">
+          <div class="stack">
+            <div class="notes-panel"><span id="engineStatusBadge" class="status-badge completed" role="status" aria-live="polite">Case completed</span><div class="card-title" id="engineTitleDisplay">Designable monetary-policy case engine</div><div class="small-muted" id="engineSubtitleDisplay">Enter a topic and teacher notes, then generate or import a complete monetary-policy case package.</div></div>
+            <div class="notes-panel"><div class="panel-title">Teacher case input</div><div class="teacher-grid"><div class="wide"><label for="engineTopic">Case topic</label><input type="text" id="engineTopic" value="RBA cash-rate cuts and credit support during a downturn" placeholder="Enter a monetary-policy case topic" /></div><div class="wide"><label for="engineTeacherNotes">Teacher-provided information</label><textarea id="engineTeacherNotes" class="answer-area" style="min-height:110px;" placeholder="Paste information, data points, dates, links, or teaching emphasis. The generator can combine these notes with web search if enabled."></textarea></div><div><label for="engineGdpLabel">GDP label</label><input type="text" id="engineGdpLabel" value="Real GDP index" /></div><div><label for="enginePriceLabel">Price-level label</label><input type="text" id="enginePriceLabel" value="Price level index" /></div></div><p class="subtle-note">The case package is JSON-based: AD/SRAS/LRAS shifts, event sequence, evidence notes, six editable questions, and editable sample answers.</p></div>
+            <div class="graph-card"><canvas id="engineCanvas" class="graph-canvas" width="960" height="600"></canvas></div>
+            <div class="series-grid"><div class="series-card"><div class="chart-title">Engine GDP path</div><canvas id="engineGdpSeries" width="440" height="240"></canvas></div><div class="series-card"><div class="chart-title">Engine price-level path</div><canvas id="enginePriceSeries" width="440" height="240"></canvas></div></div>
+            <div class="metric-card"><div class="metric-grid" id="engineMetricGrid"></div></div>
+            <div class="feedback-card feedback-neutral" id="engineFeedback">This placeholder package can be replaced by generated or imported case-study information.</div>
+            <div class="notes-panel"><div class="panel-title">Assignable case-study exercise</div><div id="engineQuestionList" class="exercise-list"></div><div class="source-card-item" id="enginePromptBox" style="margin-top:12px;"><strong>Choose a question.</strong><br>The six generated questions use the active assignable case package.</div><div style="margin-top:12px;"><label for="engineStudentAnswer" style="display:block;font-size:13px;font-weight:700;margin-bottom:6px;">Student answer</label><textarea id="engineStudentAnswer" class="answer-area" placeholder="Write your answer here. Use the active case sequence and monetary-policy AD–AS logic."></textarea></div><div class="small-actions"><button class="btn-inline primary" id="engineSubmitButton">Submit answer</button><button class="btn-inline teacher-only-button" id="engineToggleAnswersButton">Show/edit questions and answers</button><button class="btn-inline" id="engineResetExerciseButton">Reset exercise</button></div><div class="feedback-card feedback-neutral" id="engineExerciseFeedback">Feedback and score for the assignable case will appear here after submission.</div></div>
+          </div>
+          <div class="stack"><div class="notes-panel"><div class="panel-title">Case-study sequence</div><div class="small-actions" style="margin-top:0;margin-bottom:10px;"><button class="btn-inline" id="enginePrevStepButton">Previous step</button><button class="btn-inline" id="engineNextStepButton">Next step</button><button class="btn-inline" id="engineFullPathButton">Load full path</button><button class="btn-inline" id="engineResetPathButton">Reset path</button></div><div id="engineStepList" class="step-list"></div></div><div class="notes-panel"><div class="panel-title">Source cues and evidence notes</div><div class="source-list" id="engineSourceList"></div></div><div class="notes-panel hidden" id="engineAnswerEditorPanel"><div class="panel-title">Editable questions and sample answers for active case</div><p class="subtle-note">These teacher-editable benchmarks are used by the AI marker and are hidden from students by default.</p><div id="engineAnswerEditors" class="editor-panel"></div></div><div class="notes-panel reusable-case-panel"><div class="panel-title">Reusable / assigned student case placeholder</div><p class="subtle-note" style="margin-top:0;">This placeholder holds the generated case that students use in the <strong>Assigned generated case</strong> tab. For the public GitHub site, place a JSON file named <strong>monetary_policy_adas_saved_case.json</strong> in the same folder as this HTML. This page will try to load it automatically.</p><div class="small-actions"><button class="btn-inline" id="loadReusableCaseButton">Load reusable case</button><button class="btn-inline primary teacher-only-button" id="overwriteReusableCaseButton">Publish/overwrite assigned student case</button><button class="btn-inline teacher-only-button" id="downloadSiteCaseButton">Download site case JSON</button><button class="btn-inline teacher-only-button" id="clearReusableCaseButton">Clear browser assigned case</button></div><div class="source-card-item" id="reusableCaseStatus" style="margin-top:10px;"><strong>Assigned case placeholder</strong><br>Students use the assigned case shown in the Assigned generated case tab. The page uses the built-in placeholder unless a browser-saved assigned case or a site-level JSON file is available.</div><p class="teacher-gate-note">Teacher-only actions are password protected. Site-wide reuse still requires replacing/uploading <code>monetary_policy_adas_saved_case.json</code> in the GitHub repository. After publishing, use <strong>Lock teacher access</strong>.</p></div><div class="notes-panel"><div class="panel-title">Import / export case package JSON</div><textarea id="engineJsonArea" class="json-area" placeholder="Paste or export a case package JSON object here."></textarea><div class="small-actions"><button class="btn-inline" id="engineExportJsonButton">Export active JSON</button><button class="btn-inline primary" id="engineImportJsonButton">Load JSON into engine</button><button class="btn-inline" id="engineDownloadJsonButton">Download JSON</button><button class="btn-inline" id="engineClearSavedButton">Clear saved case</button></div><div style="margin-top:10px;"><label for="engineJsonFileInput" style="display:block;font-size:13px;font-weight:700;margin-bottom:6px;">Load JSON file</label><input type="file" id="engineJsonFileInput" accept="application/json,.json" /></div></div></div>
+        </div>
+      </section>
+
+      <section id="pathSection" class="module-section"><div class="table-card"><div class="table-title">Monetary-policy path table</div><div class="small-muted" style="margin-bottom:10px;">The table shows how the selected monetary determinant moves the economy relative to the weak benchmark growth path. Positive AD means AD shifts right; positive SRAS means SRAS shifts left/up; positive LRAS means potential output shifts right.</div><div class="table-wrap"><table><thead><tr><th>t</th><th>Policy event</th><th>Benchmark GDP</th><th>Realised GDP</th><th>Output gap</th><th>Benchmark P</th><th>Realised P</th><th>AD shift</th><th>SRAS shift</th><th>LRAS shift</th></tr></thead><tbody id="pathTableBody"></tbody></table></div></div></section>
+
+      <section id="guideSection" class="module-section"><div class="workspace"><div class="panel-stack"><div class="source-card"><div class="card-title">How monetary policy shifts AD</div><div class="source-copy">A cash-rate cut lowers borrowing costs, debt servicing and expected returns on safe assets. This supports consumption, housing, investment, asset prices and sometimes net exports, so AD shifts right. A cash-rate increase works in the opposite direction and shifts AD left.</div></div><div class="source-card"><div class="card-title">Unconventional and credit-market channels</div><div class="source-copy">Forward guidance, liquidity operations, asset purchases and term funding can support AD when normal transmission is weak. Liquidity and credit-market support can also ease funding-cost pressure, shifting SRAS right/down, and can protect LRAS by preventing financial stress from damaging firms, jobs and productive capacity.</div></div></div><div class="panel-stack"><div class="source-card"><div class="card-title">Policy trade-offs</div><ul class="note-list"><li><strong>Recession:</strong> expansionary monetary policy can close a recessionary gap but may raise the price level.</li><li><strong>Inflation:</strong> contractionary monetary policy cools AD but may reduce GDP and employment.</li><li><strong>Financial stability:</strong> liquidity operations can prevent credit stress from shifting AD left and SRAS left/up.</li><li><strong>GFC lesson:</strong> rate cuts and liquidity support are most powerful when they stop a financial shock from amplifying a collapse in private demand.</li></ul></div><div class="source-card"><div class="card-title">Teaching interpretation</div><div class="source-copy">This is a stylised classroom model, not an empirical forecast. It helps students separate channels: immediate AD support, credit-cost relief through SRAS, expectations, exchange-rate effects, and longer-run effects from avoiding hysteresis.</div></div></div></div></section>
+    </div>
+  </div>
+
+  <script src="./econ-theme.js"></script>
+  <script>
+    (() => {
+      const theme = window.ECON_THEME;
+      const range = { yMin: 88, yMax: 130, pMin: 94, pMax: 124 };
+      const model = { b: 0.55, d: 0.75, y0: 100, p0: 100, horizon: 12 };
+      const gapTolerance = 0.8;
+      const teacherHash = "690bc7bcb456885977b4b1a6f246999a1c22c92d7c7cf99fd36d459f2238131e";
+      const teacherSessionKey = "MONETARY_ADAS_TEACHER_UNLOCKED_V1";
+      const storageKey = "MONETARY_ADAS_ASSIGNABLE_CASE_V1";
+      const reusableStorageKey = "MONETARY_ADAS_REUSABLE_CASE_V1";
+      const siteCaseUrl = "./monetary_policy_adas_saved_case.json";
+      const palette = { ad: theme.color.demand, sras: theme.color.supply, lras: theme.color.longRun, policy: theme.color.government, benchmark: "rgba(163,170,181,0.50)", point: "#111827", text: theme.color.text, muted: theme.color.muted, frame: theme.color.frame, grid: theme.color.grid, output: theme.color.output, inflation: theme.color.inflation, recessionFill: "rgba(47,107,255,0.10)", inflationFill: "rgba(224,122,0,0.12)" };
+      const state = { determinant: "expansionarySpending", t: 0, growthStep: 1.4, priceStep: 0.8, policySize: 7, supplyDesign: 0.35, timer: null };
+      const gfcState = { index: 0, timer: null };
+      const fixedState = { selectedIndex: 0, answersVisible: false };
+      const engineState = { stepIndex: 0, questionIndex: 0, answersVisible: false };
+      const assignedState = { stepIndex: 0, questionIndex: 0 };
+
+      const determinants = [
+        {
+                "id": "cashRateCut",
+                "title": "Cash rate cut",
+                "subtitle": "i\u2193 shifts AD right",
+                "type": "Expansionary",
+                "sign": 1,
+                "adMult": 0.95,
+                "srasMult": -0.03,
+                "lrasMult": 0.04,
+                "mechanism": [
+                        "A lower cash rate reduces borrowing costs and debt servicing, supporting consumption, housing and investment, so AD shifts right.",
+                        "If the economy is below potential, output rises and the recessionary gap narrows.",
+                        "If lower rates prevent business failures and hysteresis, there can be a small positive LRAS effect over time."
+                ]
+        },
+        {
+                "id": "cashRateIncrease",
+                "title": "Cash rate increase",
+                "subtitle": "i\u2191 shifts AD left",
+                "type": "Contractionary",
+                "sign": -1,
+                "adMult": 0.95,
+                "srasMult": 0.02,
+                "lrasMult": -0.03,
+                "mechanism": [
+                        "A higher cash rate raises borrowing costs and debt servicing, reducing consumption, housing and investment, so AD shifts left.",
+                        "It can cool inflation pressure when output is above potential.",
+                        "If tightening is too strong during a weak economy, it can deepen a recessionary gap and weaken investment."
+                ]
+        },
+        {
+                "id": "forwardGuidance",
+                "title": "Forward guidance",
+                "subtitle": "Lower expected future rates shift AD right",
+                "type": "Unconventional / expectations",
+                "sign": 1,
+                "adMult": 0.55,
+                "srasMult": 0.0,
+                "lrasMult": 0.02,
+                "mechanism": [
+                        "Credible guidance that rates will stay lower for longer reduces expected future financing costs.",
+                        "This supports current asset prices, borrowing and investment, shifting AD right.",
+                        "Its effect depends on credibility and whether households and firms are willing to borrow."
+                ]
+        },
+        {
+                "id": "liquidityOperations",
+                "title": "Liquidity operations",
+                "subtitle": "Market support lowers funding stress",
+                "type": "Financial stability support",
+                "sign": 1,
+                "adMult": 0.6,
+                "srasMult": -0.2,
+                "lrasMult": 0.08,
+                "mechanism": [
+                        "Liquidity operations help keep money markets and bank funding channels functioning during stress.",
+                        "By reducing credit rationing and funding spreads, they support AD and can shift SRAS right/down by easing financing costs.",
+                        "They can also protect LRAS by preventing a financial shock from destroying productive firms and jobs."
+                ]
+        },
+        {
+                "id": "quantitativeEasing",
+                "title": "Asset purchases / QE",
+                "subtitle": "Long yields\u2193 and credit spreads\u2193",
+                "type": "Unconventional expansionary",
+                "sign": 1,
+                "adMult": 0.7,
+                "srasMult": -0.08,
+                "lrasMult": 0.05,
+                "mechanism": [
+                        "Asset purchases lower longer-term yields and can compress risk spreads when the cash rate is near its lower bound.",
+                        "Lower long rates support investment, asset prices and the exchange-rate channel, shifting AD right.",
+                        "The tool mainly affects demand, though smoother financing conditions may reduce short-run cost pressure."
+                ]
+        },
+        {
+                "id": "creditTightening",
+                "title": "Credit tightening / withdrawal of liquidity",
+                "subtitle": "Credit conditions tighten, AD left",
+                "type": "Contractionary financial conditions",
+                "sign": -1,
+                "adMult": 0.7,
+                "srasMult": 0.12,
+                "lrasMult": -0.05,
+                "mechanism": [
+                        "Tighter liquidity or credit conditions make borrowing harder even if the cash rate is unchanged.",
+                        "AD shifts left as consumption, housing and business investment weaken.",
+                        "Funding-cost pressure can also shift SRAS left/up and, if persistent, reduce productive capacity."
+                ]
+        },
+        {
+                "id": "exchangeRateChannel",
+                "title": "Exchange-rate channel from easing",
+                "subtitle": "Lower rates can depreciate AUD",
+                "type": "Open-economy monetary channel",
+                "sign": 1,
+                "adMult": 0.5,
+                "srasMult": 0.06,
+                "lrasMult": 0.03,
+                "mechanism": [
+                        "Lower relative interest rates can depreciate the currency and support net exports, shifting AD right.",
+                        "A depreciation can also raise import prices, so SRAS may shift left/up in the short run.",
+                        "The net effect depends on the size of the trade response and imported-input cost pressures."
+                ]
+        }
+];
+
+      const fixedQuestions = [
+        {
+                "title": "1. Early 2008: high inflation and the 7.25% cash rate",
+                "question": "At the start of the GFC timeline, the RBA cash rate was 7.25% and policy had been restraining demand because inflation pressure was high. In the dynamic AD\u2013AS diagram, why is this not yet an expansionary response?",
+                "sampleAnswer": "Before the financial crisis intensified, the RBA was still dealing with strong demand and high inflation pressure. A high cash rate is contractionary: it leans against AD by raising borrowing costs and debt servicing. In the diagram, the economy begins close to the benchmark path but with policy not designed to stimulate demand yet. This matters because the later easing is a change from restraint toward support as the shock changes from inflation risk to recession risk."
+        },
+        {
+                "title": "2. September 2008: global credit and confidence shock",
+                "question": "The failure and near-failure of major global financial institutions tightened credit and damaged confidence. How should this shock be represented before the RBA response?",
+                "sampleAnswer": "The shock is mainly a leftward shift of AD. Firms and households become more cautious, banks and capital markets tighten credit, and global demand weakens. Some SRAS pressure can also appear because funding costs and uncertainty make production and investment more difficult. In the time-series chart, realised GDP flattens below the upward benchmark rather than continuing to grow normally. This is a recessionary-gap risk."
+        },
+        {
+                "title": "3. September\u2013November 2008: rapid cash-rate cuts",
+                "question": "The RBA had announced rate cuts totalling 200 basis points by the September, October and November 2008 meetings. Why is this represented as a rightward movement of AD?",
+                "sampleAnswer": "Cash-rate cuts lower short-term interest rates and reduce debt-servicing costs for many borrowers. They support housing demand, consumption and investment, so planned expenditure is higher at each price level. In the diagram, the AD curve is less far to the left than it would have been without the cuts. The purpose is not to create an inflationary boom; it is to offset the collapse in private demand and keep GDP closer to the benchmark path."
+        },
+        {
+                "title": "4. 2008\u201309: liquidity operations and market functioning",
+                "question": "The RBA also adjusted market operations and supplied liquidity so the financial system could continue to function smoothly. How is this different from a standard cash-rate cut in the AD\u2013AS interpretation?",
+                "sampleAnswer": "A cash-rate cut works mainly through the price of overnight money and then through lending rates, asset prices and exchange rates. Liquidity operations work through market functioning and credit availability. By supplying exchange-settlement balances and using repo operations, the RBA helped reduce funding stress. In the diagram this supports AD by preventing credit rationing, and it can also shift SRAS right/down by reducing financing-cost pressure. It is therefore both a demand-support and financial-stability channel."
+        },
+        {
+                "title": "5. By May 2009: 4.25 percentage points of easing and pass-through",
+                "question": "By May 2009, the cash rate had been lowered by 4.25 percentage points and much of the reduction had passed through to end borrowers. What does this imply for the GDP path?",
+                "sampleAnswer": "It implies a large expansionary monetary impulse. Lower rates reduce mortgage and business borrowing costs, helping households with debt and supporting new borrowing. In the case path, realised GDP does not fall sharply; it flattens during the crisis and then begins to return toward the upward benchmark. The output gap narrows because AD has shifted back to the right. The price-level path remains subdued relative to an overheating boom because spare capacity has opened."
+        },
+        {
+                "title": "6. Recovery and limits of monetary policy",
+                "question": "The final step shows the economy moving back toward the rising benchmark path. What does the RBA response show about the usefulness and limits of monetary policy during the GFC?",
+                "sampleAnswer": "The RBA response shows that timely monetary easing can cushion a demand shock by supporting spending, credit and confidence. Liquidity operations can also stop financial-market stress from amplifying the downturn. But monetary policy has limits: it cannot by itself repair global demand, guarantee bank lending, or solve every confidence problem. The recovery also depended on the banking system, fiscal support, exchange-rate movements and external demand. The AD\u2013AS diagram is useful because it shows how monetary policy narrows the recessionary gap without treating it as the only cause of recovery."
+        }
+];
+
+      const gfcSteps = [
+        {
+                "label": "Mar 2008",
+                "title": "Pre-crisis restraint: cash rate reaches 7.25%",
+                "adShift": 0.0,
+                "srasShift": 0.0,
+                "lrasShift": 0.0,
+                "summary": "The starting point is close to the moving benchmark. Monetary policy is still restrictive because the pre-GFC problem is high inflation and limited spare capacity, not yet a collapse in demand.",
+                "evidence": "The RBA raised the cash rate to 7.25% in March 2008 and later noted inflation had been high in an environment of limited spare capacity and earlier strong demand.",
+                "event": "Restrictive pre-GFC cash rate",
+                "sources": [
+                        "RBA media releases/minutes: March 2008 increase to 7.25% and July 2008 decision to hold at 7.25% while seeking to restrain demand."
+                ]
+        },
+        {
+                "label": "Sep 2008",
+                "title": "Global financial turmoil shifts AD left",
+                "adShift": -1.1,
+                "srasShift": 0.35,
+                "lrasShift": 0.0,
+                "summary": "Global credit markets tighten and confidence falls. Before policy fully offsets the shock, AD shifts left and funding stress creates some short-run cost pressure. GDP flattens relative to the rising benchmark.",
+                "evidence": "The RBA November 2008 Statement described serious tightening in credit availability and deteriorating financial-sector confidence after the failure or near-failure of major institutions.",
+                "event": "Credit and confidence shock",
+                "sources": [
+                        "RBA Statement on Monetary Policy, November 2008: credit availability tightened and confidence in the financial sector deteriorated."
+                ]
+        },
+        {
+                "label": "Nov 2008",
+                "title": "Rapid cash-rate cuts begin to offset the demand shock",
+                "adShift": -0.65,
+                "srasShift": 0.25,
+                "lrasShift": 0.02,
+                "summary": "The RBA cuts the cash rate rapidly. Lower rates begin to support household and business demand, so realised GDP moves closer to the benchmark path than under the raw GFC shock.",
+                "evidence": "By the September, October and November 2008 meetings, the RBA had announced rate cuts totalling 200 basis points.",
+                "event": "200 bp of rate cuts",
+                "sources": [
+                        "RBA Statement on Monetary Policy, November 2008: rate cuts amounting to 200 basis points at the September, October and November meetings."
+                ]
+        },
+        {
+                "label": "Late 2008",
+                "title": "Liquidity operations support market functioning",
+                "adShift": -0.4,
+                "srasShift": 0.05,
+                "lrasShift": 0.08,
+                "summary": "The RBA supplies liquidity and adapts market operations so money markets and funding channels continue to function. This reduces the risk that financial stress turns into a deeper fall in AD and SRAS.",
+                "evidence": "The RBA Annual Report says its operations focused on ensuring the Australian financial system continued to function smoothly and that its framework enabled prompt, targeted responses to market developments.",
+                "event": "Liquidity and market operations",
+                "sources": [
+                        "RBA Annual Report 2009: the Bank adjusted market operations and maintained higher exchange-settlement balances during financial turbulence."
+                ]
+        },
+        {
+                "label": "Apr 2009",
+                "title": "Cash rate reaches 3.00% and borrowing costs fall",
+                "adShift": 0.05,
+                "srasShift": -0.05,
+                "lrasShift": 0.12,
+                "summary": "By early 2009, the cash rate is much lower and the reduction is passing through to many borrowers. AD is now close to the moving benchmark and the recessionary gap is much smaller.",
+                "evidence": "The RBA Annual Report records six reductions from 7.25% to 3.00%. The May 2009 Statement says the cash rate had been lowered by 4.25 percentage points since September, with much of the reduction passed on to end borrowers.",
+                "event": "Cash rate down to 3.00%",
+                "sources": [
+                        "RBA Annual Report 2009: cash rate target reduced from 7.25% to 3.00%.",
+                        "RBA Statement on Monetary Policy, May 2009: 4.25 percentage points of easing since September and substantial pass-through to borrowers."
+                ]
+        },
+        {
+                "label": "2010",
+                "title": "Recovery: monetary support helps avoid a major downturn",
+                "adShift": 0.25,
+                "srasShift": -0.1,
+                "lrasShift": 0.2,
+                "summary": "Lower rates, liquidity support, fiscal stimulus and external demand help Australia avoid a major downturn. The realised GDP path returns toward the upward benchmark rather than remaining flat.",
+                "evidence": "The RBA GFC explainer says Australia did not experience a large economic downturn or financial crisis, although growth slowed and unemployment rose, and that the Reserve Bank lowered the cash rate target significantly.",
+                "event": "Recovery toward trend",
+                "sources": [
+                        "RBA GFC explainer: Australia avoided a large downturn; the Reserve Bank lowered the cash rate target significantly."
+                ]
+        }
+];
+
+      const defaultMonetaryCase = {
+        "title": "Assignable case placeholder: RBA monetary policy and the business cycle",
+        "subtitle": "Placeholder monetary-policy case package. Replace it by generating a researched case, using teacher notes, or importing JSON.",
+        "market": {
+                "gdpLabel": "Real GDP index",
+                "priceLabel": "Price level index",
+                "gdpPrefix": "",
+                "gdpSuffix": "",
+                "pricePrefix": "",
+                "priceSuffix": ""
+        },
+        "notes": "Placeholder only. Review AI-generated content before assigning it to students.",
+        "steps": [
+                {
+                        "label": "Baseline",
+                        "title": "Pre-policy benchmark",
+                        "adShift": 0,
+                        "srasShift": 0,
+                        "lrasShift": 0,
+                        "summary": "Starting point before the monetary-policy event sequence.",
+                        "evidence": "Placeholder benchmark.",
+                        "event": "Baseline",
+                        "sources": []
+                },
+                {
+                        "label": "Step 1",
+                        "title": "Negative demand and credit shock",
+                        "adShift": -5,
+                        "srasShift": 0.7,
+                        "lrasShift": 0,
+                        "summary": "A downturn shifts AD left and credit stress pushes SRAS up.",
+                        "evidence": "Placeholder logic: confidence and credit conditions weaken spending and raise funding-cost pressure.",
+                        "event": "AD falls",
+                        "sources": []
+                },
+                {
+                        "label": "Step 2",
+                        "title": "Cash rate cut",
+                        "adShift": -1.8,
+                        "srasShift": 0.5,
+                        "lrasShift": 0.05,
+                        "summary": "Lower interest rates shift AD back to the right by supporting borrowing-sensitive spending.",
+                        "evidence": "Placeholder logic: lower borrowing costs support consumption, housing and investment.",
+                        "event": "Rate cut",
+                        "sources": []
+                },
+                {
+                        "label": "Step 3",
+                        "title": "Liquidity support",
+                        "adShift": -0.8,
+                        "srasShift": 0.0,
+                        "lrasShift": 0.15,
+                        "summary": "Market operations reduce funding stress and support credit availability.",
+                        "evidence": "Placeholder logic: liquidity support limits credit rationing and reduces financing-cost pressure.",
+                        "event": "Liquidity operations",
+                        "sources": []
+                },
+                {
+                        "label": "Step 4",
+                        "title": "Recovery and policy normalisation",
+                        "adShift": 0.2,
+                        "srasShift": -0.1,
+                        "lrasShift": 0.25,
+                        "summary": "As confidence recovers, AD moves back toward the benchmark and GDP resumes its growth path.",
+                        "evidence": "Placeholder logic: policy support narrows the recessionary gap and later can be normalised.",
+                        "event": "Recovery",
+                        "sources": []
+                }
+        ],
+        "questions": [
+                {
+                        "title": "1. Diagnose the monetary shock",
+                        "question": "What changed in the first non-baseline step, and which AD\u2013AS curve shifts?",
+                        "sampleAnswer": "A good answer identifies the monetary or financial shock and maps it to AD, SRAS or LRAS. Credit stress and confidence shocks shift AD left; funding-cost pressure may shift SRAS left/up."
+                },
+                {
+                        "title": "2. Cash-rate transmission",
+                        "question": "How does a cash-rate cut affect realised GDP relative to the benchmark?",
+                        "sampleAnswer": "A cash-rate cut lowers borrowing costs and debt servicing, raising consumption, housing demand and investment. This shifts AD right and narrows a recessionary gap."
+                },
+                {
+                        "title": "3. Liquidity operations",
+                        "question": "Why can liquidity operations affect both AD and SRAS?",
+                        "sampleAnswer": "They support credit availability and market functioning, which raises spending relative to a credit-crunch path. They can also reduce financing-cost pressure, shifting SRAS right/down."
+                },
+                {
+                        "title": "4. Price-level path",
+                        "question": "How does expansionary monetary policy affect the price level relative to the benchmark?",
+                        "sampleAnswer": "If there is spare capacity, the main effect is higher output and a smaller recessionary gap. Near potential, the same AD support is more likely to raise the price level above the benchmark."
+                },
+                {
+                        "title": "5. Policy trade-off",
+                        "question": "What is the main policy trade-off in the assigned case?",
+                        "sampleAnswer": "The trade-off is between stabilising output and employment and avoiding excessive inflation or financial-risk build-up. The trade-off depends on the output gap and credit conditions."
+                },
+                {
+                        "title": "6. Model limitations",
+                        "question": "What are the limitations of this monetary-policy AD\u2013AS model?",
+                        "sampleAnswer": "The model is stylised and does not estimate lags, expectations, exchange rates, bank lending constraints, distributional effects or fiscal interactions. It organises channels rather than forecasting precisely."
+                }
+        ]
+};
+
+      let fixedQuestionsState = JSON.parse(JSON.stringify(fixedQuestions));
+      let engineCase = JSON.parse(JSON.stringify(defaultMonetaryCase));
+      let assignedCase = JSON.parse(JSON.stringify(defaultMonetaryCase));
+
+      function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+      function fmt(value, digits = 1) { const n = Number(value); if (!Number.isFinite(n)) return "—"; return n.toFixed(digits).replace(/\.0$/, ""); }
+      function signed(value, digits = 1) { const n = Number(value); if (!Number.isFinite(n)) return "—"; const s = n.toFixed(digits).replace(/\.0$/, ""); return (n > 0 ? "+" : "") + s; }
+      function esc(value) { return String(value ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+      function plotX(y) { return EconDraw.valueToX(y, range.yMin, range.yMax); }
+      function plotY(p) { return EconDraw.valueToY(p, range.pMin, range.pMax); }
+      function ticks(min, max, step, axis) { const out=[]; for(let v=min; v<=max+1e-9; v+=step) out.push({ label: v.toFixed(0), x: axis === "x" ? EconDraw.valueToX(v,min,max) : undefined, y: axis === "y" ? EconDraw.valueToY(v,min,max) : undefined }); return out; }
+      function benchmark(t, growthStep, priceStep) { return { yStar: model.y0 + growthStep * t, p: model.p0 + priceStep * t }; }
+      function adInterceptFor(b) { return b.p + model.b * b.yStar; }
+      function srasInterceptFor(b) { return b.p - model.d * b.yStar; }
+      function adPrice(y, b, adShift=0) { return adInterceptFor(b) + adShift - model.b * y; }
+      function srasPrice(y, b, srasShift=0) { return srasInterceptFor(b) + srasShift + model.d * y; }
+      function solve(b, adShift, srasShift, lrasShift=0) { const y = (adInterceptFor(b) + adShift - srasInterceptFor(b) - srasShift) / (model.b + model.d); const p = adPrice(y, b, adShift); return { y, p, yPotential: b.yStar + lrasShift }; }
+      function linePoints(fn) { const pts=[]; for(let y=range.yMin; y<=range.yMax; y+=0.25) { const p=fn(y); if(Number.isFinite(p) && p>=range.pMin-5 && p<=range.pMax+5) pts.push({x:plotX(y), y:plotY(p)}); } return pts; }
+      function verticalPoints(y) { return [{x:plotX(y), y:plotY(range.pMin)}, {x:plotX(y), y:plotY(range.pMax)}]; }
+      function drawPoint(ctx, point, label, options={}) { const x=plotX(point.y), y=plotY(point.p); ctx.save(); ctx.beginPath(); ctx.arc(x,y,options.radius||6,0,Math.PI*2); ctx.fillStyle=options.fill||"white"; ctx.fill(); ctx.lineWidth=options.lineWidth||2; ctx.strokeStyle=options.stroke||palette.text; if(options.dash) ctx.setLineDash(options.dash); ctx.stroke(); ctx.setLineDash([]); if(label) EconDraw.drawText(ctx,label,x+10,y-10,{size:13,weight:"800",color:options.text||options.stroke||palette.text}); ctx.restore(); }
+      function drawCurveLabel(ctx, label, yVal, pVal, color, dx=0, dy=0) { if(pVal<range.pMin+1 || pVal>range.pMax-1) return; EconDraw.drawText(ctx,label,plotX(yVal)+dx,plotY(pVal)+dy,{size:13,weight:"800",color}); }
+      function drawGuide(ctx, point, color=palette.muted) { const plot=EconDraw.getPlotArea(); const x=plotX(point.y), y=plotY(point.p); ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=1.2; ctx.setLineDash(theme.dash.guide); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,plot.bottom); ctx.moveTo(x,y); ctx.lineTo(plot.left,y); ctx.stroke(); ctx.restore(); }
+      function gapType(gap) { if(gap > gapTolerance) return "inflationary"; if(gap < -gapTolerance) return "recessionary"; return "none"; }
+      function gapLabel(gap) { return gapType(gap)==="inflationary" ? "Inflationary gap" : gapType(gap)==="recessionary" ? "Recessionary gap" : "Near potential"; }
+      function drawGapBand(ctx, y, yStar) { const gap = y - yStar; if(gapType(gap)==="none") return; const plot=EconDraw.getPlotArea(); const left=plotX(Math.min(y,yStar)); const right=plotX(Math.max(y,yStar)); EconDraw.fillPolygon(ctx,[{x:left,y:plot.top},{x:right,y:plot.top},{x:right,y:plot.bottom},{x:left,y:plot.bottom}],{fill:gap>0?palette.inflationFill:palette.recessionFill}); EconDraw.drawText(ctx, gap>0?"Inflationary gap":"Recessionary gap", (left+right)/2, plot.top+14, {size:12,weight:"800",align:"center",color:palette.muted}); }
+      function drawMacroGraph(canvas, cfg) { const ctx=canvas.getContext("2d"); EconDraw.clearCanvas(ctx); EconDraw.drawFrame(ctx); EconDraw.drawAxes(ctx,{xLabel:"Real GDP (index)", yLabel:"Price level (index)", xTicks:ticks(range.yMin,range.yMax,10,"x"), yTicks:ticks(range.pMin,range.pMax,10,"y"), showGrid:true}); const b=cfg.bench; const eq=cfg.eq; drawGapBand(ctx, eq.y, eq.yPotential); EconDraw.drawLine(ctx,linePoints(y=>adPrice(y,b,0)),{color:palette.benchmark,lineWidth:2,dash:theme.dash.baseline}); EconDraw.drawLine(ctx,linePoints(y=>srasPrice(y,b,0)),{color:palette.benchmark,lineWidth:2,dash:theme.dash.baseline}); EconDraw.drawLine(ctx,verticalPoints(b.yStar),{color:palette.benchmark,lineWidth:2,dash:theme.dash.baseline}); drawPoint(ctx,{y:b.yStar,p:b.p},"B",{fill:"white",stroke:"rgba(163,170,181,.75)",text:palette.muted,radius:6}); if(cfg.showPrePolicy && Math.abs(cfg.preAdShift - cfg.adShift)>0.05){EconDraw.drawLine(ctx,linePoints(y=>adPrice(y,b,cfg.preAdShift)),{color:palette.policy,lineWidth:2.2,dash:theme.dash.policy}); drawCurveLabel(ctx,"AD pre-policy",90,adPrice(90,b,cfg.preAdShift),palette.policy,-18,-8);} EconDraw.drawLine(ctx,linePoints(y=>adPrice(y,b,cfg.adShift)),{color:palette.ad,lineWidth:theme.line.main}); EconDraw.drawLine(ctx,linePoints(y=>srasPrice(y,b,cfg.srasShift)),{color:palette.sras,lineWidth:theme.line.main}); EconDraw.drawLine(ctx,verticalPoints(eq.yPotential),{color:palette.lras,lineWidth:theme.line.main}); drawCurveLabel(ctx,cfg.adLabel||"AD",90,adPrice(90,b,cfg.adShift),palette.ad,-18,-8); drawCurveLabel(ctx,cfg.srasLabel||"SRAS",120,srasPrice(120,b,cfg.srasShift),palette.sras,8,-8); EconDraw.drawText(ctx,cfg.lrasLabel||"LRAS",plotX(eq.yPotential)+8,plotY(range.pMax)+18,{size:12,weight:"800",color:palette.lras}); drawGuide(ctx, eq, palette.muted); drawPoint(ctx, eq, cfg.currentLabel||"E", {fill:palette.point, stroke:palette.point, text:palette.point, radius:5}); if(cfg.titleText) EconDraw.drawText(ctx,cfg.titleText,100,34,{size:13,color:palette.muted}); }
+      function profile(t) { return Math.max(0, 1 - Math.abs(t - 4) / 4); }
+      function persistent(t) { return clamp((t - 2) / (model.horizon - 2), 0, 1); }
+      function determinantById(id) { return determinants.find(d=>d.id===id) || determinants[0]; }
+      function determinantShocks(t, detId, size, supplyDesign) { const det=determinantById(detId); const cyc=profile(t); const pers=persistent(t); const s=Number(size); const ad = det.sign * det.adMult * s * cyc; const lras = det.sign * det.lrasMult * s * pers * supplyDesign; const sras = det.sign * det.srasMult * s * pers * supplyDesign; return { adShift: ad, preAdShift: 0, srasShift: sras, lrasShift: lras, event: det.title, det }; }
+      function resolveMonetaryStep(t, opt={}) { const growthStep=opt.growthStep ?? state.growthStep; const priceStep=opt.priceStep ?? state.priceStep; const b=benchmark(t,growthStep,priceStep); const shocks= opt.custom ? opt.custom : determinantShocks(t, opt.determinant ?? state.determinant, opt.policySize ?? state.policySize, opt.supplyDesign ?? state.supplyDesign); const eq=solve(b,shocks.adShift,shocks.srasShift,shocks.lrasShift); return {t, bench:b, eq, shocks, outputGap:eq.y-eq.yPotential, priceGap:eq.p-b.p}; }
+      function buildMonetaryPath(opt={}) { const arr=[]; for(let t=0;t<=model.horizon;t++) arr.push(resolveMonetaryStep(t,opt)); return arr; }
+      function gfcCustomForStep(i) { const step=gfcSteps[i]; return {adShift:step.adShift, preAdShift: i>1 ? gfcSteps[1].adShift : step.adShift, srasShift:step.srasShift, lrasShift:step.lrasShift, event:step.event, det:{title:step.event,type:"RBA GFC case",mechanism:[step.summary]}}; }
+      function resolveGfcStep(index) { const t=index; return resolveMonetaryStep(t,{growthStep:1.2, priceStep:0.7, custom:gfcCustomForStep(index)}); }
+      function buildGfcPath() { return gfcSteps.map((_,i)=>resolveGfcStep(i)); }
+      function fmtCasePrice(value){return fmt(value,1);} function fmtCaseGdp(value){return fmt(value,1);}
+      function drawSeriesChart(canvas, config) { const ctx=canvas.getContext("2d"); const w=canvas.width,h=canvas.height,pad={left:52,right:18,top:18,bottom:42}; ctx.clearRect(0,0,w,h); ctx.fillStyle="#fff"; ctx.fillRect(0,0,w,h); const bench=config.benchmark||[], actual=config.actual||[]; const vals=[...bench,...actual].map(d=>Number(d.value)).filter(Number.isFinite); if(!vals.length) return; let minY=Math.min(...vals), maxY=Math.max(...vals); if(minY===maxY){minY-=1;maxY+=1;} const span=maxY-minY; minY-=span*.12; maxY+=span*.12; const len=Math.max(bench.length,actual.length); const xFor=i=>len<=1?pad.left:pad.left+i/(len-1)*(w-pad.left-pad.right); const yFor=v=>h-pad.bottom-((v-minY)/(maxY-minY))*(h-pad.top-pad.bottom); ctx.save(); ctx.strokeStyle=theme.color.axis; ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(pad.left,pad.top); ctx.lineTo(pad.left,h-pad.bottom); ctx.lineTo(w-pad.right,h-pad.bottom); ctx.stroke(); ctx.font="12px "+theme.font.family; ctx.fillStyle=theme.color.muted; ctx.textAlign="right"; ctx.textBaseline="middle"; for(let i=0;i<=4;i++){const value=minY+i/4*(maxY-minY); const y=yFor(value); ctx.strokeStyle=theme.color.grid; ctx.lineWidth=.8; ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(w-pad.right,y); ctx.stroke(); ctx.fillText(config.formatter(value),pad.left-8,y);} if(bench.length){ctx.strokeStyle=palette.benchmark; ctx.lineWidth=2; ctx.setLineDash(theme.dash.baseline); ctx.beginPath(); bench.forEach((item,i)=>{const x=xFor(i),y=yFor(item.value); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}); ctx.stroke(); ctx.setLineDash([]);} if(actual.length){ctx.strokeStyle=config.color; ctx.lineWidth=2.8; ctx.beginPath(); actual.forEach((item,i)=>{const x=xFor(i),y=yFor(item.value); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}); ctx.stroke(); actual.forEach((item,i)=>{const x=xFor(i),y=yFor(item.value); ctx.beginPath(); ctx.fillStyle=config.color; ctx.arc(x,y,i===config.highlightIndex?4.8:3.6,0,Math.PI*2); ctx.fill();});} ctx.font="11px "+theme.font.family; ctx.fillStyle=theme.color.text; ctx.textAlign="center"; ctx.textBaseline="top"; (bench.length?bench:actual).forEach((item,i)=>ctx.fillText(String(item.label),xFor(i),h-pad.bottom+10)); ctx.restore(); }
+      function metricCard(label,value,detail){return '<div class="metric-item"><div class="metric-label">'+esc(label)+(detail?'<small>'+esc(detail)+'</small>':'')+'</div><div class="metric-value">'+esc(value)+'</div></div>';}
+      function renderDeterminantBank(){ const bank=document.getElementById("determinantBank"); bank.innerHTML=""; determinants.forEach(det=>{const b=document.createElement("button"); b.className="determinant-chip"+(det.id===state.determinant?" active":""); b.innerHTML='<span>'+esc(det.title)+'</span><small>'+esc(det.subtitle)+'</small>'; b.addEventListener("click",()=>{state.determinant=det.id; state.t=0; syncControls(); renderAll();}); bank.appendChild(b);}); }
+      function syncControls(){ document.getElementById("timeSlider").value=state.t; document.getElementById("growthSlider").value=state.growthStep; document.getElementById("inflationSlider").value=state.priceStep; document.getElementById("policySizeSlider").value=state.policySize; document.getElementById("supplyDesignSlider").value=state.supplyDesign; document.getElementById("timeLabel").textContent=state.t; document.getElementById("growthLabel").textContent=fmt(state.growthStep,1); document.getElementById("inflationLabel").textContent=fmt(state.priceStep,1); document.getElementById("policySizeLabel").textContent=fmt(state.policySize,1); document.getElementById("supplyDesignLabel").textContent=fmt(100*state.supplyDesign,0)+"%"; }
+      function renderExplore(){ syncControls(); renderDeterminantBank(); const step=resolveMonetaryStep(state.t); const path=buildMonetaryPath(); drawMacroGraph(document.getElementById("adasCanvas"),{bench:step.bench, eq:step.eq, adShift:step.shocks.adShift, preAdShift:step.shocks.preAdShift, srasShift:step.shocks.srasShift, showPrePolicy:false, currentLabel:"E"+state.t, titleText:determinantById(state.determinant).title}); const benchGdp=path.map(s=>({label:"t"+s.t,value:s.bench.yStar})); const actualGdp=path.slice(0,state.t+1).map(s=>({label:"t"+s.t,value:s.eq.y})); const benchP=path.map(s=>({label:"t"+s.t,value:s.bench.p})); const actualP=path.slice(0,state.t+1).map(s=>({label:"t"+s.t,value:s.eq.p})); drawSeriesChart(document.getElementById("gdpSeriesCanvas"),{benchmark:benchGdp,actual:actualGdp,color:palette.output,formatter:fmtCaseGdp,highlightIndex:state.t}); drawSeriesChart(document.getElementById("priceSeriesCanvas"),{benchmark:benchP,actual:actualP,color:palette.inflation,formatter:fmtCasePrice,highlightIndex:state.t}); const det=determinantById(state.determinant); document.getElementById("metricGrid").innerHTML=metricCard("Policy type",det.type,"selected determinant")+metricCard("Benchmark GDP",fmt(step.bench.yStar,1),"LRAS path")+metricCard("Realised GDP",fmt(step.eq.y,1),gapLabel(step.outputGap))+metricCard("Output gap",signed(step.outputGap,1),"Y - LRAS")+metricCard("Benchmark price",fmt(step.bench.p,1),"price path")+metricCard("Realised price",fmt(step.eq.p,1),"short-run equilibrium")+metricCard("AD shift",signed(step.shocks.adShift,1),"interest-rate / credit channel")+metricCard("SRAS / LRAS",signed(step.shocks.srasShift,1)+" / "+signed(step.shocks.lrasShift,1),"credit/supply effect"); document.getElementById("metricNote").textContent="Positive AD means monetary easing or credit support shifts AD right. Positive SRAS means SRAS shifts left/up; negative SRAS means SRAS shifts right/down. Positive LRAS means potential output shifts right."; document.querySelector("#economicReading .status-copy").innerHTML='<p style="margin:0 0 8px 0;"><strong>'+esc(det.title)+'.</strong> At t='+state.t+', realised GDP is '+fmt(step.eq.y,1)+' compared with benchmark potential GDP '+fmt(step.eq.yPotential,1)+'. The price level is '+fmt(step.eq.p,1)+' compared with benchmark '+fmt(step.bench.p,1)+'.</p><p style="margin:0;">'+(gapType(step.outputGap)==="recessionary"?"The policy setting leaves a recessionary gap, so stronger demand support or supply relief may be considered.":gapType(step.outputGap)==="inflationary"?"The policy setting leaves an inflationary gap, so further stimulus could add price pressure.":"The economy is close to the moving LRAS benchmark in this stylised model.")+'</p>'; document.getElementById("transmissionList").innerHTML=det.mechanism.map(x=>'<li>'+esc(x)+'</li>').join(""); renderPathTable(path); }
+      function renderPathTable(path){document.getElementById("pathTableBody").innerHTML=path.map(s=>'<tr><td>'+s.t+'</td><td>'+esc(s.shocks.event)+'</td><td>'+fmt(s.bench.yStar,1)+'</td><td>'+fmt(s.eq.y,1)+'</td><td>'+signed(s.outputGap,1)+'</td><td>'+fmt(s.bench.p,1)+'</td><td>'+fmt(s.eq.p,1)+'</td><td>'+signed(s.shocks.adShift,1)+'</td><td>'+signed(s.shocks.srasShift,1)+'</td><td>'+signed(s.shocks.lrasShift,1)+'</td></tr>').join("");}
+      function renderAll(){renderExplore();}
+      function renderGfcButtons(){ const box=document.getElementById("gfcCaseButtons"); box.innerHTML=""; gfcSteps.forEach((s,i)=>{const b=document.createElement("button"); b.className="case-step-btn"+(i===gfcState.index?" active":""); b.textContent=s.label; b.addEventListener("click",()=>{gfcState.index=i; renderGfcCase();}); box.appendChild(b);}); }
+      function renderGfcCase(){ renderGfcButtons(); const step=gfcSteps[gfcState.index]; const resolved=resolveGfcStep(gfcState.index); const path=buildGfcPath(); drawMacroGraph(document.getElementById("gfcCanvas"),{bench:resolved.bench,eq:resolved.eq,adShift:resolved.shocks.adShift,preAdShift:resolved.shocks.preAdShift,srasShift:resolved.shocks.srasShift,showPrePolicy:gfcState.index>1,currentLabel:"G"+gfcState.index,titleText:"RBA monetary-policy response during the GFC"}); drawSeriesChart(document.getElementById("gfcGdpSeriesCanvas"),{benchmark:path.map((s,i)=>({label:gfcSteps[i].label,value:s.bench.yStar})),actual:path.slice(0,gfcState.index+1).map((s,i)=>({label:gfcSteps[i].label,value:s.eq.y})),color:palette.output,formatter:fmtCaseGdp,highlightIndex:gfcState.index}); drawSeriesChart(document.getElementById("gfcPriceSeriesCanvas"),{benchmark:path.map((s,i)=>({label:gfcSteps[i].label,value:s.bench.p})),actual:path.slice(0,gfcState.index+1).map((s,i)=>({label:gfcSteps[i].label,value:s.eq.p})),color:palette.inflation,formatter:fmtCasePrice,highlightIndex:gfcState.index}); document.getElementById("gfcReading").innerHTML='<p style="margin:0 0 8px 0;"><strong>'+esc(step.title)+'</strong></p><p style="margin:0 0 8px 0;">'+esc(step.summary)+'</p><p style="margin:0;color:var(--color-muted);"><strong>Evidence note:</strong> '+esc(step.evidence)+'</p>'; document.getElementById("gfcMetricGrid").innerHTML=metricCard("Benchmark GDP",fmt(resolved.bench.yStar,1),"moving LRAS")+metricCard("Realised GDP",fmt(resolved.eq.y,1),gapLabel(resolved.outputGap))+metricCard("Output gap",signed(resolved.outputGap,1),"Y - LRAS")+metricCard("Benchmark price",fmt(resolved.bench.p,1),"steady path")+metricCard("Realised price",fmt(resolved.eq.p,1),"short-run equilibrium")+metricCard("AD / LRAS shift",signed(resolved.shocks.adShift,1)+" / "+signed(resolved.shocks.lrasShift,1),"case calibration"); document.getElementById("gfcSourceNotes").innerHTML='<ul class="note-list">'+step.sources.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>'; }
+      function nextStep(){state.t=Math.min(model.horizon,state.t+1); renderAll();} function prevStep(){state.t=Math.max(0,state.t-1); renderAll();}
+      function resetExplore(){state.determinant="expansionarySpending";state.t=0;state.growthStep=1.4;state.priceStep=.8;state.policySize=7;state.supplyDesign=.35;renderAll();}
+      document.getElementById("timeSlider").addEventListener("input",e=>{state.t=Number(e.target.value);renderAll();}); document.getElementById("growthSlider").addEventListener("input",e=>{state.growthStep=Number(e.target.value);renderAll();}); document.getElementById("inflationSlider").addEventListener("input",e=>{state.priceStep=Number(e.target.value);renderAll();}); document.getElementById("policySizeSlider").addEventListener("input",e=>{state.policySize=Number(e.target.value);renderAll();}); document.getElementById("supplyDesignSlider").addEventListener("input",e=>{state.supplyDesign=Number(e.target.value);renderAll();}); document.getElementById("prevButton").addEventListener("click",prevStep); document.getElementById("nextButton").addEventListener("click",nextStep); document.getElementById("fullPathButton").addEventListener("click",()=>{state.t=model.horizon;renderAll();}); document.getElementById("resetButton").addEventListener("click",resetExplore); document.getElementById("playButton").addEventListener("click",()=>{ if(state.timer){clearInterval(state.timer);state.timer=null;document.getElementById("playButton").textContent="Play path";return;} document.getElementById("playButton").textContent="Pause"; state.timer=setInterval(()=>{if(state.t>=model.horizon){clearInterval(state.timer);state.timer=null;document.getElementById("playButton").textContent="Play path";return;} state.t+=1; renderAll();},900);});
+      document.getElementById("gfcPrevButton").addEventListener("click",()=>{gfcState.index=Math.max(0,gfcState.index-1);renderGfcCase();}); document.getElementById("gfcNextButton").addEventListener("click",()=>{gfcState.index=Math.min(gfcSteps.length-1,gfcState.index+1);renderGfcCase();}); document.getElementById("gfcResetButton").addEventListener("click",()=>{gfcState.index=0;renderGfcCase();}); document.getElementById("gfcPlayButton").addEventListener("click",()=>{ if(gfcState.timer){clearInterval(gfcState.timer);gfcState.timer=null;document.getElementById("gfcPlayButton").textContent="Play case";return;} document.getElementById("gfcPlayButton").textContent="Pause"; gfcState.timer=setInterval(()=>{if(gfcState.index>=gfcSteps.length-1){clearInterval(gfcState.timer);gfcState.timer=null;document.getElementById("gfcPlayButton").textContent="Play case";return;} gfcState.index+=1;renderGfcCase();},1200);});
+
+      async function sha256Hex(value){ if(!window.crypto||!window.crypto.subtle) throw new Error("Secure password checking requires HTTPS or localhost."); const bytes=new TextEncoder().encode(value); const digest=await window.crypto.subtle.digest("SHA-256",bytes); return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,"0")).join(""); }
+      function isTeacherUnlocked(){ return sessionStorage.getItem(teacherSessionKey)==="unlocked"; }
+      async function requestTeacherAccess(actionLabel){ if(isTeacherUnlocked()) return true; const password=window.prompt("Teacher password required to "+actionLabel+"."); if(password===null) return false; try{ const digest=await sha256Hex(password); if(digest===teacherHash){sessionStorage.setItem(teacherSessionKey,"unlocked"); return true;} }catch(error){window.alert(error.message+" Try the deployed HTTPS page or use a local server.");return false;} window.alert("Incorrect teacher password."); return false; }
+      function activateModuleSection(targetId){ document.querySelectorAll(".module-tab").forEach(btn=>btn.classList.toggle("active",btn.dataset.target===targetId)); document.querySelectorAll(".module-section").forEach(sec=>sec.classList.toggle("active",sec.id===targetId)); if(targetId==="exploreSection") renderAll(); if(targetId==="gfcCaseSection") renderGfcCase(); if(targetId==="caseExerciseSection") renderFixedExercises(); if(targetId==="assignedCaseSection") renderAssignedCase(); if(targetId==="caseEngineSection") renderEngineCase(); }
+      function protectTeacherTabs(){ document.querySelectorAll('[data-teacher-protected="true"]').forEach(tab=>{ tab.addEventListener("click",async(event)=>{event.preventDefault();event.stopImmediatePropagation(); const ok=await requestTeacherAccess("open the Designable Case Engine"); if(!ok) return; activateModuleSection(tab.dataset.target);},true); }); }
+      function lockTeacherAccess(message){ sessionStorage.removeItem(teacherSessionKey); engineState.answersVisible=false; fixedState.answersVisible=false; document.getElementById("engineAnswerEditorPanel")?.classList.add("hidden"); document.getElementById("fixedAnswerEditorPanel")?.classList.add("hidden"); activateModuleSection("assignedCaseSection"); window.alert(message||"Teacher access has been locked. Students can now use the Assigned generated case tab."); }
+      function extractResponseText(data){ if(!data) return ""; if(typeof data.output_text==="string") return data.output_text; if(Array.isArray(data.output)){return data.output.map(item=>!Array.isArray(item.content)?"":item.content.map(c=>c.text||c.output_text||"").join("\n")).join("\n").trim();} if(typeof data.choices?.[0]?.message?.content==="string") return data.choices[0].message.content; return ""; }
+      function parseJson(text){ try{return JSON.parse(text);}catch(e){} const m=String(text||"").match(/\{[\s\S]*\}/); if(m){try{return JSON.parse(m[0]);}catch(e){}} return null; }
+      function renderScoreFeedback(panel, parsed){ const score=Number(parsed.score); const safe=Number.isFinite(score)?clamp(score,0,10):"—"; const strengths=Array.isArray(parsed.strengths)?parsed.strengths:[]; const improvements=Array.isArray(parsed.improvements)?parsed.improvements:[]; panel.className="feedback-card "+(Number(safe)>=7?"feedback-success":"feedback-warning"); panel.innerHTML='<span class="score-badge">'+esc(safe)+'/10</span><strong>AI feedback</strong><p style="margin:10px 0 0 0;line-height:1.45;">'+esc(parsed.feedback||"No narrative feedback returned.")+'</p>'+(strengths.length?'<strong>Strengths:</strong><ul class="feedback-list">'+strengths.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>':'')+(improvements.length?'<strong>Ways to improve:</strong><ul class="feedback-list">'+improvements.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>':''); }
+      function buildMarkerPrompt(contextTitle, contextSummary, sequence, question, sampleAnswer, studentAnswer){ return ["You are marking an introductory macroeconomics monetary-policy case-study exercise.","Graph/module: monetary policy in dynamic AD-AS.","Economic focus: cash-rate, expectations, liquidity and credit-market effects on AD, SRAS and LRAS; output gaps; price-level effects; financial stability and policy trade-offs.","Case title: "+contextTitle,"Case summary: "+contextSummary,"Relevant case sequence: "+JSON.stringify(sequence||[]),"Return ONLY valid JSON with this exact structure:",' {"score":0,"feedback":"...","strengths":["..."],"improvements":["..."]}'.trim(),"Score must be an integer or one-decimal number from 0 to 10.","Reward correct use of AD-AS logic, relevant evidence, monetary transmission, financial-stability reasoning, and acknowledgement of limitations. Do not require wording to match the sample answer exactly.","Question: "+question,"Sample answer: "+sampleAnswer,"Student answer: "+studentAnswer].join("\n\n"); }
+      async function callResponsesApi(endpoint, apiKey, modelName, input, options={}){ const headers={"Content-Type":"application/json"}; if(apiKey) headers.Authorization="Bearer "+apiKey; const body={model:modelName,input}; if(options.useSearch){body.tools=[{type:"web_search"}];body.tool_choice="required";} const response=await fetch(endpoint,{method:"POST",headers,body:JSON.stringify(body)}); if(!response.ok){const errorText=await response.text(); throw new Error("API request failed: "+response.status+" "+errorText.slice(0,500));} return await response.json(); }
+      function renderQuestionList(containerId, questions, stateObj, type){ const container=document.getElementById(containerId); if(!container) return; container.innerHTML=""; questions.forEach((item,index)=>{const card=document.createElement("div"); const selected= type==="fixed"?stateObj.selectedIndex===index:stateObj.questionIndex===index; card.className="exercise-card"+(selected?" active":""); const label=document.createElement("label"); const radio=document.createElement("input"); radio.type="radio"; radio.name=type+"QuestionRadio"; radio.value=String(index); radio.checked=selected; radio.addEventListener("change",()=>{ if(type==="fixed"){fixedState.selectedIndex=index;document.getElementById("fixedStudentAnswer").value="";document.getElementById("fixedFeedback").className="feedback-card feedback-neutral";document.getElementById("fixedFeedback").textContent="Write your answer, then submit it for AI feedback.";renderFixedExercises();} else if(type==="engine"){engineState.questionIndex=index;document.getElementById("engineStudentAnswer").value="";document.getElementById("engineExerciseFeedback").className="feedback-card feedback-neutral";document.getElementById("engineExerciseFeedback").textContent="Write your answer, then submit it for AI feedback.";renderEngineCase();} else {assignedState.questionIndex=index;document.getElementById("assignedStudentAnswer").value="";document.getElementById("assignedExerciseFeedback").className="feedback-card feedback-neutral";document.getElementById("assignedExerciseFeedback").textContent="Write your answer, then submit it for AI feedback.";renderAssignedCase();}}); const body=document.createElement("div"); body.innerHTML='<div class="exercise-title">'+esc(item.title)+'</div><div class="exercise-text">'+esc(item.question)+'</div>'; label.appendChild(radio);label.appendChild(body);card.appendChild(label);card.addEventListener("click",e=>{if(e.target.tagName.toLowerCase()!=="input"){radio.checked=true;radio.dispatchEvent(new Event("change"));}});container.appendChild(card);}); }
+      function renderEditors(containerId, questions, onUpdate){ const container=document.getElementById(containerId); if(!container) return; container.innerHTML=""; questions.forEach((item,index)=>{const card=document.createElement("div"); card.className="editor-card"; card.innerHTML='<label>Question title '+(index+1)+'</label><input type="text" data-field="title" data-index="'+index+'" value="'+esc(item.title)+'" /><label>Question text '+(index+1)+'</label><textarea data-field="question" data-index="'+index+'">'+esc(item.question)+'</textarea><label>Sample answer '+(index+1)+'</label><textarea data-field="sampleAnswer" data-index="'+index+'">'+esc(item.sampleAnswer)+'</textarea>'; card.querySelectorAll("input, textarea").forEach(field=>field.addEventListener("input",()=>{const idx=Number(field.dataset.index); const key=field.dataset.field; questions[idx][key]=field.value; onUpdate(idx,key,field.value);})); container.appendChild(card);}); }
+      function renderFixedExercises(){ renderQuestionList("fixedQuestionList",fixedQuestionsState,fixedState,"fixed"); const selected=fixedQuestionsState[fixedState.selectedIndex]; const prompt=document.getElementById("fixedPromptBox"); if(selected&&prompt) prompt.innerHTML='<strong>'+esc(selected.title)+'</strong><br>'+esc(selected.question); const panel=document.getElementById("fixedAnswerEditorPanel"), btn=document.getElementById("fixedToggleAnswersButton"); if(panel&&btn){panel.classList.toggle("hidden",!fixedState.answersVisible); btn.textContent=fixedState.answersVisible?"Hide questions and answers":"Show/edit questions and answers";} renderEditors("fixedAnswerEditors",fixedQuestionsState,()=>renderFixedExercises()); }
+      async function submitFixedAnswer(){ const feedback=document.getElementById("fixedFeedback"); const selected=fixedQuestionsState[fixedState.selectedIndex]; const answer=document.getElementById("fixedStudentAnswer").value.trim(); const apiKey=document.getElementById("fixedApiKey").value.trim(); const endpoint=document.getElementById("fixedApiEndpoint").value.trim(); const modelName=document.getElementById("fixedModel").value.trim()||"gpt-5.5"; if(!answer){feedback.className="feedback-card feedback-warning";feedback.textContent="Please write an answer before submitting.";return;} if(!apiKey&&endpoint.includes("api.openai.com")){feedback.className="feedback-card feedback-warning";feedback.textContent="Please enter an OpenAI API key, or use the deployed proxy endpoint.";return;} feedback.className="feedback-card feedback-neutral";feedback.textContent="Submitting answer for AI feedback..."; try{const data=await callResponsesApi(endpoint,apiKey,modelName,buildMarkerPrompt("RBA monetary-policy response during the GFC","Built-in case study of monetary easing during the GFC.",gfcSteps,selected.question,selected.sampleAnswer,answer)); const parsed=parseJson(extractResponseText(data)); if(!parsed){feedback.className="feedback-card feedback-warning";feedback.innerHTML="The API returned feedback, but it was not valid JSON.";return;} renderScoreFeedback(feedback,parsed);}catch(error){feedback.className="feedback-card feedback-warning";feedback.innerHTML='<strong>Could not get API feedback.</strong><br>'+esc(error.message);} }
+      function sanitizePackage(raw){ const fallback=defaultMonetaryCase; const data=raw&&typeof raw==="object"?raw:{}; const market=data.market&&typeof data.market==="object"?data.market:{}; const steps=Array.isArray(data.steps)&&data.steps.length?data.steps:fallback.steps; const questions=Array.isArray(data.questions)&&data.questions.length?data.questions:fallback.questions; const cleanSteps=steps.slice(0,8).map((s,i)=>({label:String(s.label||(i===0?"Baseline":"Step "+i)),title:String(s.title||"Monetary-policy event"),adShift:Number.isFinite(Number(s.adShift))?Number(s.adShift):0,srasShift:Number.isFinite(Number(s.srasShift))?Number(s.srasShift):0,lrasShift:Number.isFinite(Number(s.lrasShift))?Number(s.lrasShift):0,summary:String(s.summary||"Teacher-editable monetary-policy event summary."),evidence:String(s.evidence||"Teacher-editable evidence note."),event:String(s.event||s.title||"Monetary event"),sources:Array.isArray(s.sources)?s.sources.map(src=>typeof src==="string"?{title:src,url:""}:{title:String(src?.title||"Source cue"),url:String(src?.url||"")}):[]})); const cleanQ=questions.slice(0,6).map((q,i)=>({title:String(q.title||(i+1)+". Case-study question"),question:String(q.question||"Explain the monetary-policy AD-AS logic for this case step."),sampleAnswer:String(q.sampleAnswer||q.answer||"A good answer should use AD-AS monetary-policy logic and case evidence.")})); while(cleanQ.length<6){const n=cleanQ.length+1; cleanQ.push({title:n+". Additional monetary-policy question",question:"Use the assigned case sequence to explain one monetary-policy mechanism.",sampleAnswer:"A good answer should identify the monetary policy, the AD/SRAS/LRAS channel, and the implication for output and prices."});} return {title:String(data.title||fallback.title),subtitle:String(data.subtitle||data.summary||fallback.subtitle),market:{gdpLabel:String(market.gdpLabel||document.getElementById("engineGdpLabel")?.value||fallback.market.gdpLabel),priceLabel:String(market.priceLabel||document.getElementById("enginePriceLabel")?.value||fallback.market.priceLabel),gdpPrefix:String(market.gdpPrefix||""),gdpSuffix:String(market.gdpSuffix||""),pricePrefix:String(market.pricePrefix||""),priceSuffix:String(market.priceSuffix||"")},notes:String(data.notes||""),steps:cleanSteps,questions:cleanQ}; }
+      function caseResolve(pkg, idx){ const t=idx; const step=pkg.steps[idx]||pkg.steps[0]; const b=benchmark(t,1.2,0.7); const eq=solve(b,step.adShift,step.srasShift,step.lrasShift); return {t,bench:b,eq,step,outputGap:eq.y-eq.yPotential,priceGap:eq.p-b.p}; }
+      function casePath(pkg){ return pkg.steps.map((_,i)=>caseResolve(pkg,i)); }
+      function renderCasePackage(pkg, prefix, stateObj){ stateObj.stepIndex=Math.max(0,Math.min(stateObj.stepIndex,pkg.steps.length-1)); stateObj.questionIndex=Math.max(0,Math.min(stateObj.questionIndex,pkg.questions.length-1)); const resolved=caseResolve(pkg,stateObj.stepIndex); const path=casePath(pkg); drawMacroGraph(document.getElementById(prefix+"Canvas"),{bench:resolved.bench,eq:resolved.eq,adShift:resolved.step.adShift,preAdShift:0,srasShift:resolved.step.srasShift,showPrePolicy:false,currentLabel:"E",titleText:pkg.title}); drawSeriesChart(document.getElementById(prefix+"GdpSeries"),{benchmark:path.map((s,i)=>({label:pkg.steps[i].label,value:s.bench.yStar})),actual:path.slice(0,stateObj.stepIndex+1).map((s,i)=>({label:pkg.steps[i].label,value:s.eq.y})),color:palette.output,formatter:fmtCaseGdp,highlightIndex:stateObj.stepIndex}); drawSeriesChart(document.getElementById(prefix+"PriceSeries"),{benchmark:path.map((s,i)=>({label:pkg.steps[i].label,value:s.bench.p})),actual:path.slice(0,stateObj.stepIndex+1).map((s,i)=>({label:pkg.steps[i].label,value:s.eq.p})),color:palette.inflation,formatter:fmtCasePrice,highlightIndex:stateObj.stepIndex}); document.getElementById(prefix+"MetricGrid").innerHTML=metricCard("Selected step",resolved.step.label,resolved.step.title)+metricCard("Realised GDP",fmt(resolved.eq.y,1),gapLabel(resolved.outputGap))+metricCard("Price level",fmt(resolved.eq.p,1),"short-run equilibrium")+metricCard("AD / LRAS",signed(resolved.step.adShift,1)+" / "+signed(resolved.step.lrasShift,1),"case calibration"); document.getElementById(prefix+"Feedback").className="feedback-card feedback-neutral"; document.getElementById(prefix+"Feedback").innerHTML='<strong>'+esc(resolved.step.title)+'</strong><p style="margin:8px 0 0 0;line-height:1.45;">'+esc(resolved.step.summary)+'</p><p style="margin:8px 0 0 0;color:var(--color-muted);line-height:1.45;"><strong>Evidence:</strong> '+esc(resolved.step.evidence)+'</p>'; }
+      function renderStepList(listId,pkg,stateObj,renderFn){ const list=document.getElementById(listId); if(!list) return; list.innerHTML=""; pkg.steps.forEach((step,i)=>{const card=document.createElement("div"); card.className="step-card"+(i===stateObj.stepIndex?" active":""); card.innerHTML='<div class="step-title">'+esc(step.label+" • "+step.title)+'</div><div class="step-note">'+esc(step.summary)+'</div>'; card.addEventListener("click",()=>{stateObj.stepIndex=i;renderFn();}); list.appendChild(card);}); }
+      function renderSourceList(listId,pkg,stateObj){ const list=document.getElementById(listId); if(!list) return; list.innerHTML=""; pkg.steps.forEach((step,i)=>{const card=document.createElement("div"); card.className="source-card-item"; const sources=(step.sources||[]).map(src=>'<br><span class="source-note">'+esc(src.title||"Source")+(src.url?': '+esc(src.url):'')+'</span>').join(""); card.innerHTML='<strong>'+esc(step.label)+'</strong><br><span class="source-note">'+esc(step.evidence||"No evidence note supplied.")+sources+'</span>'; if(i===stateObj.stepIndex) card.style.borderColor="var(--color-demand)"; list.appendChild(card);}); }
+      function applyAssignedPackage(raw,options={}){ assignedCase=sanitizePackage(raw); assignedState.stepIndex=0;assignedState.questionIndex=0; if(options.saveToBrowser) localStorage.setItem(reusableStorageKey,JSON.stringify(assignedCase)); renderAssignedCase(); setAssignedStatus(options.statusMessage||"Loaded the assigned monetary-policy case."); }
+      function setAssignedStatus(message,kind="ready"){const chip=document.getElementById("assignedCaseStatusChip"),note=document.getElementById("assignedCaseSourceNote"); if(chip) chip.textContent=kind==="empty"?"No assigned case yet":"Assigned case ready"; if(note&&message) note.innerHTML=esc(message);}
+      async function fetchExternalReusable(){ try{const r=await fetch(siteCaseUrl,{cache:"no-store"}); if(!r.ok) return null; const data=await r.json(); return data&&typeof data==="object"?data:null;}catch(e){return null;} }
+      async function loadAssignedForStudents(){ const saved=localStorage.getItem(reusableStorageKey); if(saved){try{applyAssignedPackage(JSON.parse(saved),{statusMessage:"Loaded the browser-saved assigned case."});return true;}catch(e){localStorage.removeItem(reusableStorageKey);}} const ext=await fetchExternalReusable(); if(ext){applyAssignedPackage(ext,{statusMessage:"Loaded the assigned case from monetary_policy_adas_saved_case.json."});return true;} applyAssignedPackage(defaultMonetaryCase,{statusMessage:"No assigned generated case has been published yet; the built-in placeholder is loaded."}); return false; }
+      function renderAssignedCase(){ document.getElementById("assignedCaseTitleDisplay").textContent=assignedCase.title; document.getElementById("assignedCaseSubtitleDisplay").textContent=assignedCase.subtitle; renderCasePackage(assignedCase,"assigned",assignedState); renderStepList("assignedStepList",assignedCase,assignedState,renderAssignedCase); renderSourceList("assignedSourceList",assignedCase,assignedState); renderQuestionList("assignedQuestionList",assignedCase.questions,assignedState,"assigned"); const q=assignedCase.questions[assignedState.questionIndex]; if(q) document.getElementById("assignedPromptBox").innerHTML='<strong>'+esc(q.title)+'</strong><br>'+esc(q.question); }
+      async function submitAssignedAnswer(){ const feedback=document.getElementById("assignedExerciseFeedback"); const q=assignedCase.questions[assignedState.questionIndex]; const ans=document.getElementById("assignedStudentAnswer").value.trim(); const apiKey=document.getElementById("fixedApiKey").value.trim(); const endpoint=document.getElementById("fixedApiEndpoint").value.trim(); const modelName=document.getElementById("fixedModel").value.trim()||"gpt-5.5"; if(!ans){feedback.className="feedback-card feedback-warning";feedback.textContent="Please write an answer before submitting.";return;} if(!apiKey&&endpoint.includes("api.openai.com")){feedback.className="feedback-card feedback-warning";feedback.textContent="Please enter an OpenAI API key, or use the deployed proxy endpoint.";return;} feedback.className="feedback-card feedback-neutral";feedback.textContent="Submitting answer for AI feedback..."; try{const data=await callResponsesApi(endpoint,apiKey,modelName,buildMarkerPrompt(assignedCase.title,assignedCase.subtitle,assignedCase.steps,q.question,q.sampleAnswer,ans)); const parsed=parseJson(extractResponseText(data)); if(!parsed){feedback.className="feedback-card feedback-warning";feedback.innerHTML="The API returned feedback, but it was not valid JSON.";return;} renderScoreFeedback(feedback,parsed);}catch(error){feedback.className="feedback-card feedback-warning";feedback.innerHTML='<strong>Could not get API feedback.</strong><br>'+esc(error.message);} }
+      function applyEnginePackage(raw,options={}){ engineCase=sanitizePackage(raw); engineState.stepIndex=0;engineState.questionIndex=0;engineState.answersVisible=false; const topic=document.getElementById("engineTopic"), notes=document.getElementById("engineTeacherNotes"), gdp=document.getElementById("engineGdpLabel"), price=document.getElementById("enginePriceLabel"); if(topic) topic.value=engineCase.title; if(notes&&options.updateNotes!==false) notes.value=engineCase.notes||notes.value; if(gdp) gdp.value=engineCase.market.gdpLabel; if(price) price.value=engineCase.market.priceLabel; renderEngineCase(); syncEngineJson(); }
+      function renderEngineCase(){ document.getElementById("engineTitleDisplay").textContent=engineCase.title; document.getElementById("engineSubtitleDisplay").textContent=engineCase.subtitle; renderCasePackage(engineCase,"engine",engineState); renderStepList("engineStepList",engineCase,engineState,renderEngineCase); renderSourceList("engineSourceList",engineCase,engineState); renderQuestionList("engineQuestionList",engineCase.questions,engineState,"engine"); renderEditors("engineAnswerEditors",engineCase.questions,()=>{syncEngineJson(false);}); const q=engineCase.questions[engineState.questionIndex]; if(q) document.getElementById("enginePromptBox").innerHTML='<strong>'+esc(q.title)+'</strong><br>'+esc(q.question); const panel=document.getElementById("engineAnswerEditorPanel"),btn=document.getElementById("engineToggleAnswersButton"); if(panel&&btn){panel.classList.toggle("hidden",!engineState.answersVisible); btn.textContent=engineState.answersVisible?"Hide questions and answers":"Show/edit questions and answers";} syncEngineJson(false); }
+      function syncEngineJson(write=true){const area=document.getElementById("engineJsonArea"); if(area&&write) area.value=JSON.stringify(engineCase,null,2);}
+      function setEngineStatus(kind,text){const b=document.getElementById("engineStatusBadge"); if(!b) return; b.className="status-badge "+kind; b.textContent=text; b.setAttribute("aria-label",text);}
+      function buildCaseGeneratorPrompt(){ const topic=document.getElementById("engineTopic").value.trim()||"New monetary-policy AD-AS case"; const notes=document.getElementById("engineTeacherNotes").value.trim()||"No teacher notes supplied."; const gdpLabel=document.getElementById("engineGdpLabel").value.trim()||"Real GDP index"; const priceLabel=document.getElementById("enginePriceLabel").value.trim()||"Price level index"; return ["You are building an introductory macroeconomics monetary-policy case-study package for a dynamic AD-AS teaching graph.","Create a sequence of events for the topic below. Emphasise how cash-rate changes, liquidity operations, forward guidance, asset purchases or credit conditions shift AD, and when funding-cost relief or avoided hysteresis shifts SRAS and LRAS.","Return ONLY a single valid JSON object. Do not include markdown fences or prose outside JSON.","The JSON must follow this schema exactly:",JSON.stringify({title:"Case title",subtitle:"One sentence case summary and teaching purpose.",market:{gdpLabel,priceLabel,gdpPrefix:"",gdpSuffix:"",pricePrefix:"",priceSuffix:""},notes:"Brief teacher-facing note on data limitations and assumptions.",steps:[{label:"Baseline",title:"Event title",adShift:0,srasShift:0,lrasShift:0,summary:"Economic story for this step.",evidence:"Evidence note and data/proxy qualification.",event:"Monetary event",sources:[{title:"Source title",url:"https://..."}]}],questions:[{title:"1. Question title",question:"Student question",sampleAnswer:"Editable benchmark answer"}]},null,2),"Requirements:","- Provide 5 to 7 steps, with the first step as a baseline.","- adShift is positive when monetary policy or private demand shifts AD right; negative when AD shifts left.","- srasShift is positive when SRAS shifts left/up due to costs; negative when SRAS shifts right/down due to supply relief.","- lrasShift is positive when potential GDP shifts right due to productive capacity; negative when capacity is damaged.","- Provide exactly 6 questions and editable sample answers.","- Questions should cover: expansionary policy, contractionary policy, unconventional monetary policy, AD/SRAS/LRAS channels, output-price trade-offs, evidence use, and limitations.","- Clearly distinguish actual data from teaching proxies.","Topic: "+topic,"Teacher-provided information: "+notes].join("\n\n"); }
+      async function generateCase(){ const ok=await requestTeacherAccess("generate or update a monetary-policy case"); if(!ok) return; const feedback=document.getElementById("engineFeedback"), button=document.getElementById("engineGenerateButton"); const apiKey=document.getElementById("engineApiKey").value.trim(); const endpoint=document.getElementById("engineApiEndpoint").value.trim(); const modelName=document.getElementById("engineModel").value.trim()||"gpt-5.5"; const useSearch=document.getElementById("engineSearchToggle").value==="web"; if(!apiKey&&endpoint.includes("api.openai.com")){setEngineStatus("warning","API key needed"); feedback.className="feedback-card feedback-warning"; feedback.textContent="Please enter an OpenAI API key, or use the deployed proxy endpoint."; return;} setEngineStatus("working","Case Underconstruction"); if(button) button.disabled=true; feedback.className="feedback-card feedback-neutral"; feedback.textContent=useSearch?"Generating a researched monetary-policy case package with web search...":"Generating a monetary-policy case package from teacher notes only..."; try{const data=await callResponsesApi(endpoint,apiKey,modelName,buildCaseGeneratorPrompt(),{useSearch}); const parsed=parseJson(extractResponseText(data)); if(!parsed) throw new Error("The API response was not valid JSON."); applyEnginePackage(parsed); localStorage.setItem(storageKey,JSON.stringify(engineCase)); setEngineStatus("completed","Case completed"); feedback.className="feedback-card feedback-success"; feedback.innerHTML="<strong>Case package generated and loaded.</strong><br>The sequence, graph, charts, source cues, six questions and editable sample answers now use the new topic.";}catch(error){setEngineStatus("warning","Case generation failed"); feedback.className="feedback-card feedback-warning"; feedback.innerHTML='<strong>Could not generate the case package.</strong><br>'+esc(error.message);}finally{if(button) button.disabled=false;} }
+      function exportEngineJson(){syncEngineJson();document.getElementById("engineJsonArea").focus();} function importEngineJson(){const area=document.getElementById("engineJsonArea"),feedback=document.getElementById("engineFeedback"); try{const parsed=JSON.parse(area.value);applyEnginePackage(parsed,{updateNotes:false});localStorage.setItem(storageKey,JSON.stringify(engineCase));setEngineStatus("completed","Case completed");feedback.className="feedback-card feedback-success";feedback.textContent="The imported case package has been loaded and saved to this browser.";}catch(error){setEngineStatus("warning","Import failed");feedback.className="feedback-card feedback-warning";feedback.textContent="Could not load JSON: "+error.message;}} function downloadJson(obj,filename){const blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json"}); const url=URL.createObjectURL(blob); const link=document.createElement("a"); link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);} function downloadEngineJson(){const safe=(engineCase.title||"monetary-policy-case").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"monetary-policy-case"; downloadJson(engineCase,safe+".json");} function saveEngineCase(){localStorage.setItem(storageKey,JSON.stringify(engineCase));setEngineStatus("completed","Case completed");const f=document.getElementById("engineFeedback");f.className="feedback-card feedback-success";f.textContent="The active monetary-policy case has been saved to this browser.";} function clearSavedCase(){localStorage.removeItem(storageKey);applyEnginePackage(defaultMonetaryCase);setEngineStatus("idle","Case placeholder");const f=document.getElementById("engineFeedback");f.className="feedback-card feedback-neutral";f.textContent="Saved browser case cleared. The placeholder package has been restored.";}
+      async function loadReusableCase(){const saved=localStorage.getItem(reusableStorageKey); if(saved){try{const parsed=JSON.parse(saved); applyEnginePackage(parsed,{updateNotes:false}); applyAssignedPackage(parsed,{statusMessage:"Loaded the browser-saved assigned monetary-policy case."}); localStorage.setItem(storageKey,JSON.stringify(engineCase)); updateReusableStatus("Loaded the reusable case saved in this browser. Students can use it in the Assigned generated case tab.","success"); return true;}catch(e){localStorage.removeItem(reusableStorageKey);}} const ext=await fetchExternalReusable(); if(ext){applyEnginePackage(ext,{updateNotes:false});applyAssignedPackage(ext,{statusMessage:"Loaded site-level assigned case from monetary_policy_adas_saved_case.json."});localStorage.setItem(storageKey,JSON.stringify(engineCase));updateReusableStatus("Loaded site-level reusable case from monetary_policy_adas_saved_case.json.","success");return true;} applyEnginePackage(defaultMonetaryCase,{updateNotes:false});applyAssignedPackage(defaultMonetaryCase,{statusMessage:"No assigned generated case has been published yet; the built-in placeholder is loaded."});updateReusableStatus("No browser-saved case or site JSON file was found. The built-in placeholder is loaded.","neutral");return false;}
+      function updateReusableStatus(message,kind="neutral"){const s=document.getElementById("reusableCaseStatus"); if(!s)return; const title=kind==="success"?"Reusable case ready":kind==="warning"?"Reusable case warning":"Reusable case placeholder"; s.innerHTML="<strong>"+esc(title)+"</strong><br>"+esc(message||"");}
+      async function overwriteReusable(){const ok=await requestTeacherAccess("overwrite the reusable case with the active case"); if(!ok)return; localStorage.setItem(reusableStorageKey,JSON.stringify(engineCase));localStorage.setItem(storageKey,JSON.stringify(engineCase));applyAssignedPackage(engineCase,{statusMessage:"The teacher-published assigned case is now available to students in this browser."});updateReusableStatus("The active case has overwritten the assigned case in this browser. Download the site JSON and upload it to GitHub for site-wide reuse.","success"); if(window.confirm("The assigned student case has been overwritten in this browser. Lock teacher access now?")) lockTeacherAccess("Teacher access has been locked. Students can now use the Assigned generated case tab.");}
+      async function downloadSiteJson(){const ok=await requestTeacherAccess("download the site case JSON"); if(!ok)return; downloadJson(engineCase,"monetary_policy_adas_saved_case.json"); updateReusableStatus("Downloaded monetary_policy_adas_saved_case.json. Upload/replace this file beside the HTML to make the case reusable site-wide.","success");}
+      async function clearReusable(){const ok=await requestTeacherAccess("clear the browser-saved reusable case"); if(!ok)return; localStorage.removeItem(reusableStorageKey); await loadAssignedForStudents(); updateReusableStatus("Browser-saved assigned case cleared. The site-level JSON file, if it exists, is not changed.","warning");}
+      async function submitEngineAnswer(){const feedback=document.getElementById("engineExerciseFeedback"), q=engineCase.questions[engineState.questionIndex], ans=document.getElementById("engineStudentAnswer").value.trim(), apiKey=document.getElementById("engineApiKey").value.trim(), endpoint=document.getElementById("engineApiEndpoint").value.trim(), modelName=document.getElementById("engineModel").value.trim()||"gpt-5.5"; if(!ans){feedback.className="feedback-card feedback-warning";feedback.textContent="Please write an answer before submitting.";return;} if(!apiKey&&endpoint.includes("api.openai.com")){feedback.className="feedback-card feedback-warning";feedback.textContent="Please enter an OpenAI API key, or use the deployed proxy endpoint.";return;} feedback.className="feedback-card feedback-neutral";feedback.textContent="Submitting answer for AI feedback..."; try{const data=await callResponsesApi(endpoint,apiKey,modelName,buildMarkerPrompt(engineCase.title,engineCase.subtitle,engineCase.steps,q.question,q.sampleAnswer,ans));const parsed=parseJson(extractResponseText(data)); if(!parsed){feedback.className="feedback-card feedback-warning";feedback.textContent="The API returned feedback, but it was not valid JSON.";return;}renderScoreFeedback(feedback,parsed);}catch(error){feedback.className="feedback-card feedback-warning";feedback.innerHTML='<strong>Could not get API feedback.</strong><br>'+esc(error.message);}}
+      function bindControls(){ protectTeacherTabs(); document.querySelectorAll(".module-tab").forEach(tab=>{tab.addEventListener("click",()=>{if(tab.dataset.teacherProtected==="true")return;activateModuleSection(tab.dataset.target);});}); document.getElementById("fixedSubmitButton").addEventListener("click",submitFixedAnswer); document.getElementById("fixedToggleAnswersButton").addEventListener("click",async()=>{const ok=await requestTeacherAccess("show or edit the RBA GFC case-study questions and sample answers"); if(!ok)return; fixedState.answersVisible=!fixedState.answersVisible; renderFixedExercises();}); document.getElementById("fixedResetButton").addEventListener("click",()=>{fixedState.selectedIndex=0;document.getElementById("fixedStudentAnswer").value="";document.getElementById("fixedFeedback").className="feedback-card feedback-neutral";document.getElementById("fixedFeedback").textContent="Feedback and score will appear here after submission.";renderFixedExercises();}); document.getElementById("assignedPrevStepButton").addEventListener("click",()=>{assignedState.stepIndex=Math.max(0,assignedState.stepIndex-1);renderAssignedCase();}); document.getElementById("assignedNextStepButton").addEventListener("click",()=>{assignedState.stepIndex=Math.min(assignedCase.steps.length-1,assignedState.stepIndex+1);renderAssignedCase();}); document.getElementById("assignedFullPathButton").addEventListener("click",()=>{assignedState.stepIndex=assignedCase.steps.length-1;renderAssignedCase();}); document.getElementById("assignedResetPathButton").addEventListener("click",()=>{assignedState.stepIndex=0;renderAssignedCase();}); document.getElementById("assignedSubmitButton").addEventListener("click",submitAssignedAnswer); document.getElementById("assignedResetExerciseButton").addEventListener("click",()=>{assignedState.questionIndex=0;document.getElementById("assignedStudentAnswer").value="";document.getElementById("assignedExerciseFeedback").className="feedback-card feedback-neutral";document.getElementById("assignedExerciseFeedback").textContent="Feedback and score for the assigned case will appear here after submission.";renderAssignedCase();}); document.getElementById("engineGenerateButton").addEventListener("click",generateCase); document.getElementById("engineSaveButton").addEventListener("click",saveEngineCase); document.getElementById("teacherLockButton").addEventListener("click",()=>lockTeacherAccess("Teacher access has been locked. Students can now use the Assigned generated case tab.")); document.getElementById("enginePrevStepButton").addEventListener("click",()=>{engineState.stepIndex=Math.max(0,engineState.stepIndex-1);renderEngineCase();}); document.getElementById("engineNextStepButton").addEventListener("click",()=>{engineState.stepIndex=Math.min(engineCase.steps.length-1,engineState.stepIndex+1);renderEngineCase();}); document.getElementById("engineFullPathButton").addEventListener("click",()=>{engineState.stepIndex=engineCase.steps.length-1;renderEngineCase();}); document.getElementById("engineResetPathButton").addEventListener("click",()=>{engineState.stepIndex=0;renderEngineCase();}); document.getElementById("engineSubmitButton").addEventListener("click",submitEngineAnswer); document.getElementById("engineToggleAnswersButton").addEventListener("click",async()=>{const ok=await requestTeacherAccess("show or edit the assignable-case questions and sample answers"); if(!ok)return; engineState.answersVisible=!engineState.answersVisible;renderEngineCase();}); document.getElementById("engineResetExerciseButton").addEventListener("click",()=>{engineState.questionIndex=0;document.getElementById("engineStudentAnswer").value="";document.getElementById("engineExerciseFeedback").className="feedback-card feedback-neutral";document.getElementById("engineExerciseFeedback").textContent="Feedback and score for the assignable case will appear here after submission.";renderEngineCase();}); document.getElementById("engineExportJsonButton").addEventListener("click",()=>{syncEngineJson();document.getElementById("engineJsonArea").focus();}); document.getElementById("engineImportJsonButton").addEventListener("click",importEngineJson); document.getElementById("engineDownloadJsonButton").addEventListener("click",downloadEngineJson); document.getElementById("engineClearSavedButton").addEventListener("click",clearSavedCase); document.getElementById("engineJsonFileInput").addEventListener("change",async e=>{const file=e.target.files&&e.target.files[0]; if(!file)return; document.getElementById("engineJsonArea").value=await file.text(); importEngineJson(); e.target.value="";}); document.getElementById("loadReusableCaseButton").addEventListener("click",loadReusableCase); document.getElementById("overwriteReusableCaseButton").addEventListener("click",overwriteReusable); document.getElementById("downloadSiteCaseButton").addEventListener("click",downloadSiteJson); document.getElementById("clearReusableCaseButton").addEventListener("click",clearReusable); ["engineGdpLabel","enginePriceLabel"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{engineCase.market.gdpLabel=document.getElementById("engineGdpLabel").value||engineCase.market.gdpLabel; engineCase.market.priceLabel=document.getElementById("enginePriceLabel").value||engineCase.market.priceLabel; renderEngineCase(); syncEngineJson();})); }
+      function init(){ bindControls(); renderAll(); renderGfcCase(); renderFixedExercises(); const saved=localStorage.getItem(storageKey); if(saved){try{applyEnginePackage(JSON.parse(saved));setEngineStatus("completed","Case completed");}catch(e){localStorage.removeItem(storageKey);applyEnginePackage(defaultMonetaryCase);setEngineStatus("idle","Case placeholder");}}else{applyEnginePackage(defaultMonetaryCase);setEngineStatus("idle","Case placeholder");} loadAssignedForStudents(); }
+      init();
+    })();
+  </script>
+</body>
+</html>
